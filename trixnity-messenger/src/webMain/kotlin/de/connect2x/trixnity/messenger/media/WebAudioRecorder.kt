@@ -153,7 +153,7 @@ class WebAudioRecorder(
         mediaDeferred: Deferred<AudioRecorder.State.Completed.MediaReference>,
         mediaSize: () -> Double,
         start: Instant,
-    ): suspend () -> AudioRecorderImpl.State.Completed? {
+    ): suspend () -> Result<AudioRecorderImpl.State.Completed> {
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         val opusFileExtension = "ogg"
         return {
@@ -171,15 +171,18 @@ class WebAudioRecorder(
                     }
                 if (recordingSuccessful != null) {
                     val media = mediaDeferred.await()
-                    AudioRecorderImpl.State.Completed(
-                        media,
-                        clock.now() - start,
-                        mediaSize().toLong(),
-                        opusContentType,
-                        opusFileExtension,
+                    Result.success(
+                        AudioRecorderImpl.State.Completed(
+                            media,
+                            clock.now() - start,
+                            mediaSize().toLong(),
+                            opusContentType,
+                            opusFileExtension,
+                        )
                     )
                 } else {
-                    null
+                    log.warn { "Stopping the web API recorder failed or timed out" }
+                    Result.failure(Throwable(i18n.genericRecordingError()))
                 }
             } finally {
                 mediaDeferred.cancel()

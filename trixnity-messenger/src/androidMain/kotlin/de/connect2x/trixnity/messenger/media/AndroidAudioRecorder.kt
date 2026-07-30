@@ -136,15 +136,18 @@ internal class AndroidAudioRecorder(
                                 val fileData = fileSystem.readByteArrayFlow(tempFilePath)
                                 if (fileData != null) {
                                     val media = intoMediaStore(fileData)
-                                    AudioRecorderImpl.State.Completed(
-                                        media,
-                                        duration = clock.now() - start,
-                                        sizeBytes = fileSystem.metadata(tempFilePath).size,
-                                        contentType = format.contentType,
-                                        fileExtension = audioFileExtension,
+                                    Result.success(
+                                        AudioRecorderImpl.State.Completed(
+                                            media,
+                                            duration = clock.now() - start,
+                                            sizeBytes = fileSystem.metadata(tempFilePath).size,
+                                            contentType = format.contentType,
+                                            fileExtension = audioFileExtension,
+                                        )
                                     )
                                 } else {
-                                    null
+                                    log.warn { "Reading recording file from file system failed" }
+                                    Result.failure(Throwable(i18n.genericRecordingError()))
                                 }
                             } finally {
                                 fileSystem.delete(tempFilePath)

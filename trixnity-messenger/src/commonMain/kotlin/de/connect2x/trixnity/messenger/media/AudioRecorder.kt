@@ -117,12 +117,12 @@ class AudioRecorderImpl(
     }
 
     override suspend fun complete() {
-        stateImpl.value = complete(stateImpl.value)
+        stateImpl.value = complete(stateImpl.value, i18n)
     }
 
     override suspend fun closeSuspending() {
         withContext(NonCancellable) {
-            stateImpl.value = close(stateImpl.value)
+            stateImpl.value = close(stateImpl.value, i18n)
             platformAudioRecorder.close()
         }
     }
@@ -132,7 +132,7 @@ class AudioRecorderImpl(
     }
 
     private suspend fun fail(failure: State.Failed) {
-        close(stateImpl.value)
+        close(stateImpl.value, i18n)
         stateImpl.value = failure
     }
 
@@ -149,7 +149,7 @@ class AudioRecorderImpl(
              * recording. The media store automatically deletes files if they are not used so this does not have to be
              * handled.
              */
-            val complete: suspend () -> Completed?,
+            val complete: suspend () -> Result<Completed>,
 
             /**
              * Signal a failure from platform code to common code. Common code then sets the failure state. Platform
@@ -196,7 +196,7 @@ class AudioRecorderImpl(
             return { failure }
         }
 
-        private suspend fun complete(stateImpl: State): State {
+        private suspend fun complete(stateImpl: State, i18n: I18n): State {
             return when (stateImpl) {
                 State.Ready -> {
                     log.debug { "Tried to complete recording but it is not yet started" }
@@ -206,19 +206,15 @@ class AudioRecorderImpl(
                 is State.Recording -> {
                     log.debug { "Completing recording" }
 
-                    val completedState =
-                        try {
-                            stateImpl.complete()
-                        } catch (t: Throwable) {
-                            log.warn(t) { "Completing recording failed." }
-                            null
-                        }
-                    if (completedState != null) {
-                        completedState
-                    } else {
-                        log.warn { "Completing recording failed." }
-                        State.Ready
-                    }
+                    stateImpl
+                        .complete()
+                        .fold(
+                            onSuccess = { state -> state },
+                            onFailure = { t ->
+                                log.debug { "Completing recording failed." }
+                                State.Failed(t.message ?: i18n.genericRecordingError())
+                            },
+                        )
                 }
 
                 is State.Completed -> {
@@ -232,9 +228,9 @@ class AudioRecorderImpl(
             }
         }
 
-        private suspend fun close(stateImpl: State): State {
+        private suspend fun close(stateImpl: State, i18n: I18n): State {
             log.debug { "Cleaning audio recorder" }
-            complete(stateImpl)
+            complete(stateImpl, i18n)
             return State.Ready
         }
 
@@ -318,7 +314,7 @@ class AudioRecorderImpl(
                     try {
                         recordingState.loudness()
                     } catch (e: Throwable) {
-                        log.debug(e) { "Getting audio loudness failed" }
+                        log.debug(e) { "Getting audio loudness threw" }
                         null
                     }
                 },
@@ -326,8 +322,8 @@ class AudioRecorderImpl(
                     try {
                         recordingState.complete()
                     } catch (e: Throwable) {
-                        log.warn(e) { "Completing audio recording failed." }
-                        null
+                        log.warn(e) { "Completing audio recording threw." }
+                        Result.failure(e)
                     }
                 },
                 failure = {

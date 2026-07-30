@@ -162,15 +162,17 @@ internal class AppleAudioRecorder(
                         val fileData = fileSystem.readByteArrayFlow(file)
                         if (fileData != null) {
                             val media = intoMediaStore(fileData)
-                            AudioRecorderImpl.State.Completed(
-                                media,
-                                duration = clock.now() - start,
-                                sizeBytes = fileSystem.metadata(file).size,
-                                contentType = ContentType.Audio.MP4,
-                                fileExtension = audioFileExtension,
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    media,
+                                    duration = clock.now() - start,
+                                    sizeBytes = fileSystem.metadata(file).size,
+                                    contentType = ContentType.Audio.MP4,
+                                    fileExtension = audioFileExtension,
+                                )
                             )
                         } else {
-                            null
+                            Result.failure(Throwable(i18n.genericRecordingError()))
                         }
                     } finally {
                         fileSystem.delete(file)

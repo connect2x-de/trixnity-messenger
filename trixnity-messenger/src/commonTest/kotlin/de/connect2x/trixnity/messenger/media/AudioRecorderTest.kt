@@ -81,12 +81,14 @@ class AudioRecorderTest {
                         startTime,
                         { 5f },
                         {
-                            AudioRecorderImpl.State.Completed(
-                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                                1.seconds,
-                                1000L,
-                                ContentType("audio", "ogg"),
-                                "ogg",
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
                             )
                         },
                         failure = { null },
@@ -112,12 +114,14 @@ class AudioRecorderTest {
                         startTime,
                         { 5F },
                         {
-                            AudioRecorderImpl.State.Completed(
-                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                                1.seconds,
-                                1000L,
-                                ContentType("audio", "ogg"),
-                                "ogg",
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
                             )
                         },
                         failure = { null },
@@ -175,12 +179,14 @@ class AudioRecorderTest {
                     startTime,
                     { 5f },
                     {
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
                         )
                     },
                     failure = { null },
@@ -221,12 +227,14 @@ class AudioRecorderTest {
                     startTime,
                     { increasingLoudness() },
                     {
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
                         )
                     },
                     failure = { null },
@@ -256,12 +264,14 @@ class AudioRecorderTest {
                     startTime,
                     { throw IllegalStateException() },
                     {
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
                         )
                     },
                     failure = { null },
@@ -285,12 +295,14 @@ class AudioRecorderTest {
                     startTime,
                     { null },
                     {
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
                         )
                     },
                     failure = { null },
@@ -315,12 +327,14 @@ class AudioRecorderTest {
                         startTime,
                         { 5F },
                         {
-                            AudioRecorderImpl.State.Completed(
-                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                                1.seconds,
-                                1000L,
-                                ContentType("audio", "ogg"),
-                                "ogg",
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
                             )
                         },
                         failure = { null },
@@ -363,7 +377,7 @@ class AudioRecorderTest {
                         { 5F },
                         {
                             resourcesCleaned = true
-                            null
+                            Result.failure(Throwable("unused"))
                         },
                         failure = { failure },
                     )
@@ -398,6 +412,33 @@ class AudioRecorderTest {
         }
 
     @Test
+    fun `fail while completing - when platform recorder fails to complete then enter failed state`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
+
+            val startTime = Clock.System.now()
+
+            everySuspend { platformAudioRecorder.start(any()) } returns
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        { Result.failure(Throwable("unused")) },
+                        failure = { null },
+                    )
+                )
+
+            every { clock.now() } returns (startTime + 5.seconds)
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Recording) shouldBe true
+
+            backgroundScope.launch { cut.complete() }
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Failed) shouldBe true
+        }
+
+    @Test
     fun `complete when recording - when pressing stop button then complete recording`() =
         runTestWithCoroutineScope { coroutineScope ->
             val cut = commonAudioRecorder(coroutineScope)
@@ -409,12 +450,14 @@ class AudioRecorderTest {
                         startTime,
                         { 5F },
                         {
-                            AudioRecorderImpl.State.Completed(
-                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                                1.seconds,
-                                1000L,
-                                ContentType("audio", "ogg"),
-                                "ogg",
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
                             )
                         },
                         failure = { null },
@@ -438,7 +481,7 @@ class AudioRecorderTest {
         }
 
     @Test
-    fun `complete - should reset to ready when complete throws`() = runTestWithCoroutineScope { coroutineScope ->
+    fun `complete - should be in failed state when complete throws`() = runTestWithCoroutineScope { coroutineScope ->
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
@@ -458,7 +501,15 @@ class AudioRecorderTest {
         }
         delay(1.seconds)
 
-        cut.state.value shouldBe AudioRecorder.State.Ready
+        val isFailed =
+            when (cut.state.value) {
+                is AudioRecorder.State.Completed,
+                AudioRecorder.State.Ready,
+                is AudioRecorder.State.Recording -> false
+
+                is AudioRecorder.State.Failed -> true
+            }
+        isFailed shouldBe true
     }
 
     @Test
@@ -472,12 +523,14 @@ class AudioRecorderTest {
                     startTime,
                     { 5F },
                     {
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
                         )
                     },
                     failure = { null },
@@ -507,12 +560,14 @@ class AudioRecorderTest {
                         startTime,
                         { 5F },
                         {
-                            AudioRecorderImpl.State.Completed(
-                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                                1.seconds,
-                                1000L,
-                                ContentType("audio", "ogg"),
-                                "ogg",
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
                             )
                         },
                         failure = { null },
@@ -544,12 +599,14 @@ class AudioRecorderTest {
                         startTime,
                         { 5F },
                         {
-                            AudioRecorderImpl.State.Completed(
-                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                                1.seconds,
-                                1000L,
-                                ContentType("audio", "ogg"),
-                                "ogg",
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
                             )
                         },
                         failure = { null },
