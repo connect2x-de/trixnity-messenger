@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresPermission
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate
 import de.connect2x.trixnity.messenger.util.ActivityGetter
@@ -37,7 +38,7 @@ internal class AndroidAudioRecorder(
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override suspend fun start(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): AudioRecorderImpl.State.Recording? {
+    ): PlatformAudioRecorder.StartResult {
         fun requestPermission() {
             registeredRequestPermission?.unregister()
             registeredRequestPermission =
@@ -52,10 +53,12 @@ internal class AndroidAudioRecorder(
             PackageManager.PERMISSION_GRANTED -> startRecorder(intoMediaStore)
             PackageManager.PERMISSION_DENIED -> {
                 requestPermission()
-                null
+                PlatformAudioRecorder.StartResult.RequestedPermissions
             }
 
-            else -> null
+            else ->
+                // should never be reached
+                PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
         }
     }
 
@@ -75,77 +78,88 @@ internal class AndroidAudioRecorder(
 
     private suspend fun startRecorder(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): AudioRecorderImpl.State.Recording {
+    ): PlatformAudioRecorder.StartResult {
         registeredRequestPermission?.unregister()
-        return withContext(Dispatchers.IO) {
-            val recorder =
-                if (Build.VERSION.SDK_INT >= 31) {
-                    MediaRecorder(getContext())
-                } else {
-                    MediaRecorder()
-                }
-            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-
-            val format =
-                AudioRecorderImpl.Format(
-                    MediaRecorder.OutputFormat.MPEG_4,
-                    MediaRecorder.AudioEncoder.HE_AAC,
-                    AudioRecorderImpl.Format.SampleRateHz.AAC_SAMPLING_RATE_HZ,
-                    BitRate.AAC_BIT_RATE,
-                    ContentType.Audio.MP4,
-                )
-            recorder.setOutputFormat(format.container)
-            recorder.setAudioEncoder(format.encoder)
-            recorder.setOutputFile(tempFilePath.toString())
-            recorder.setAudioChannels(1)
-            recorder.setAudioSamplingRate(format.sampleRate.value)
-            recorder.setAudioEncodingBitRate(format.bitRate.value)
-
-            recorder.prepare()
-            recorder.start()
-
-            val failure =
-                AudioRecorderImpl.genericFailureOnError(i18n) { setFailure ->
-                    recorder.setOnErrorListener { _, errorCode, _ ->
-                        val logMessage =
-                            when (errorCode) {
-                                MediaRecorder.MEDIA_RECORDER_ERROR_UNKNOWN ->
-                                    "Unknown error from Android API recorder while recording"
-                                MediaRecorder.MEDIA_ERROR_SERVER_DIED -> "Media server died while recording"
-                                else -> "Unexpected error while recording"
-                            }
-                        log.error { logMessage }
-                        setFailure()
+        var releaseRecorder: (() -> Unit)? = null
+        return try {
+            withContext(Dispatchers.IO) {
+                val recorder =
+                    if (Build.VERSION.SDK_INT >= 31) {
+                        MediaRecorder(getContext())
+                    } else {
+                        MediaRecorder()
                     }
-                }
+                releaseRecorder = recorder::release
+                recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
 
-            val start = clock.now()
-            AudioRecorderImpl.State.Recording(
-                start = start,
-                loudness = { recorder.maxAmplitude.toFloat() },
-                complete = {
-                    try {
-                        recorder.stop()
-                        val fileData = fileSystem.readByteArrayFlow(tempFilePath)
-                        if (fileData != null) {
-                            val media = intoMediaStore(fileData)
-                            AudioRecorderImpl.State.Completed(
-                                media,
-                                duration = clock.now() - start,
-                                sizeBytes = fileSystem.metadata(tempFilePath).size,
-                                contentType = format.contentType,
-                                fileExtension = audioFileExtension,
-                            )
-                        } else {
-                            null
+                val format =
+                    AudioRecorderImpl.Format(
+                        MediaRecorder.OutputFormat.MPEG_4,
+                        MediaRecorder.AudioEncoder.HE_AAC,
+                        AudioRecorderImpl.Format.SampleRateHz.AAC_SAMPLING_RATE_HZ,
+                        BitRate.AAC_BIT_RATE,
+                        ContentType.Audio.MP4,
+                    )
+                recorder.setOutputFormat(format.container)
+                recorder.setAudioEncoder(format.encoder)
+                recorder.setOutputFile(tempFilePath.toString())
+                recorder.setAudioChannels(1)
+                recorder.setAudioSamplingRate(format.sampleRate.value)
+                recorder.setAudioEncodingBitRate(format.bitRate.value)
+
+                recorder.prepare()
+                recorder.start()
+
+                val failure =
+                    AudioRecorderImpl.genericFailureOnError(i18n) { setFailure ->
+                        recorder.setOnErrorListener { _, errorCode, _ ->
+                            val logMessage =
+                                when (errorCode) {
+                                    MediaRecorder.MEDIA_RECORDER_ERROR_UNKNOWN ->
+                                        "Unknown error from Android API recorder while recording"
+                                    MediaRecorder.MEDIA_ERROR_SERVER_DIED -> "Media server died while recording"
+                                    else -> "Unexpected error while recording"
+                                }
+                            log.error { logMessage }
+                            setFailure()
                         }
-                    } finally {
-                        fileSystem.delete(tempFilePath)
-                        recorder.release()
                     }
-                },
-                failure = failure,
-            )
+
+                val start = clock.now()
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        start = start,
+                        loudness = { recorder.maxAmplitude.toFloat() },
+                        complete = {
+                            try {
+                                recorder.stop()
+                                val fileData = fileSystem.readByteArrayFlow(tempFilePath)
+                                if (fileData != null) {
+                                    val media = intoMediaStore(fileData)
+                                    AudioRecorderImpl.State.Completed(
+                                        media,
+                                        duration = clock.now() - start,
+                                        sizeBytes = fileSystem.metadata(tempFilePath).size,
+                                        contentType = format.contentType,
+                                        fileExtension = audioFileExtension,
+                                    )
+                                } else {
+                                    null
+                                }
+                            } finally {
+                                fileSystem.delete(tempFilePath)
+                                recorder.release()
+                            }
+                        },
+                        failure = failure,
+                    )
+                )
+            }
+        } catch (e: Throwable) {
+            log.error(e) { "Unexpected error while starting recording" }
+            releaseRecorder?.invoke()
+            fileSystem.delete(tempFilePath)
+            PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
         }
     }
 }

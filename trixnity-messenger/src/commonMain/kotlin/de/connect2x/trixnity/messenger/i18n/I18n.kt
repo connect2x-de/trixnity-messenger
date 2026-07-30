@@ -1755,6 +1755,16 @@ open class I18n(
         DE - "Während der Aufnahme ist ein Fehler aufgetreten"
     }
 
+    open fun microphonePermissionDenied() = translate {
+        EN - "Microphone permission denied. Check system settings."
+        DE - "Mikrofon-Zugriff verweigert. Überprüfen Sie die System-Einstellungen."
+    }
+
+    open fun microphonePermissionTimeout() = translate {
+        EN - "Microphone permission request took too long. Try again."
+        DE - "Anfrage des Mikrofon-Zugriffs dauerte zu lange. Versuchen Sie es erneut."
+    }
+
     open fun joinRoomConfirmJoinOffline() = translate {
         EN - "You can't join the room without an internet connection, please try again later."
         DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."

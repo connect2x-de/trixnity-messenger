@@ -26,7 +26,7 @@ actual fun platformModule(): Module = module {
         )
     }
     single<MediaPlayer> { AppleMediaPlayer(get()) }.apply { bind<AutoCloseable>() }
-    single<PlatformAudioRecorder> { AppleAudioRecorder(get(), get()) }.apply { bind<AutoCloseable>() }
+    single<PlatformAudioRecorder> { AppleAudioRecorder(get(), get(), get()) }.apply { bind<AutoCloseable>() }
 }
 
 fun delegateModule(): Module = module {

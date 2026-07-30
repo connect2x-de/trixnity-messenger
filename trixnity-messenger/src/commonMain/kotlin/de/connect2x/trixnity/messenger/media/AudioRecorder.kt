@@ -8,12 +8,14 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.media.AudioRecorder.State.Completed.MediaReference
+import de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Companion.toPublicState
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -88,9 +90,23 @@ class AudioRecorderImpl(
     override suspend fun start(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference) {
         closeSuspending()
 
-        val initialRecordingState = platformAudioRecorder.start(intoMediaStore)
-        if (initialRecordingState != null) {
-            stateImpl.value = withCatchCallbacks(initialRecordingState, i18n)
+        when (val startResult = platformAudioRecorder.start(intoMediaStore)) {
+            is PlatformAudioRecorder.StartResult.Success ->
+                stateImpl.value = withCatchCallbacks(startResult.startedRecording, i18n)
+
+            is PlatformAudioRecorder.StartResult.Failure -> fail(State.Failed(startResult.message))
+
+            PlatformAudioRecorder.StartResult.RequestedPermissions -> {
+                delay(1.seconds) // wait for permission request to actually finish
+
+                /**
+                 * Reset the recorder so that a user can manually start another recording when he has allowed
+                 * permission.
+                 *
+                 * @see PlatformAudioRecorder.StartResult.RequestedPermissions
+                 */
+                close()
+            }
         }
     }
 

@@ -60,7 +60,7 @@ class WebAudioRecorder(
     @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun start(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): AudioRecorderImpl.State.Recording? {
+    ): PlatformAudioRecorder.StartResult {
         return try {
             val microphone =
                 try {
@@ -70,27 +70,28 @@ class WebAudioRecorder(
                     }
                 } catch (e: JsException) {
                     if (e.toJsErrorLike().toJsError().name == JsErrorName("NotAllowedError")) {
-                        log.info { "Microphone permission denied" }
+                        return PlatformAudioRecorder.StartResult.Failure(i18n.microphonePermissionDenied())
                     }
-                    return null
+                    throw e
                 }
             if (microphone != null) {
                 val recorder = startRecorder(microphone)
                 val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
                 val start = clock.now()
-                AudioRecorderImpl.State.Recording(
-                    start = start,
-                    loudness = loudness(microphone),
-                    complete = complete(recorder, microphone, media, mediaSize, start),
-                    failure = genericFailureOnError(recorder),
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        start = start,
+                        loudness = loudness(microphone),
+                        complete = complete(recorder, microphone, media, mediaSize, start),
+                        failure = genericFailureOnError(recorder),
+                    )
                 )
             } else {
-                log.info { "Microphone permission request timed out." }
-                null
+                PlatformAudioRecorder.StartResult.Failure(i18n.microphonePermissionTimeout())
             }
         } catch (e: Throwable) {
             log.error(e) { "Unexpected error. Could not start recording" }
-            null
+            PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
         }
     }
 

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.readByteArrayFlow
 import io.ktor.http.*
@@ -38,21 +39,28 @@ import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.posix.pow
 
-internal class AppleAudioRecorder(private val clock: Clock, private val fileSystem: FileSystem) :
-    PlatformAudioRecorder {
+internal class AppleAudioRecorder(
+    private val clock: Clock,
+    private val fileSystem: FileSystem,
+    private val i18n: I18n,
+) : PlatformAudioRecorder {
     private val log = Logger("de.connect2x.trixnity.messenger.media.AppleAudioRecorder")
 
     private val audioFileExtension = "m4a"
 
     override suspend fun start(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): AudioRecorderImpl.State.Recording? {
+    ): PlatformAudioRecorder.StartResult {
         val granted = requestMicrophonePermission()
         return if (granted) {
-            configureSession()
-            startRecording(intoMediaStore)
+            val configurationSuccessful = configureSession()
+            if (configurationSuccessful != null) {
+                startRecording(intoMediaStore)
+            } else {
+                PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
+            }
         } else {
-            null
+            PlatformAudioRecorder.StartResult.RequestedPermissions
         }
     }
 
@@ -92,7 +100,7 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     private fun startRecording(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): AudioRecorderImpl.State.Recording? {
+    ): PlatformAudioRecorder.StartResult {
         val settings =
             mapOf<Any?, Any?>(
                 AVFormatIDKey to kAudioFormatMPEG4AAC,
@@ -118,65 +126,84 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
             audioRecorder = AVAudioRecorder(uRL = url, settings = settings, error = errorPtr.ptr)
             errorPtr.value?.let {
                 log.error { "AudioRecorder init error: ${it.localizedDescription}" }
-                return null
+                return PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
             }
         }
 
         audioRecorder.meteringEnabled = true
         val prepareToRecord = audioRecorder.prepareToRecord()
-        if (prepareToRecord.not()) return null
+        if (prepareToRecord.not()) {
+            return PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
+        }
         val record = audioRecorder.record()
-        if (record.not()) return null
+        if (record.not()) {
+            return PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
+        }
 
         val start = clock.now()
-        return AudioRecorderImpl.State.Recording(
-            start = start,
-            loudness = {
-                audioRecorder.updateMeters()
-                val dbFS = audioRecorder.averagePowerForChannel(0u) // do not use peak -> updates are weird
-                // we need to convert dbFS to linear 16bit PCM values (like from Android)
-                val amplitude =
-                    if (dbFS <= -160.0) {
-                        0f
-                    } else {
-                        (32767.0 * pow(10.0, dbFS / 20.0)).toFloat()
+        return PlatformAudioRecorder.StartResult.Success(
+            AudioRecorderImpl.State.Recording(
+                start = start,
+                loudness = {
+                    audioRecorder.updateMeters()
+                    val dbFS = audioRecorder.averagePowerForChannel(0u) // do not use peak -> updates are weird
+                    // we need to convert dbFS to linear 16bit PCM values (like from Android)
+                    val amplitude =
+                        if (dbFS <= -160.0) {
+                            0f
+                        } else {
+                            (32767.0 * pow(10.0, dbFS / 20.0)).toFloat()
+                        }
+                    amplitude
+                },
+                complete = {
+                    try {
+                        audioRecorder.stop()
+                        val fileData = fileSystem.readByteArrayFlow(file)
+                        if (fileData != null) {
+                            val media = intoMediaStore(fileData)
+                            AudioRecorderImpl.State.Completed(
+                                media,
+                                duration = clock.now() - start,
+                                sizeBytes = fileSystem.metadata(file).size,
+                                contentType = ContentType.Audio.MP4,
+                                fileExtension = audioFileExtension,
+                            )
+                        } else {
+                            null
+                        }
+                    } finally {
+                        fileSystem.delete(file)
+                        AVAudioSession.sharedInstance().setActive(false, error = null)
                     }
-                amplitude
-            },
-            complete = {
-                try {
-                    audioRecorder.stop()
-                    val fileData = fileSystem.readByteArrayFlow(file)
-                    if (fileData != null) {
-                        val media = intoMediaStore(fileData)
-                        AudioRecorderImpl.State.Completed(
-                            media,
-                            duration = clock.now() - start,
-                            sizeBytes = fileSystem.metadata(file).size,
-                            contentType = ContentType.Audio.MP4,
-                            fileExtension = audioFileExtension,
-                        )
-                    } else {
-                        null
-                    }
-                } finally {
-                    fileSystem.delete(file)
-                    AVAudioSession.sharedInstance().setActive(false, error = null)
-                }
-            },
-            failure = {
-                // we could not identify a way how the recorder can fail while recording
-                null
-            },
+                },
+                failure = {
+                    // we could not identify a way how the recorder can fail while recording
+                    null
+                },
+            )
         )
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    private fun configureSession() {
+    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+    private fun configureSession(): Unit? {
         val session = AVAudioSession.sharedInstance()
+        memScoped {
+            val categoryError = alloc<ObjCObjectVar<NSError?>>()
+            session.setCategory(AVAudioSessionCategoryPlayAndRecord, error = categoryError.ptr)
+            categoryError.value?.let {
+                log.error { "AudioRecorder setCategory error: ${it.localizedDescription}" }
+                return null
+            }
 
-        session.setCategory(AVAudioSessionCategoryPlayAndRecord, error = null)
-        session.setActive(true, error = null)
+            val activeError = alloc<ObjCObjectVar<NSError?>>()
+            session.setActive(true, error = activeError.ptr)
+            activeError.value?.let {
+                log.error { "AudioRecorder setActive error: ${it.localizedDescription}" }
+                return null
+            }
+        }
+        return Unit
     }
 
     private fun openSettings() {

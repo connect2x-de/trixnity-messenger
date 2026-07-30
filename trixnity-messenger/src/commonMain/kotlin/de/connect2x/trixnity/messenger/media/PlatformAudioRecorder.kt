@@ -22,8 +22,21 @@ interface PlatformAudioRecorder : AutoCloseable {
      */
     suspend fun start(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): AudioRecorderImpl.State.Recording?
+    ): StartResult
 
     /** Is used for drafts. */
     suspend fun load(state: AudioRecorder.State.Completed): AudioRecorderImpl.State.Completed?
+
+    sealed interface StartResult {
+        data class Success(val startedRecording: AudioRecorderImpl.State.Recording) : StartResult
+
+        data class Failure(val message: String) : StartResult
+
+        /**
+         * We requested necessary permissions but are not able to wait for its completion. The recorder should not fail
+         * in this case because the user could still allow the permission. Seeing a failure after allowing permission is
+         * not something the user would expect.
+         */
+        object RequestedPermissions : StartResult
+    }
 }
