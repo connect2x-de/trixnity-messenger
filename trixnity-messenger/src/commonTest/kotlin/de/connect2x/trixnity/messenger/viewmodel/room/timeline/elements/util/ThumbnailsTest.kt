@@ -46,7 +46,7 @@ class ThumbnailsTest {
     @Test
     fun `load encrypted thumbnail file successfully`() = runTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any(), any()) } returns
             Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
         val cut = ThumbnailsImpl()
 
@@ -63,6 +63,7 @@ class ThumbnailsTest {
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
                 maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
 
         result shouldBe "encryptedThumbnail".encodeToByteArray()
@@ -71,10 +72,10 @@ class ThumbnailsTest {
     @Test
     fun `get the original file less than 1MB when the the encrypted thumbnail could not be loaded`() = runTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any(), any()) } returns
             Result.failure(RuntimeException("Oh no!"))
         val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
-        everySuspend { mediaServiceMock.getEncryptedMedia(originalFile, any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getEncryptedMedia(originalFile, any(), any(), any(), any()) } returns
             Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
         val cut = ThumbnailsImpl()
@@ -92,6 +93,7 @@ class ThumbnailsTest {
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
                 maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
 
         result shouldBe "encryptedOriginal".encodeToByteArray()
@@ -100,10 +102,10 @@ class ThumbnailsTest {
     @Test
     fun `get no thumbnail when neither the encrypted thumbnail nor the original file could be loaded`() = runTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any(), any()) } returns
             Result.failure(RuntimeException("Oh no!"))
         val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
-        everySuspend { mediaServiceMock.getEncryptedMedia(originalFile, any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getEncryptedMedia(originalFile, any(), any(), any(), any()) } returns
             Result.failure(RuntimeException("Oh no!"))
 
         val cut = ThumbnailsImpl()
@@ -121,6 +123,7 @@ class ThumbnailsTest {
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
                 maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
 
         result shouldBe null
@@ -130,10 +133,10 @@ class ThumbnailsTest {
     fun `get no thumbnail when the encrypted thumbnail could not be loaded and the original file is larger than the maximum preview size`() =
         runTest {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-            everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any()) } returns
+            everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any(), any()) } returns
                 Result.failure(RuntimeException("Oh no!"))
             val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
-            everySuspend { mediaServiceMock.getEncryptedMedia(originalFile, any(), any(), any()) } returns
+            everySuspend { mediaServiceMock.getEncryptedMedia(originalFile, any(), any(), any(), any()) } returns
                 Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
             val cut = ThumbnailsImpl()
@@ -150,6 +153,7 @@ class ThumbnailsTest {
                     sizeInBytes = MatrixMessengerConfiguration().downloadLimits.thumbnail + 1, // too large!
                     thumbnailProgressFlow = MutableStateFlow(null),
                     MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                    maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 )
 
             result shouldBe null
@@ -158,7 +162,7 @@ class ThumbnailsTest {
     @Test
     fun `suspend when loading the encrypted thumbnail takes a while`() = runTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any()) } calls
+        everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any(), any()) } calls
             {
                 delay(500)
                 Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
@@ -178,6 +182,7 @@ class ThumbnailsTest {
                 fileInfo = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
+                MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
         }

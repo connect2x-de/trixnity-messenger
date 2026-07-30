@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.InsufficientSpaceException
 import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -96,7 +98,14 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                                 maxSize = maxMediaSizeInMemory,
                             )
                     }
-                    .onFailure { _loadMediaError.value = i18n.mediaCouldNotBeRead() }
+                    .onFailure { error ->
+                        _loadMediaError.value =
+                            when (error) {
+                                is DownloadLimitExceededException -> i18n.mediaExceedsDownloadLimit()
+                                is InsufficientSpaceException -> i18n.mediaInsufficientSpace()
+                                else -> i18n.mediaCouldNotBeRead()
+                            }
+                    }
             }
             .invokeOnCompletion { activeLoadMedia.value = null }
     }
@@ -112,6 +121,8 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val _downloadMediaError = MutableStateFlow<String?>(null)
     override val downloadMediaError = _downloadMediaError.asStateFlow()
     private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
+    private val _saveDialogOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val saveDialogOpen: StateFlow<Boolean> = _saveDialogOpen.asStateFlow()
 
     override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {
         coroutineScope.launch {
@@ -132,6 +143,19 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     override fun cancelDownloadMedia() {
         activeDownloadMedia.value?.cancel("Cancelled by user.")
+    }
+
+    override fun showSaveDialog() {
+        _saveDialogOpen.value = true
+        _downloadMediaError.value = null
+    }
+
+    override fun hideSaveDialog(errorShown: Boolean) {
+        when {
+            _downloadMediaError.value == null -> _saveDialogOpen.value = false
+            errorShown -> _saveDialogOpen.value = false
+            else -> {}
+        }
     }
 
     protected suspend fun downloadMediaInternal(): Result<PlatformMedia> {
@@ -160,9 +184,13 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                             _downloadMedia.value = it
                             return Result.success(it)
                         },
-                        onFailure = {
-                            _downloadMediaError.value = i18n.downloadFailed(it.message)
-                            return Result.failure(it)
+                        onFailure = { error ->
+                            _downloadMediaError.value =
+                                when (error) {
+                                    is InsufficientSpaceException -> i18n.downloadFailedInsufficientSpace()
+                                    else -> i18n.downloadFailed(error.message)
+                                }
+                            return Result.failure(error)
                         },
                     )
             } catch (exc: CancellationException) {

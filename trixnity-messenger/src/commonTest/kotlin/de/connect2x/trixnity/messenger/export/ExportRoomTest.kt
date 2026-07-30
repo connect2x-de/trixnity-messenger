@@ -73,13 +73,13 @@ class ExportRoomTest {
         }
     val mediaServiceMock =
         mock<MediaService> {
-            everySuspend { getMedia(any(), any(), any(), any()) } returns
+            everySuspend { getMedia(any(), any(), any(), any(), any()) } returns
                 Result.success(InMemoryPlatformMedia(flowOf(ByteArray(0))))
-            everySuspend { getMedia("mxc://localhost/20", any(), any(), any()) } returns
+            everySuspend { getMedia("mxc://localhost/20", any(), any(), any(), any()) } returns
                 Result.failure(IllegalStateException("download error"))
-            everySuspend { getMedia("mxc://localhost/21", any(), any(), any()) } returns
+            everySuspend { getMedia("mxc://localhost/21", any(), any(), any(), any()) } returns
                 Result.failure(IllegalStateException("download error"))
-            everySuspend { getMedia("mxc://localhost/22", any(), any(), any()) } returns
+            everySuspend { getMedia("mxc://localhost/22", any(), any(), any(), any()) } returns
                 Result.failure(
                     DownloadLimitExceededException(
                         2_000L,
@@ -146,7 +146,7 @@ class ExportRoomTest {
 
             index = 0
             while (index < timelineEventsWithMedia.size) {
-                mediaServiceMock.getMedia(any(), any(), any(), false)
+                mediaServiceMock.getMedia(any(), any(), any(), any(), false)
                 sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
                 index += 1
             }
@@ -185,7 +185,7 @@ class ExportRoomTest {
 
             index = 0
             while (index < timelineEventsWithMedia.size) {
-                mediaServiceMock.getMedia(any(), any(), any(), false)
+                mediaServiceMock.getMedia(any(), any(), any(), any(), false)
                 sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
                 index += 1
             }
@@ -207,7 +207,9 @@ class ExportRoomTest {
             maxMediaSize = maxMediaSize,
         ) shouldBe ExportRoomResult.Success()
 
-        verifySuspend(VerifyMode.not) { mediaServiceMock.getMedia(any(), any(), false) }
+        verifySuspend(VerifyMode.not) {
+            mediaServiceMock.getMedia(any(), any(), expectedSize = any(), progress = any(), saveToCache = false)
+        }
     }
 
     @Test
@@ -263,7 +265,7 @@ class ExportRoomTest {
             index = 0
             while (index < timelineEventsWithMedia.size) {
                 matrixClientMock.di
-                mediaServiceMock.getMedia(any(), any(), any(), false)
+                mediaServiceMock.getMedia(any(), any(), any(), any(), false)
                 sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
                 index += 1
             }

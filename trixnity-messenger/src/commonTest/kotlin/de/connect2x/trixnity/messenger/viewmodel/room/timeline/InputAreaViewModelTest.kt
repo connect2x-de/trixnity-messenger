@@ -259,8 +259,9 @@ class InputAreaViewModelTest {
                 "0"
             }
 
-        everySuspend { mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any(), any(), any()) } returns
-            Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
+        everySuspend {
+            mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any(), any(), any(), any())
+        } returns Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
 
         everySuspend { roomsApiClientMock.setTyping(any(), any(), any(), any()) } returns Result.success(Unit)
     }

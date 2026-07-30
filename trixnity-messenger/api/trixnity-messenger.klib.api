@@ -5047,13 +5047,17 @@ sealed interface <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessage
             abstract fun <get-mimeType>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
         abstract val name // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.name|{}name[0]
             abstract fun <get-name>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.name.<get-name>|<get-name>(){}[0]
+        abstract val saveDialogOpen // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.saveDialogOpen|{}saveDialogOpen[0]
+            abstract fun <get-saveDialogOpen>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.saveDialogOpen.<get-saveDialogOpen>|<get-saveDialogOpen>(){}[0]
         abstract val size // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.size|{}size[0]
             abstract fun <get-size>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.size.<get-size>|<get-size>(){}[0]
 
         abstract fun cancelDownloadMedia() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.cancelDownloadMedia|cancelDownloadMedia(){}[0]
         abstract fun cancelLoadMedia() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.cancelLoadMedia|cancelLoadMedia(){}[0]
         abstract fun downloadMedia(kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.client.media/PlatformMedia, kotlin/Unit> = ..., kotlin/Function0<kotlin/Unit> = ...) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.downloadMedia|downloadMedia(kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.client.media.PlatformMedia,kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+        abstract fun hideSaveDialog(kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.hideSaveDialog|hideSaveDialog(kotlin.Boolean){}[0]
         abstract fun loadMedia() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.loadMedia|loadMedia(){}[0]
+        abstract fun showSaveDialog() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.showSaveDialog|showSaveDialog(){}[0]
 
         abstract interface Audio : de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased<de.connect2x.trixnity.core.model.events.m.room/RoomMessageEventContent.FileBased.Audio> { // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.Audio|null[0]
             abstract val audioPlayer // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.FileBased.Audio.audioPlayer|{}audioPlayer[0]
@@ -5910,6 +5914,8 @@ abstract class <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessageEv
         open fun <get-mimeType>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
     open val name // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.name|{}name[0]
         open fun <get-name>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.name.<get-name>|<get-name>(){}[0]
+    open val saveDialogOpen // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.saveDialogOpen|{}saveDialogOpen[0]
+        open fun <get-saveDialogOpen>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.saveDialogOpen.<get-saveDialogOpen>|<get-saveDialogOpen>(){}[0]
     open val size // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.size|{}size[0]
         open fun <get-size>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.size.<get-size>|<get-size>(){}[0]
 
@@ -5917,7 +5923,9 @@ abstract class <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessageEv
     open fun cancelDownloadMedia() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.cancelDownloadMedia|cancelDownloadMedia(){}[0]
     open fun cancelLoadMedia() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.cancelLoadMedia|cancelLoadMedia(){}[0]
     open fun downloadMedia(kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.client.media/PlatformMedia, kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.downloadMedia|downloadMedia(kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.client.media.PlatformMedia,kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+    open fun hideSaveDialog(kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.hideSaveDialog|hideSaveDialog(kotlin.Boolean){}[0]
     open fun loadMedia() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.loadMedia|loadMedia(){}[0]
+    open fun showSaveDialog() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/FileBasedRoomMessageTimelineElementViewModel.showSaveDialog|showSaveDialog(){}[0]
 }
 
 abstract class <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessageEventContent> de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl : de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl|null[0]
@@ -14528,6 +14536,7 @@ open class de.connect2x.trixnity.messenger.i18n/I18n : de.connect2x.trixnity.mes
     open fun deactivateAccountConfirmationMessage(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.deactivateAccountConfirmationMessage|deactivateAccountConfirmationMessage(kotlin.String){}[0]
     open fun deactivateAccountError(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.deactivateAccountError|deactivateAccountError(kotlin.String){}[0]
     open fun downloadFailed(kotlin/String?): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.downloadFailed|downloadFailed(kotlin.String?){}[0]
+    open fun downloadFailedInsufficientSpace(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.downloadFailedInsufficientSpace|downloadFailedInsufficientSpace(){}[0]
     open fun enterRoomFailedGenericJoin(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.enterRoomFailedGenericJoin|enterRoomFailedGenericJoin(){}[0]
     open fun enterRoomFailedGenericKnock(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.enterRoomFailedGenericKnock|enterRoomFailedGenericKnock(){}[0]
     open fun enterRoomFailedInvite(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.enterRoomFailedInvite|enterRoomFailedInvite(){}[0]
@@ -14605,6 +14614,8 @@ open class de.connect2x.trixnity.messenger.i18n/I18n : de.connect2x.trixnity.mes
     open fun matrixClientInitSuccess(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.matrixClientInitSuccess|matrixClientInitSuccess(){}[0]
     open fun mediaCanNotBePreviewed(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.mediaCanNotBePreviewed|mediaCanNotBePreviewed(){}[0]
     open fun mediaCouldNotBeRead(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.mediaCouldNotBeRead|mediaCouldNotBeRead(){}[0]
+    open fun mediaExceedsDownloadLimit(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.mediaExceedsDownloadLimit|mediaExceedsDownloadLimit(){}[0]
+    open fun mediaInsufficientSpace(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.mediaInsufficientSpace|mediaInsufficientSpace(){}[0]
     open fun mediaTooLargeForPreview(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.mediaTooLargeForPreview|mediaTooLargeForPreview(){}[0]
     open fun newActivity(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.newActivity|newActivity(){}[0]
     open fun newEventAlreadyExistsErr(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.newEventAlreadyExistsErr|newEventAlreadyExistsErr(){}[0]

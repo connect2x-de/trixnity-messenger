@@ -98,10 +98,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -132,10 +132,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -166,10 +166,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -204,10 +204,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
 
@@ -241,10 +241,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
 
@@ -280,10 +280,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
 
@@ -338,10 +338,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
 
@@ -390,10 +390,10 @@ class AccountSingleViewModelTest {
                     avatarSize().toLong(),
                     avatarSize().toLong(),
                     any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
+                    method = any(),
+                    animated = any(),
+                    progress = any(),
+                    saveToCache = any(),
                 )
             } returns Result.success(initialAvatar)
 
@@ -438,10 +438,10 @@ class AccountSingleViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
 

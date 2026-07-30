@@ -500,10 +500,10 @@ class NotificationSyncServiceTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(avatar)
         every { notificationService.getAllUpdates() } returns flowOf()
