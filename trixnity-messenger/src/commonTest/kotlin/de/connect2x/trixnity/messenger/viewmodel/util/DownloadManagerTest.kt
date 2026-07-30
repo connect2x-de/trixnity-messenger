@@ -51,8 +51,9 @@ class DownloadManagerTest {
     @Test
     fun `return 'success' when download is finished successfully`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), any(), any()) } returns
-            Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
+        everySuspend {
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+        } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
         val result =
@@ -79,8 +80,9 @@ class DownloadManagerTest {
                 initialisationVector = "vector",
                 hashes = mapOf(),
             )
-        everySuspend { mediaServiceMock.getEncryptedMedia(encryptedFile, any(), any(), any()) } returns
-            Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
+        everySuspend {
+            mediaServiceMock.getEncryptedMedia(encryptedFile, any(), expectedSize = any(), progress = any())
+        } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
         val result =
@@ -101,10 +103,12 @@ class DownloadManagerTest {
     fun `track progress of download`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any<Long>(), any()) } calls
+        everySuspend {
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+        } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[2] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[3] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
@@ -137,10 +141,12 @@ class DownloadManagerTest {
     fun `stop tracking progress of download when download is cancelled`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any<Long>(), any()) } calls
+        everySuspend {
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+        } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[2] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[3] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
@@ -171,10 +177,12 @@ class DownloadManagerTest {
     fun `fallback on event size when no total download size is given`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any<Long>(), any()) } calls
+        everySuspend {
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+        } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[2] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[3] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }

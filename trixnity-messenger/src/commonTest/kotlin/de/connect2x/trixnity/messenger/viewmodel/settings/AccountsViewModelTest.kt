@@ -79,10 +79,10 @@ class AccountsViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar2".encodeToByteArray().toByteArrayFlow()))
         every { matrixClientMock2.serverData } returns
@@ -113,10 +113,10 @@ class AccountsViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -149,10 +149,10 @@ class AccountsViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -181,10 +181,10 @@ class AccountsViewModelTest {
                 avatarSize().toLong(),
                 avatarSize().toLong(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
+                method = any(),
+                animated = any(),
+                progress = any(),
+                saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
         val cut = profileViewModel()
