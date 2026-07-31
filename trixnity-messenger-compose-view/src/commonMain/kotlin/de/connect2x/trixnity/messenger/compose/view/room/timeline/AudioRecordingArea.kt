@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -188,6 +191,26 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             is AudioRecorder.State.Recording -> AudioRecorder(recorderState)
 
             is AudioRecorder.State.Completed -> AudioCapturePreview()
+
+            is AudioRecorder.State.Failed -> {
+                Icon(
+                    imageVector = Icons.Default.Error,
+                    contentDescription = i18n.commonError(),
+                    tint = MaterialTheme.colorScheme.error,
+                )
+                Text(recorderState.message)
+
+                Spacer(Modifier.weight(1.0f, true))
+
+                Tooltip({ Text(i18n.commonClose()) }) {
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
+                        onClick = { audioRecordingAreaViewModel.deleteAudioMessage() },
+                    ) {
+                        Icon(Icons.Default.Close, i18n.audioRecordingDelete())
+                    }
+                }
+            }
 
             null,
             AudioRecorder.State.Ready -> Unit

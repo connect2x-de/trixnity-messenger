@@ -199,7 +199,8 @@ class InputAreaViewImpl : InputAreaView {
                             AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
                             null -> TextInput(canRecordAudio = false)
                             is AudioRecorder.State.Recording,
-                            is AudioRecorder.State.Completed ->
+                            is AudioRecorder.State.Completed,
+                            is AudioRecorder.State.Failed ->
                                 if (isEdit) {
                                     TextInput(canRecordAudio = true)
                                 } else {

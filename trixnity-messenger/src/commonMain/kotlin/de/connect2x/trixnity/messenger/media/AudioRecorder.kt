@@ -60,6 +60,8 @@ interface AudioRecorder : AutoCloseable {
                 data class Encrypted(val uriWithMetadata: EncryptedFile) : MediaReference
             }
         }
+
+        data class Failed(val message: String) : State
     }
 }
 
@@ -132,6 +134,8 @@ class AudioRecorderImpl(
             val contentType: ContentType,
             val fileExtension: String,
         ) : State
+
+        data class Failed(val message: String) : State
     }
 
     data class Format<Container, Encoder>(
@@ -182,6 +186,10 @@ class AudioRecorderImpl(
                     log.debug { "Tried to complete a recording that is already completed" }
                     stateImpl
                 }
+                is State.Failed -> {
+                    log.debug { "Tried to complete a failed recording" }
+                    stateImpl
+                }
             }
         }
 
@@ -207,6 +215,7 @@ class AudioRecorderImpl(
                             delay(50.milliseconds)
                         }
 
+                    is State.Failed,
                     is State.Completed,
                     State.Ready -> {
                         emit(state)
@@ -230,6 +239,8 @@ class AudioRecorderImpl(
                         this.contentType,
                         this.fileExtension,
                     )
+
+                is State.Failed -> AudioRecorder.State.Failed(this.message)
             }
         }
 
@@ -241,6 +252,7 @@ class AudioRecorderImpl(
                     }
                 }
 
+                is AudioRecorder.State.Failed,
                 is AudioRecorder.State.Completed,
                 AudioRecorder.State.Ready -> Unit
             }

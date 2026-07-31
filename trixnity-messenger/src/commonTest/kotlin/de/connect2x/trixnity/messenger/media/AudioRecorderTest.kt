@@ -162,6 +162,7 @@ class AudioRecorderTest {
             is AudioRecorder.State.Completed -> throw AssertionError("Should be Recording")
             AudioRecorder.State.Ready -> throw AssertionError("Should be Recording")
             is AudioRecorder.State.Recording -> state.duration shouldBeGreaterThan 5.seconds
+            is AudioRecorder.State.Failed -> throw AssertionError("Should be Recording")
         }
     }
 
@@ -199,6 +200,7 @@ class AudioRecorderTest {
             is AudioRecorder.State.Completed -> throw AssertionError("Should be Recording")
             AudioRecorder.State.Ready -> throw AssertionError("Should be Recording")
             is AudioRecorder.State.Recording -> state.loudness shouldBeGreaterThan 5F
+            is AudioRecorder.State.Failed -> throw AssertionError("Should be Recording")
         }
     }
 
