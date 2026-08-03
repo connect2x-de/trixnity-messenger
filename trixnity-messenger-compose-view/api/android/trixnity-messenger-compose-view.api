@@ -329,6 +329,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/EmojiPopu
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/ErrorDialogKt {
 	public static final fun ErrorDialog (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ErrorDialog (Ljava/lang/String;ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/ErrorViewKt {

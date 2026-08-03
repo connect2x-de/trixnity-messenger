@@ -6,6 +6,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -20,7 +22,13 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 
 @Composable
 fun ErrorDialog(error: String?, errorDetails: String?, onDismiss: () -> Unit) {
+    ErrorDialog(error = error, detailsExpandedByDefault = false, errorDetails = errorDetails, onDismiss = onDismiss)
+}
+
+@Composable
+fun ErrorDialog(error: String?, detailsExpandedByDefault: Boolean, errorDetails: String?, onDismiss: () -> Unit) {
     val i18n = DI.get<I18nView>()
+    val expanded = remember { mutableStateOf(detailsExpandedByDefault) }
 
     if (error != null) {
         ThemedModalDialog({ onDismiss() }) {
@@ -28,7 +36,7 @@ fun ErrorDialog(error: String?, errorDetails: String?, onDismiss: () -> Unit) {
             ModalDialogContent {
                 Text(error)
                 if (errorDetails != null) {
-                    ExpandableSection(heading = i18n.errorDetails(), icon = Icons.Default.Info) {
+                    ExpandableSection(expanded = expanded, heading = i18n.errorDetails(), icon = Icons.Default.Info) {
                         Text(errorDetails, modifier = Modifier.padding(20.dp))
                     }
                 }
