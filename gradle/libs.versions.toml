@@ -27,6 +27,7 @@ copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-p
 pako = "2.1.0" # https://github.com/nodeca/pako # dependency for Kim on wasmJs & js
 filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases # TODO: 0.13.0 cannot be used, since it is compiled with Java 21...
 detekt = "2.0.0-alpha.3" # https://detekt.dev/docs/introduction/compatibility/
+material3Adaptive = "1.2.0"
 
 [libraries]
 
@@ -60,6 +61,9 @@ tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika" }
 tika-parser-audiovideo-module = { module = "org.apache.tika:tika-parser-audiovideo-module", version.ref = "tika" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
+
+# TODO (fhilgers): The version from the catalog requires compileSdk 37
+compose-material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "material3Adaptive" }
 
 [bundles]
 

@@ -93,6 +93,10 @@ kotlin {
                 // FileKit
                 implementation(libs.filekit.core)
                 implementation(libs.filekit.compose)
+
+                api(sharedLibs.androidx.navigation3Ui)
+                implementation(sharedLibs.androidx.lifecycleViewmodelCompose)
+                implementation(libs.compose.material3.adaptive)
             }
         }
         jvmMain {
