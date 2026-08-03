@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalAbiValidation::class)
 
 import co.touchlab.skie.configuration.DefaultArgumentInterop
 import co.touchlab.skie.configuration.EnumInterop
@@ -17,6 +17,7 @@ import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import java.time.Duration
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -33,6 +34,14 @@ registerCoverageTask("koverXmlReportJvm")
 
 kotlin {
     withSourcesJar()
+    abiValidation {
+        filters {
+            exclude {
+                byNames.add("de.connect2x.trixnity.messenger.internal.routes.**.Companion")
+                byNames.add($$"de.connect2x.trixnity.messenger.internal.routes.**.$serializer")
+            }
+        }
+    }
     defaultCompilerOptions()
     withAndroidLibrary()
     withJvm {
