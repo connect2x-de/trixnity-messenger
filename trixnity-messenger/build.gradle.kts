@@ -107,6 +107,7 @@ kotlin {
                 implementation(libs.markdown)
                 implementation(libs.ksoup.html)
                 implementation(sharedLibs.skie.annotations)
+                api(sharedLibs.androidx.navigation3Runtime)
             }
         }
         commonTest {
