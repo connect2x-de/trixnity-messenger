@@ -120,7 +120,15 @@ class AudioRecorderImpl(
     override suspend fun load(state: AudioRecorder.State.Completed) {
         closeSuspending()
 
-        platformAudioRecorder.load(state)?.let { stateImpl.value = it }
+        val newStateImpl =
+            State.Completed(
+                capture = state.media,
+                duration = state.duration,
+                sizeBytes = state.sizeBytes,
+                contentType = state.contentType,
+                fileExtension = state.fileExtension,
+            )
+        stateImpl.value = newStateImpl
     }
 
     override suspend fun complete() {

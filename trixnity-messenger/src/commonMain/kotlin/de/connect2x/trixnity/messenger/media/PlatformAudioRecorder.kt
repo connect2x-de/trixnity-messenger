@@ -24,9 +24,6 @@ interface PlatformAudioRecorder : AutoCloseable {
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
     ): StartResult
 
-    /** Is used for drafts. */
-    suspend fun load(state: AudioRecorder.State.Completed): AudioRecorderImpl.State.Completed?
-
     sealed interface StartResult {
         data class Success(val startedRecording: AudioRecorderImpl.State.Recording) : StartResult
 
