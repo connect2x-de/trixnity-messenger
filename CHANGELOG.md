@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- UI: `detailsExpandedByDefault` determining the default expansion state of the error details in the error dialog
+
 ### Changed
 
 ### Deprecated
