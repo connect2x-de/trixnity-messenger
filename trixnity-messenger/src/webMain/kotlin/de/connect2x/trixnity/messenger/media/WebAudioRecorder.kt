@@ -37,7 +37,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
 import web.blob.byteArray
-import web.errors.ERROR
 import web.events.ERROR
 import web.events.Event
 import web.events.STOP
