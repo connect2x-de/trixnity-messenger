@@ -38,6 +38,13 @@ val buildFlavor =
             ?: if (CI.isCI) "PROD" else "DEV"
     )
 
+val useNav3 =
+    providers
+        .gradleProperty("tm_use_nav3")
+        .orElse(providers.environmentVariable("TM_USE_NAV3"))
+        .map { it.toBooleanStrict() }
+        .orElse(false)
+
 registerMultiplatformLicensesTasks { licenseTask, target, variant ->
     // TODO: move this into c2x-conventions eventually
     val targetName = target.targetName
@@ -46,6 +53,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
             dependsOn(licenseTask)
             group = "build config"
             inputs.property("tm_build_flavor", buildFlavor)
+            inputs.property("tm_use_nav3", useNav3)
             val generatedSrc = layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
             doLast {
                 val outputFile = generatedSrc.get().dir(appId.replace(".", "/")).file("BuildConfig.kt")
@@ -63,6 +71,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
                 override val licenses: String = $quotes$licencesString$quotes
+                override val useNav3: Boolean = ${useNav3.get()}
             }
         """
                         .trimIndent()

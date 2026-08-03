@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.app
 
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.compose.view.DrawableResourceAppIcon
 import de.connect2x.trixnity.messenger.compose.view.composeViewModule
 import de.connect2x.trixnity.messenger.compose.view.typography.nunito.addNunitoThemeTypography
@@ -7,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
+import de.connect2x.trixnity.messenger.internal.compose.view.nav3ViewOptIn
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import de.connect2x.trixnity.messenger.trixnity_messenger_compose_app.generated.resources.Res
@@ -66,6 +68,11 @@ fun MatrixMultiMessengerConfiguration.configure() {
     }
 
     addNunitoThemeTypography()
+
+    @OptIn(TrixnityMessengerPrivateApi::class)
+    if (BuildConfig.useNav3) {
+        nav3ViewOptIn()
+    }
 }
 
 internal expect fun getDevRootPath(): RootPath?
