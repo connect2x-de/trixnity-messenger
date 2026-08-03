@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration name="Trixnity Messenger [Js, Dev, Nav3]" factoryName="Gradle" type="GradleRunConfiguration">
+    <ExternalSystemSettings>
+      <option name="env">
+        <map>
+          <entry key="TM_BUILD_FLAVOR" value="DEV" />
+          <entry key="TM_USE_NAV3" value="true" />
+        </map>
+      </option>
+      <option name="externalProjectPath" value="$PROJECT_DIR$" />
+      <option name="externalSystemIdString" value="GRADLE" />
+      <option name="taskNames">
+        <list>
+          <option value=":trixnity-messenger-compose-app:jsBrowserDevelopmentRun" />
+        </list>
+      </option>
+      <option name="vmOptions" />
+    </ExternalSystemSettings>
+    <method v="2" />
+  </configuration>
+</component>

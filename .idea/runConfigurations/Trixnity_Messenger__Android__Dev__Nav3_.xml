@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration name="Trixnity Messenger [Android, Dev, Nav3]" factoryName="Android App" type="AndroidRunConfigurationType">
+    <module name="trixnity-messenger-root.trixnity-messenger-compose-app" />
+    <method v="2">
+      <option name="Gradle.BeforeRunTask" externalProjectPath="$PROJECT_DIR$"
+          tasks=":trixnity-messenger-compose-app:assembleDebug">
+        <envs>
+          <env name="TM_BUILD_FLAVOR" value="DEV" />
+          <env name="TM_USE_NAV3" value="true" />
+        </envs>
+      </option>
+    </method>
+  </configuration>
+</component>
