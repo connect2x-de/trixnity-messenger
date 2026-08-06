@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalAbiValidation::class)
 
 import co.touchlab.skie.util.cache.readTextOrNull
 import com.android.build.gradle.internal.tasks.ManagedDeviceInstrumentationTestTask
@@ -14,6 +14,7 @@ import de.connect2x.conventions.withWeb
 import java.net.ServerSocket
 import java.time.Duration
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
@@ -36,6 +37,16 @@ registerCoverageTask("koverXmlReportJvm")
 kotlin {
     withSourcesJar()
     defaultCompilerOptions()
+    abiValidation {
+        filters {
+            exclude {
+                // TODO (fhilgers): In the future we should consider ignoring all ComposableSingletons
+                byNames.add("de.connect2x.trixnity.messenger.internal.**.ComposableSingletons.**")
+                byNames.add("de.connect2x.trixnity.messenger.internal.**.ComposeDefaultImpls")
+                byNames.add($$"de.connect2x.trixnity.messenger.internal.**.*$stableprop*")
+            }
+        }
+    }
     withAndroidLibrary("$group.compose.view") { instrumentedTestVariant.sourceSetTree.set(KotlinSourceSetTree.test) }
     withJvm {
         testRuns.named("test") { executionTask.configure { useJUnitPlatform() } }
