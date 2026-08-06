@@ -2,14 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
+to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
 ### Added
-
-- UI: `detailsExpandedByDefault` determining the default expansion state of the error details in the error dialog
 
 ### Changed
 
@@ -18,10 +16,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-- error message dialog on failed download
 
 ### Security
-- add check for available space on device before download
+
+## 4.9.1
+
+### Added
+
+- UI: `detailsExpandedByDefault` determining the default expansion state of the error details in the error dialog
+- SDK: add check for available space on device before download
+
+### Changed
+
+- DEPENDENCY: update Trixnity to 5.7.1
+
+### Fixed
+
+- SDK: error message dialog on failed download
+
+### Security
 
 ## 4.9.0
 
@@ -29,7 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: Added filePath field to file-backed file-descriptors
 - Introduce `icon` configuration field in `MatrixMessengerBaseConfiguration`
-- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
+- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see
+  README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old
+  search logic and UI
 - SDK,UI: new search: errors of search providers are collected and displayed above search bar
 - SDK: search providers are registered with a factory, so that they can be disabled for certain accounts
 - SDK: Added check for downloadsDisabled before downloading file
@@ -39,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- SDK: (**breaking change**) Renamed useAccountSetupWizard to defaultAccountSetupFinished in MatrixMessengerConfiguration
+- SDK: (**breaking change**) Renamed useAccountSetupWizard to defaultAccountSetupFinished in
+  MatrixMessengerConfiguration
 - SDK: Return error in search when inviting user ID with invalid homeserver
 - DEPENDENCY: update Kotlin to 2.3.21
 - DEPENDENCY: update Lognity to 2.2.0
@@ -49,11 +65,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - INTERNAL: update c2x-conventions to 20260706.081921
 - INTERNAL: pinned the ktfmt IntelliJ plugin to 1.3.0.63
 - UI, SDK: Display and redact reactions still in the outbox
-- SDK: (**breaking change**) Changed `GetEventReactions.EventReaction` to use `EventIdOrTransactionId` instead of `EventId` in order to support reactions in outbox
+- SDK: (**breaking change**) Changed `GetEventReactions.EventReaction` to use `EventIdOrTransactionId` instead of
+  `EventId` in order to support reactions in outbox
 - DEPENDENCY: update compose to 1.11.1
 - SDK: files aren't automatically downloaded when they exceed the configurable limit
-- SDK: Changed naming and removed functions of the `AudioRecorder` API including its view model  
-- SDK: The `AudioRecorder` API now only returns a reference to an item inside the media store instead of returning a `PlatformMedia` directly 
+- SDK: Changed naming and removed functions of the `AudioRecorder` API including its view model
+- SDK: The `AudioRecorder` API now only returns a reference to an item inside the media store instead of returning a
+  `PlatformMedia` directly
 - INTERNAL: update yarn.lock
 
 ### Deprecated
@@ -79,9 +97,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - SDK: during the logout process, all local secrets belonging to the account are also deleted
-- SDK,UI: when the database cannot be decrypted, it is automatically deleted and the user is informed about potential tampering
-- SDK,UI: when the secrets for the database are being tampered with, the whole profile is deleted and the user is informed about potential tampering
-- SDK: (**breaking change**) `SecretByteArrays` get/set now only accept `SecretId` instead of raw `String` to support secrets that belong to specific accounts
+- SDK,UI: when the database cannot be decrypted, it is automatically deleted and the user is informed about potential
+  tampering
+- SDK,UI: when the secrets for the database are being tampered with, the whole profile is deleted and the user is
+  informed about potential tampering
+- SDK: (**breaking change**) `SecretByteArrays` get/set now only accept `SecretId` instead of raw `String` to support
+  secrets that belong to specific accounts
 - SDK: prevent resource exhaustion by limiting the automatic download size during sync
 
 ## 4.8.1
@@ -550,7 +571,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change zoom behaviour in PDF reader
-- Make buttons in FileHeader move into extra row(s) when necessary
+- Make buttons in FileHeader move into extra row (s) when necessary
 
 ### Fixed
 
@@ -660,8 +681,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI (Desktop, Web): tooltips are WCAG compliant (tooltip itself can be hovered, tooltips can be closed with Esc key,
   tooltips appear on focus)
-- iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift
-  code (like objects that can only be obtained via Koin)
+- iOS: startMessenger () helper function now also returns MatrixMultiMessenger in order to bridge certain values to
+  Swift code (like objects that can only be obtained via Koin)
 - Don't close DI, because garbage collector can handle it
 - Upgrade Trixnity to 4.22.4
 - Expose platform media in loadMedia of FileBasedRoomMessageTimelineElementViewModel to allow temporary file generation
@@ -896,9 +917,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - More features in the iOS UI
-- MatrixMultiMessenger.closeSuspending() to wait for every operation in Trixnity Messenger to be finished (in comparison
-  to close() which will fire and forget and thus could give the impression that all operations are finished which might
-  not be the case)
+- MatrixMultiMessenger.closeSuspending () to wait for every operation in Trixnity Messenger to be finished (in
+  comparison to close () which will fire and forget and thus could give the impression that all operations are finished
+  which might not be the case)
 
 ### Changed
 
