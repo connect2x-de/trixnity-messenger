@@ -18,6 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Ability to reset encryption keys for a room in room developer settings
 - CI, INTERNAL: Enabled more detekt linting rules
 - SDK,UI: Add better error handling with UI feedback to the `AudioRecorder` API
+- SDK,UI: Experimental androidx.navigation3 support
 
 ### Changed
 
