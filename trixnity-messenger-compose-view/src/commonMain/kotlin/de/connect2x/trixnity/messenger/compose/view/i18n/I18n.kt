@@ -3659,9 +3659,10 @@ open class I18nView(
     }
 
     open fun redactionWarningInfo() = translate {
-        EN - "Are you sure you want to delete this message? This action cannot be reversed!"
+        EN -
+            "Are you sure you want to delete this message? This action affects all room members and cannot be reversed!"
         DE -
-            "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
+            "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang betrifft alle Raummitglieder und kann nicht rückgängig gemacht werden!"
     }
 
     open fun redactionWarningSettingTitle() = translate {
