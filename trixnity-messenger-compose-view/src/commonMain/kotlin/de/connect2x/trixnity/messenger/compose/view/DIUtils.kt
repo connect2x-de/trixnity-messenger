@@ -2,9 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import org.koin.core.Koin
 import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.emptyParametersHolder
@@ -17,9 +15,9 @@ inline fun <reified T : Any> ProvidableCompositionLocal<Koin>.get(
     qualifier: Qualifier? = null,
     noinline parameters: ParametersDefinition? = null,
 ): T {
-    val di = current
-    val currentParameters by rememberUpdatedState(parameters)
-    return remember(qualifier) { di.get(qualifier) { currentParameters?.invoke() ?: emptyParametersHolder() } }
+    val koin = current
+    val parametersHolder = parameters?.invoke() ?: emptyParametersHolder()
+    return remember(koin, qualifier, parametersHolder) { koin.get<T>(qualifier) { parametersHolder } }
 }
 
 @Composable
@@ -27,7 +25,7 @@ inline fun <reified T : Any> ProvidableCompositionLocal<Koin>.getOrNull(
     qualifier: Qualifier? = null,
     noinline parameters: ParametersDefinition? = null,
 ): T? {
-    val di = current
-    val currentParameters by rememberUpdatedState(parameters)
-    return remember(qualifier) { di.getOrNull(qualifier) { currentParameters?.invoke() ?: emptyParametersHolder() } }
+    val koin = current
+    val parametersHolder = parameters?.invoke() ?: emptyParametersHolder()
+    return remember(koin, qualifier, parametersHolder) { koin.getOrNull<T>(qualifier) { parametersHolder } }
 }

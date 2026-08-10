@@ -38,6 +38,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 
 - INTERNAL: Fix SecretByteArrayKeyProvider concurrency issues
+- UI: DI injection in compose was not remembered correctly
 
 ### Security
 
