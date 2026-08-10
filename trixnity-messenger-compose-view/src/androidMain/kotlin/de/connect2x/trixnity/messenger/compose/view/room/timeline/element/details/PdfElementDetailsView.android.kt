@@ -13,22 +13,31 @@ import androidx.core.graphics.createBitmap
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfElementDetailsViewKt")
 
-actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
-    val reader = PDFPlatformReader(media, onError)
+actual suspend fun getPlatformPDFReader(
+    media: PlatformMedia,
+    coroutineScope: CoroutineScope,
+    onError: (String?) -> Unit,
+): PDFReader {
+    val reader = PDFPlatformReader(media, coroutineScope, onError)
     reader.initialize()
     return reader
 }
 
-class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit) : PDFReader {
+class PDFPlatformReader(
+    val media: PlatformMedia,
+    private val coroutineScope: CoroutineScope,
+    val onError: (String?) -> Unit,
+) : PDFReader {
     override val numOfPages: MutableState<Int?> = mutableStateOf(null)
     override val documentWidth: MutableState<Int?> = mutableStateOf(null)
 
@@ -85,9 +94,12 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         return null
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
-        GlobalScope.launch { temporaryFile.value?.delete() }
-        renderer.value?.close()
+        coroutineScope.launch {
+            withContext(NonCancellable) {
+                temporaryFile.value?.delete()
+                renderer.value?.close()
+            }
+        }
     }
 }

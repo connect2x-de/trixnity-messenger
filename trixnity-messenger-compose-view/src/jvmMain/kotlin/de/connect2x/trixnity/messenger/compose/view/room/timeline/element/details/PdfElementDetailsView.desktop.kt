@@ -7,11 +7,12 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -19,14 +20,22 @@ import org.apache.pdfbox.rendering.PDFRenderer
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfElementDetailsViewKt")
 
-actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
-    val reader = PlatformPDFReader(media, onError)
+actual suspend fun getPlatformPDFReader(
+    media: PlatformMedia,
+    coroutineScope: CoroutineScope,
+    onError: (String?) -> Unit,
+): PDFReader {
+    val reader = PlatformPDFReader(media, coroutineScope, onError)
     reader.initialize()
 
     return reader
 }
 
-class PlatformPDFReader(val media: PlatformMedia, val onError: (String?) -> Unit) : PDFReader {
+class PlatformPDFReader(
+    val media: PlatformMedia,
+    private val coroutineScope: CoroutineScope,
+    val onError: (String?) -> Unit,
+) : PDFReader {
     private val document = MutableStateFlow<Pair<PDDocument, PDFRenderer>?>(null)
     override val documentWidth: MutableState<Int?> = mutableStateOf(null)
     private val temporaryFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
@@ -57,9 +66,12 @@ class PlatformPDFReader(val media: PlatformMedia, val onError: (String?) -> Unit
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
-        GlobalScope.launch { temporaryFile.value?.delete() }
+        coroutineScope.launch {
+            withContext(NonCancellable) {
+                temporaryFile.value?.delete()
+            }
+        }
         document.value?.first?.close()
         document.value = null
     }

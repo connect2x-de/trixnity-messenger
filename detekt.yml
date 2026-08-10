@@ -16,7 +16,7 @@ coroutines:
   CoroutineLaunchedInTestWithoutRunTest:
     active: true
   GlobalCoroutineUsage:
-    active: false
+    active: true
   InjectDispatcher:
     active: false
   RedundantSuspendModifier:

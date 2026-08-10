@@ -10,8 +10,7 @@ import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
 import kotlin.js.toJsString
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -40,12 +39,13 @@ actual fun platformFileBasedExportRoomSinkWriter(): Module = module {
     single<FileBasedExportRoomSinkWriterFactory> {
         object : FileBasedExportRoomSinkWriterFactory {
             override fun create(destination: Destination, fileName: String): FileBasedExportRoomSinkWriter =
-                WebZipFileBasedExportRoomSinkWriter(fileName)
+                WebZipFileBasedExportRoomSinkWriter(fileName, get())
         }
     }
 }
 
-class WebZipFileBasedExportRoomSinkWriter(private val fileName: String) : FileBasedExportRoomSinkWriter {
+class WebZipFileBasedExportRoomSinkWriter(private val fileName: String, private val coroutineScope: CoroutineScope) :
+    FileBasedExportRoomSinkWriter {
     private val destination = fileName.substringBeforeLast('.') + ".zip"
 
     private lateinit var outputDirectory: FileSystemDirectoryHandle
@@ -114,8 +114,7 @@ class WebZipFileBasedExportRoomSinkWriter(private val fileName: String) : FileBa
         a.click()
 
         setTimeout(60.seconds) {
-            @OptIn(DelicateCoroutinesApi::class)
-            GlobalScope.launch {
+            coroutineScope.launch {
                 URL.revokeObjectURL(blobUrl)
                 navigator.storage.getDirectory().removeEntry(outputDirectory.name, unsafeJso { recursive = true })
             }

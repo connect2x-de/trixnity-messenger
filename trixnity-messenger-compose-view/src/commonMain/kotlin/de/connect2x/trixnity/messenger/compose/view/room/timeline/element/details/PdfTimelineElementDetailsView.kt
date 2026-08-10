@@ -88,7 +88,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.ktor.http.*
+import io.ktor.http.ContentType
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
@@ -201,6 +201,8 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val reader = remember { mutableStateOf<PDFReader?>(null) }
         val currentSize = remember { mutableStateOf(DpSize.Zero) }
         val scrollRequest = remember { mutableStateOf<Size?>(null) }
+        val coroutineScope = DI.get<CoroutineScope>()
+
         LaunchedEffect(scrollRequest.value) {
             val currentRequest = scrollRequest.value
             if (currentRequest != null) {
@@ -308,7 +310,10 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                     media != null -> {
                         val density = LocalDensity.current.density
                         LaunchedEffect(Unit) {
-                            reader.value = getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
+                            reader.value =
+                                getPlatformPDFReader(media, coroutineScope) {
+                                    setError(i18n.fileCouldNotBeLoaded())
+                                }
                         }
                         DisposableEffect(Unit) {
                             onDispose {
@@ -413,7 +418,11 @@ interface PDFReader {
 
 data class PDFCacheEntry(val creationTime: Long, val page: ImageBitmap?, val dpi: Int)
 
-expect suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader
+expect suspend fun getPlatformPDFReader(
+    media: PlatformMedia,
+    coroutineScope: CoroutineScope,
+    onError: (String?) -> Unit,
+): PDFReader
 
 private data class PageNumber(val pageIndex: Int, val scroll: Boolean, val updateIndexViaList: Boolean)
 
