@@ -24,7 +24,7 @@ coroutines:
   SleepInsteadOfDelay:
     active: true
   SuspendFunInFinallySection:
-    active: false
+    active: true
   SuspendFunSwallowedCancellation:
     active: false
   SuspendFunWithCoroutineScopeReceiver:
