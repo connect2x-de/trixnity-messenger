@@ -69,7 +69,7 @@ exceptions:
   ExceptionRaisedInUnexpectedLocation:
     active: true
   InstanceOfCheckForException:
-    active: false
+    active: true
   RethrowCaughtException:
     active: true
   ReturnFromFinally:
