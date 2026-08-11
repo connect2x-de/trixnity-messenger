@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.LargeSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -39,42 +40,48 @@ class OAuth2DeviceAuthorizationLoginViewImpl : OAuth2DeviceAuthorizationLoginVie
         val state = viewModel.state.collectAsState().value
         val i18n = DI.get<I18nView>()
 
-        Column(Modifier.defaultMinSize(minHeight = 20.dp)) {
-            Text(i18n.loginWithOAuth2DeviceDescription(viewModel.serverUrl))
-            LargeSpacer()
-            when (state) {
-                OAuth2DeviceAuthorizationLoginViewModel.State.ObtainCode -> {
-                    ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
-                    SmallSpacer()
-                    Text(i18n.loginWithOAuth2Waiting(viewModel.serverUrl))
-                }
-                is OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode -> {
-                    Card(Modifier.align(Alignment.CenterHorizontally)) {
-                        Column(modifier = Modifier.padding(24.dp)) {
-                            Text(
-                                text = state.userCode,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 4.sp,
-                            )
-                        }
+        WizardSection {
+            Column(Modifier.defaultMinSize(minHeight = 20.dp)) {
+                Text(i18n.loginWithOAuth2DeviceDescription(viewModel.serverUrl))
+                LargeSpacer()
+                when (state) {
+                    OAuth2DeviceAuthorizationLoginViewModel.State.ObtainCode -> {
+                        ThemedProgressIndicator(
+                            Modifier.fillMaxWidth(),
+                            MaterialTheme.components.linearProgressIndicator,
+                        )
+                        SmallSpacer()
+                        Text(i18n.loginWithOAuth2Waiting(viewModel.serverUrl))
                     }
 
-                    SmallSpacer()
+                    is OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode -> {
+                        Card(Modifier.align(Alignment.CenterHorizontally)) {
+                            Column(modifier = Modifier.padding(24.dp)) {
+                                Text(
+                                    text = state.userCode,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 4.sp,
+                                )
+                            }
+                        }
 
-                    Text(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        text = state.uri,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                    )
+                        SmallSpacer()
+
+                        Text(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            text = state.uri,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+
+                    is OAuth2DeviceAuthorizationLoginViewModel.State.Failure ->
+                        Text(state.message, color = MaterialTheme.colorScheme.error)
+
+                    OAuth2DeviceAuthorizationLoginViewModel.State.None,
+                    OAuth2DeviceAuthorizationLoginViewModel.State.Success -> {}
                 }
-
-                is OAuth2DeviceAuthorizationLoginViewModel.State.Failure ->
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
-
-                OAuth2DeviceAuthorizationLoginViewModel.State.None,
-                OAuth2DeviceAuthorizationLoginViewModel.State.Success -> {}
             }
         }
     }

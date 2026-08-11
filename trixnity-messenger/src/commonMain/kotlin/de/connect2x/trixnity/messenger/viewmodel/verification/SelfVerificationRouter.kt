@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.core.component.get
+import org.koin.core.qualifier.named
 
 class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
@@ -78,7 +79,7 @@ class SelfVerificationRouter(
                 } else {
                     Wrapper.View(
                         viewModelContext
-                            .get<SelfVerificationViewModelFactory>()
+                            .get<SelfVerificationViewModelFactory>(qualifier = named("v1"))
                             .create(
                                 viewModelContext =
                                     viewModelContext.childContext(

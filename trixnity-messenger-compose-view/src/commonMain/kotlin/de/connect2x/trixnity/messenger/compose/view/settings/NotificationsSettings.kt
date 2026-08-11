@@ -83,8 +83,16 @@ fun NotificationSettingsSingleAccount(viewModel: NotificationSettingsSingleAccou
     }
 }
 
+@Deprecated("use PlatformDeviceNotificationSettings(enabled: Boolean, notificationHandlerId: String)")
 @Composable
 expect fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel)
+
+@Composable
+expect fun ColumnScope.PlatformDeviceNotificationSettings(
+    enabled: Boolean,
+    notificationHandlerId: String,
+    modifier: Modifier = Modifier,
+)
 
 @Composable
 fun ColumnScope.DeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
@@ -93,6 +101,7 @@ fun ColumnScope.DeviceNotificationSettings(viewModel: NotificationSettingsSingle
     val enabledForThisDevice by viewModel.enabledForThisDevice.collectAsState()
     val availableProviders = viewModel.availableProviders
     val selectedProvider = viewModel.selectedProvider.collectAsState().value
+    val permissionNecessary = viewModel.notificationPermissionsNecessary.collectAsState().value
 
     ThemedListItemSwitch(
         style = MaterialTheme.components.settingsItem,
@@ -102,18 +111,18 @@ fun ColumnScope.DeviceNotificationSettings(viewModel: NotificationSettingsSingle
     )
 
     SmallSpacer()
-    val permissionNecessary = viewModel.notificationPermissionsNecessary.collectAsState().value
     if (permissionNecessary) {
-        if (permissionNecessary) {
-            Row {
-                Icon(Icons.Default.Error, i18n.notificationSettingsPlatformEnablePermissionsWarning())
-                SmallSpacer()
-                Text(i18n.notificationSettingsPlatformEnablePermissionsWarning())
-            }
+        Row {
+            Icon(Icons.Default.Error, i18n.notificationSettingsPlatformEnablePermissionsWarning())
             SmallSpacer()
+            Text(i18n.notificationSettingsPlatformEnablePermissionsWarning())
         }
+        SmallSpacer()
     }
-    PlatformDeviceNotificationSettings(viewModel)
+    PlatformDeviceNotificationSettings(
+        enabled = viewModel.enabledForThisDevice.collectAsState().value,
+        notificationHandlerId = viewModel.notificationHandlerId,
+    )
     SmallSpacer()
 
     if (availableProviders.size > 1 && selectedProvider != null) {

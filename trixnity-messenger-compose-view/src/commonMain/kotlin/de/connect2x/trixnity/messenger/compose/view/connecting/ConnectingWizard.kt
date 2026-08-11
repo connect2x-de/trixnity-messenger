@@ -9,9 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.common.Wizard
-import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton
-import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.Wizard
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardNavigationButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.form.LocalHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.get

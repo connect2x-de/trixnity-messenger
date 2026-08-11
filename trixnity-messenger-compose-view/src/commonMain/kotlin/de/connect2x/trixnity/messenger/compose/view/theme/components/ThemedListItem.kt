@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.theme.components
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
@@ -8,17 +9,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 
 @Immutable
-data class ListItemStyle(val colors: ListItemColors, val tonalElevation: Dp, val shadowElevation: Dp) {
+data class ListItemStyle(
+    val colors: ListItemColors,
+    val tonalElevation: Dp,
+    val shadowElevation: Dp,
+    val contentPadding: PaddingValues,
+) {
     companion object {
         @Composable
         fun default(
             colors: ListItemColors = ListItemDefaults.colors(),
             tonalElevation: Dp = ListItemDefaults.Elevation,
             shadowElevation: Dp = ListItemDefaults.Elevation,
-        ) = ListItemStyle(colors = colors, tonalElevation = tonalElevation, shadowElevation = shadowElevation)
+            contentPadding: PaddingValues = PaddingValues(0.dp),
+        ) =
+            ListItemStyle(
+                colors = colors,
+                tonalElevation = tonalElevation,
+                shadowElevation = shadowElevation,
+                contentPadding = contentPadding,
+            )
     }
 }
 

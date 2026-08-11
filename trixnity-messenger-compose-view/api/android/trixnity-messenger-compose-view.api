@@ -271,12 +271,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/CopyToCli
 	public static final fun CopyToClipboardButton (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/common/CustomButtonScope : androidx/compose/foundation/layout/RowScope {
-	public abstract fun getCurrentStepId ()Landroidx/compose/runtime/MutableState;
-	public abstract fun getNextStep ()Ljava/lang/String;
-	public abstract fun getPreviousStep ()Ljava/lang/String;
-}
-
 public final class de/connect2x/trixnity/messenger/compose/view/common/CustomIndicationElement : androidx/compose/ui/node/ModifierNodeElement {
 	public static final field $stable I
 	public fun <init> (Landroidx/compose/foundation/interaction/InteractionSource;Landroidx/compose/foundation/IndicationNodeFactory;)V
@@ -408,6 +402,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/Horizonta
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/LoadingButtonKt {
 	public static final fun ThemedLoadingButton (Lkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/Modifier;ZLde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun ThemedLoadingIconButton (Lkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/Modifier;ZLde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/LoadingIndicatorsKt {
@@ -554,106 +549,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/UserState
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/VerticalGridKt {
 	public static final fun VerticalGrid-uFdPcIQ (Landroidx/compose/ui/Modifier;FLkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/common/WizardButtons {
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardButtons$AdditionalButton : de/connect2x/trixnity/messenger/compose/view/common/WizardButtons {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/WizardButtons$AdditionalButton;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardButtons$BackButton : de/connect2x/trixnity/messenger/compose/view/common/WizardButtons {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/WizardButtons$BackButton;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardButtons$NextButton : de/connect2x/trixnity/messenger/compose/view/common/WizardButtons {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/WizardButtons$NextButton;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardImageKt {
-	public static final fun WizardImage--jt2gSs (Landroidx/compose/foundation/layout/ColumnScope;Lorg/jetbrains/compose/resources/DrawableResource;Ljava/lang/String;FLandroidx/compose/foundation/layout/BoxWithConstraintsScope;Landroidx/compose/runtime/Composer;I)V
-	public static final fun WizardImage-UuyPYSY (Lorg/jetbrains/compose/resources/DrawableResource;Ljava/lang/String;FFLandroidx/compose/runtime/Composer;II)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardKt {
-	public static final fun Wizard (Ljava/util/List;ZLjava/lang/String;Landroidx/compose/runtime/Composer;II)V
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton {
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Custom : de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton {
-	public static final field $stable I
-	public fun <init> (Lkotlin/jvm/functions/Function3;)V
-	public final fun component1 ()Lkotlin/jvm/functions/Function3;
-	public final fun copy (Lkotlin/jvm/functions/Function3;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Custom;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Custom;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Custom;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getButton ()Lkotlin/jvm/functions/Function3;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$None : de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$None;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Standard : de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lkotlin/jvm/functions/Function2;
-	public final fun component2 ()Lkotlin/jvm/functions/Function2;
-	public final fun copy (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Standard;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Standard;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton$Standard;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getContent ()Lkotlin/jvm/functions/Function2;
-	public final fun getEnabled ()Lkotlin/jvm/functions/Function2;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/common/WizardStep {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Lkotlin/jvm/functions/Function2;
-	public final fun component3 ()Lkotlin/jvm/functions/Function3;
-	public final fun component4 ()Lkotlin/jvm/functions/Function4;
-	public final fun component5 ()Lkotlin/jvm/functions/Function2;
-	public final fun component6 ()Lkotlin/jvm/functions/Function2;
-	public final fun component7 ()Lkotlin/jvm/functions/Function2;
-	public final fun copy (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAdditionalButton ()Lkotlin/jvm/functions/Function4;
-	public final fun getBackButton ()Lkotlin/jvm/functions/Function2;
-	public final fun getButtonOrder ()Lkotlin/jvm/functions/Function2;
-	public final fun getContent ()Lkotlin/jvm/functions/Function3;
-	public final fun getId ()Ljava/lang/String;
-	public final fun getNextButton ()Lkotlin/jvm/functions/Function2;
-	public final fun getTitle ()Lkotlin/jvm/functions/Function2;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/icons/BanIconKt {
@@ -840,6 +735,118 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/common/wizard/CustomButtonScope : androidx/compose/foundation/layout/RowScope {
+	public abstract fun getCurrentStepId ()Landroidx/compose/runtime/MutableState;
+	public abstract fun getNextStep ()Ljava/lang/String;
+	public abstract fun getPreviousStep ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons$AdditionalButton : de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons$AdditionalButton;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons$BackButton : de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons$BackButton;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons$NextButton : de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardButtons$NextButton;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardImageKt {
+	public static final fun WizardImage--jt2gSs (Landroidx/compose/foundation/layout/ColumnScope;Lorg/jetbrains/compose/resources/DrawableResource;Ljava/lang/String;FLandroidx/compose/foundation/layout/BoxWithConstraintsScope;Landroidx/compose/runtime/Composer;I)V
+	public static final fun WizardImage-UuyPYSY (Lorg/jetbrains/compose/resources/DrawableResource;Ljava/lang/String;FFLandroidx/compose/runtime/Composer;II)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardKt {
+	public static final fun Wizard (Ljava/util/List;ZLjava/lang/String;Landroidx/compose/runtime/Composer;II)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Custom : de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton {
+	public static final field $stable I
+	public fun <init> (Lkotlin/jvm/functions/Function3;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function3;
+	public final fun copy (Lkotlin/jvm/functions/Function3;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Custom;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Custom;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Custom;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getButton ()Lkotlin/jvm/functions/Function3;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$None : de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$None;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Standard : de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function2;
+	public final fun component2 ()Lkotlin/jvm/functions/Function2;
+	public final fun copy (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Standard;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Standard;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardNavigationButton$Standard;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Lkotlin/jvm/functions/Function2;
+	public final fun getEnabled ()Lkotlin/jvm/functions/Function2;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardSectionKt {
+	public static final fun WizardSection-Kz89ssw (FLandroidx/compose/foundation/layout/PaddingValues;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lkotlin/jvm/functions/Function2;
+	public final fun component3 ()Lkotlin/jvm/functions/Function2;
+	public final fun component4 ()Lkotlin/jvm/functions/Function3;
+	public final fun component5 ()Lkotlin/jvm/functions/Function4;
+	public final fun component6 ()Lkotlin/jvm/functions/Function2;
+	public final fun component7 ()Lkotlin/jvm/functions/Function2;
+	public final fun component8 ()Lkotlin/jvm/functions/Function2;
+	public final fun copy (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAdditionalButton ()Lkotlin/jvm/functions/Function4;
+	public final fun getBackButton ()Lkotlin/jvm/functions/Function2;
+	public final fun getButtonOrder ()Lkotlin/jvm/functions/Function2;
+	public final fun getContent ()Lkotlin/jvm/functions/Function3;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getNextButton ()Lkotlin/jvm/functions/Function2;
+	public final fun getSubTitle ()Lkotlin/jvm/functions/Function2;
+	public final fun getTitle ()Lkotlin/jvm/functions/Function2;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/AddMatrixAccountKt {
 	public static final fun AddMatrixAccount (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 }
@@ -855,13 +862,13 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/AddMa
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/AdditionalConnectingWizardStep {
-	public abstract fun create (Ljava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public abstract fun create (Ljava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/AdditionalConnectingWizardStepImpl : de/connect2x/trixnity/messenger/compose/view/connecting/AdditionalConnectingWizardStep {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Ljava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public fun create (Ljava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/ConnectingWizardKt {
@@ -869,13 +876,13 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Conne
 	public static final field PASSWORD_LOGIN Ljava/lang/String;
 	public static final field REGISTER_NEW_ACCOUNT Ljava/lang/String;
 	public static final field SSO_LOGIN Ljava/lang/String;
-	public static final fun AddMatrixAccountStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public static final fun AddMatrixAccountStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
 	public static final fun ConnectingWizard (Ljava/lang/Object;Landroidx/compose/runtime/Composer;I)V
-	public static final fun LoginWithOAuth2AuthenticationCodeStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
-	public static final fun LoginWithOAuth2DeviceAuthenticationStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
-	public static final fun LoginWithPasswordStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/PasswordLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
-	public static final fun LoginWithSSOStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/SSOLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
-	public static final fun RegisterNewAccountStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RegisterMatrixAccountViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public static final fun LoginWithOAuth2AuthenticationCodeStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
+	public static final fun LoginWithOAuth2DeviceAuthenticationStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
+	public static final fun LoginWithPasswordStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/PasswordLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
+	public static final fun LoginWithSSOStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/SSOLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
+	public static final fun RegisterNewAccountStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RegisterMatrixAccountViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/MatrixClientInitializationFailureView {
@@ -1265,6 +1272,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun commonOn ()Ljava/lang/String;
 	public fun commonOptionalReason ()Ljava/lang/String;
 	public fun commonOr ()Ljava/lang/String;
+	public fun commonOtherOptions ()Ljava/lang/String;
 	public fun commonRecoveryKey ()Ljava/lang/String;
 	public fun commonRecoveryPassphrase ()Ljava/lang/String;
 	public fun commonRefresh ()Ljava/lang/String;
@@ -1364,6 +1372,10 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun indicatorLeave (Ljava/lang/String;)Ljava/lang/String;
 	public fun indicatorUnreadMessages ()Ljava/lang/String;
 	public fun infoMessage ()Ljava/lang/String;
+	public fun initialSettingsSetupNotificationsExplanation ()Ljava/lang/String;
+	public fun initialSettingsSetupStrictPrivacy ()Ljava/lang/String;
+	public fun initialSettingsSetupStrictPrivacyExplanation ()Ljava/lang/String;
+	public fun initialSettingsSetupWelcomeMessage ()Ljava/lang/String;
 	public fun inputAreaCancelEdit ()Ljava/lang/String;
 	public fun inputAreaCannotSendMessages ()Ljava/lang/String;
 	public fun inputAreaEmojis ()Ljava/lang/String;
@@ -1635,7 +1647,6 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun roomSettingsEnableEncryptionWarningTitleGroup ()Ljava/lang/String;
 	public fun roomSettingsMembers ()Ljava/lang/String;
 	public fun roomSettingsMentions ()Ljava/lang/String;
-	public fun roomSettingsResetEncryption ()Ljava/lang/String;
 	public fun roomSettingsRoomId ()Ljava/lang/String;
 	public fun roomSettingsRoomName ()Ljava/lang/String;
 	public fun roomSettingsRoomNameCannotChange ()Ljava/lang/String;
@@ -2237,7 +2248,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ex
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomDevInfoKt {
 	public static final fun DevInfo (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun ResetEncryptionButton (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RoomDevInfoContainer (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
@@ -4776,6 +4786,30 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Account
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$V2 {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$V2;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$V2$DeviceVerificationStep : de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$V2$DeviceVerificationStep;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$V2$SettingsStep : de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$V2$SettingsStep;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$VerificationStep : de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep {
 	public static final field $stable I
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep$VerificationStep;
@@ -4784,13 +4818,19 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Account
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStepKt {
+	public static final fun AccountSetupWizardStep (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun SetupNotificationSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun SetupStrictPrivacySettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStepList {
 	public abstract fun getSteps ()Ljava/util/List;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStepListImpl : de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStepList {
 	public static final field $stable I
-	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;)V
 	public fun getSteps ()Ljava/util/List;
 }
 
@@ -4827,13 +4867,13 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Account
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/AdditionalAccountSetupWizardStep {
-	public abstract fun create (Ljava/lang/Object;Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public abstract fun create (Ljava/lang/Object;Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/AdditionalAccountSetupWizardStepImpl : de/connect2x/trixnity/messenger/compose/view/settings/AdditionalAccountSetupWizardStep {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Ljava/lang/Object;Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public fun create (Ljava/lang/Object;Lde/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardStep;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/AppInfoImprintKt {
@@ -5116,6 +5156,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Notific
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/NotificationsSettings_androidKt {
 	public static final fun PlatformDeviceNotificationSettings (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun PlatformDeviceNotificationSettings (Landroidx/compose/foundation/layout/ColumnScope;ZLjava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/OptionSettingKt {
@@ -6156,14 +6197,16 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle {
 	public static final field $stable I
 	public static final field Companion Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle$Companion;
-	public synthetic fun <init> (Landroidx/compose/material3/ListItemColors;FFLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Landroidx/compose/material3/ListItemColors;FFLandroidx/compose/foundation/layout/PaddingValues;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Landroidx/compose/material3/ListItemColors;
 	public final fun component2-D9Ej5fM ()F
 	public final fun component3-D9Ej5fM ()F
-	public final fun copy-VpY3zN4 (Landroidx/compose/material3/ListItemColors;FF)Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
-	public static synthetic fun copy-VpY3zN4$default (Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Landroidx/compose/material3/ListItemColors;FFILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
+	public final fun component4 ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun copy-ghNngFA (Landroidx/compose/material3/ListItemColors;FFLandroidx/compose/foundation/layout/PaddingValues;)Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
+	public static synthetic fun copy-ghNngFA$default (Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Landroidx/compose/material3/ListItemColors;FFLandroidx/compose/foundation/layout/PaddingValues;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getColors ()Landroidx/compose/material3/ListItemColors;
+	public final fun getContentPadding ()Landroidx/compose/foundation/layout/PaddingValues;
 	public final fun getShadowElevation-D9Ej5fM ()F
 	public final fun getTonalElevation-D9Ej5fM ()F
 	public fun hashCode ()I
@@ -6171,7 +6214,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle$Companion {
-	public final fun default-WMci_g0 (Landroidx/compose/material3/ListItemColors;FFLandroidx/compose/runtime/Composer;II)Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
+	public final fun default-djqs-MU (Landroidx/compose/material3/ListItemColors;FFLandroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/runtime/Composer;II)Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/OutlinedTextFieldWithToolbarKt {
@@ -6761,16 +6804,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/util/RoomMessage
 	public static final fun toClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$CrossSigningBootstrapWizardKt {
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$CrossSigningBootstrapWizardKt;
-	public fun <init> ()V
-	public final fun getLambda$902009801$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
-}
-
 public final class de/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$SelfVerificationWizardKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$SelfVerificationWizardKt;
 	public fun <init> ()V
-	public final fun getLambda$1158546115$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1816928994$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/verification/CrossSigningBootstrapWizardKt {
@@ -6858,72 +6895,94 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/Sel
 	public static final fun SelfVerificationWizard (Lde/connect2x/trixnity/messenger/viewmodel/verification/SelfVerificationViewModel;ZLandroidx/compose/runtime/Composer;II)V
 }
 
+public class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getStepId ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardHelp : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardHelp;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardMethods : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardMethods;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardPassphrase : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardPassphrase;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardRecoveryKey : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardRecoveryKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardResetRecoveryKeyConfirmation : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardResetRecoveryKeyConfirmation;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardVerificationConfirmation : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$SelfVerificationWizardVerificationConfirmation;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$V2 {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$V2;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$V2$SelfVerificationWizardMethodSelection : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStep$V2$SelfVerificationWizardMethodSelection;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStepList {
+	public abstract fun getSteps ()Ljava/util/List;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStepListImpl : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardStepList {
+	public static final field $stable I
+	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;)V
+	public fun getSteps ()Ljava/util/List;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardView {
 	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/SelfVerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardView {
 	public static final field $stable I
-	public static final field Companion Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$Companion;
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/SelfVerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$Companion {
-}
-
-public class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;)V
-	public final fun getStepId ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardHelp : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardHelp;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardMethods : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardMethods;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardPassphrase : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardPassphrase;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardRecoveryKey : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardRecoveryKey;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardResetRecoveryKeyConfirmation : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardResetRecoveryKeyConfirmation;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardVerificationConfirmation : de/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep {
-	public static final field $stable I
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/SelfVerificationWizardViewImpl$SelfVerificationWizardStep$SelfVerificationWizardVerificationConfirmation;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/verification/VerificationStepsKt {
@@ -6941,6 +7000,42 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/Ver
 	public static final fun VerificationRejectedContent (ZLandroidx/compose/runtime/Composer;I)V
 	public static final fun VerificationTimeout (Lde/connect2x/trixnity/messenger/viewmodel/verification/VerificationStepTimeoutViewModel;ZLandroidx/compose/runtime/Composer;II)V
 	public static final fun VerificationTimeoutContent (ZLandroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$SelfVerificationStepsKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$SelfVerificationStepsKt;
+	public fun <init> ()V
+	public final fun getLambda$-107899124$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1918331658$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1980866655$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-708029081$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$121304626$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1295698875$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationStepsKt {
+	public static final fun NoVerification (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun PasswordPhrase (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun RecoveryKey (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ResetAccount (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ResetOptions (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun SelfVerificationExplanation (Landroidx/compose/runtime/Composer;I)V
+	public static final fun SelfVerificationSteps (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerifyWithOtherDevice (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationWizardKt {
+	public static final fun SelfVerificationWizard (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationWizardView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationWizardViewImpl : de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationWizardView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/notification/GetNotificationIconImpl_androidKt {

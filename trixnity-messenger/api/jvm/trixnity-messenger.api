@@ -650,20 +650,22 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 
 public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features {
 	public fun <init> ()V
-	public fun <init> (ZZZZZZ)V
-	public synthetic fun <init> (ZZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZZZZZZ)V
+	public synthetic fun <init> (ZZZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
 	public final fun component2 ()Z
 	public final fun component3 ()Z
 	public final fun component4 ()Z
 	public final fun component5 ()Z
 	public final fun component6 ()Z
-	public final fun copy (ZZZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public final fun component7 ()Z
+	public final fun copy (ZZZZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEnableAudioRecorder ()Z
 	public final fun getEnableMediaPlayer ()Z
 	public final fun getEnableMessageDrafts ()Z
+	public final fun getEnableNewAccountWizard ()Z
 	public final fun getEnableNewSearch ()Z
 	public final fun getEnablePdfReader ()Z
 	public final fun getEnablePowerlevelEventConfigurationInRoomSettings ()Z
@@ -671,6 +673,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public final fun setEnableAudioRecorder (Z)V
 	public final fun setEnableMediaPlayer (Z)V
 	public final fun setEnableMessageDrafts (Z)V
+	public final fun setEnableNewAccountWizard (Z)V
 	public final fun setEnableNewSearch (Z)V
 	public final fun setEnablePdfReader (Z)V
 	public final fun setEnablePowerlevelEventConfigurationInRoomSettings (Z)V
@@ -7161,8 +7164,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/Previ
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModel {
 	public abstract fun back ()V
 	public abstract fun getRoomId-7hZGZBE ()Ljava/lang/String;
-	public abstract fun getShowResetEncryptionButton ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun resetEncryption ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModelFactory {
@@ -7198,12 +7199,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomD
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
 	public fun getRoomId-7hZGZBE ()Ljava/lang/String;
-	public fun getShowResetEncryptionButton ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
-	public fun resetEncryption ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsAliasViewModel {
@@ -11991,6 +11990,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun getAppearanceSettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/AppearanceSettingsViewModel;
 	public abstract fun getCompletedVerification ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public abstract fun getDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getInitialSettingsSetupViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel;
 	public abstract fun getNotificationSettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;
 	public abstract fun getPrivacySettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;
 	public abstract fun getSetupBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
@@ -12026,13 +12026,12 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSet
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
 	public fun getDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInitialSettingsSetupViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public fun getNotificationSettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;
-	public final fun getOnStartVerification ()Lkotlin/jvm/functions/Function2;
-	public final fun getOnWizardClose ()Lkotlin/jvm/functions/Function1;
 	public fun getPrivacySettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;
 	public fun getSetupBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
@@ -12609,6 +12608,66 @@ public class de/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSi
 	public fun setDisplayName (Ljava/lang/String;Ljava/lang/String;)V
 	public fun update ()V
 	public fun verify (Ljava/lang/String;)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel {
+	public abstract fun getAccount-hu1aZbM ()Ljava/lang/String;
+	public abstract fun getAvailableProviders ()Ljava/util/List;
+	public abstract fun getNotificationHandlerId ()Ljava/lang/String;
+	public abstract fun getNotificationPermissionsNecessary ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getNotificationsEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSelectedProvider ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getStrictPrivacyEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun selectProvider (Ljava/lang/String;)V
+	public abstract fun toggleNotifications ()V
+	public abstract fun toggleStrictPrivacy ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModelFactory$Companion;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;)Lde/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModelFactory {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;)Lde/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModelFactory$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;)Lde/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;)V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun getAccount-hu1aZbM ()Ljava/lang/String;
+	public fun getAvailableProviders ()Ljava/util/List;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
+	public fun getNotificationHandlerId ()Ljava/lang/String;
+	public fun getNotificationPermissionsNecessary ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getNotificationsEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSelectedProvider ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getStrictPrivacyEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun selectProvider (Ljava/lang/String;)V
+	public fun toggleNotifications ()V
+	public fun toggleStrictPrivacy ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsAllAccountsViewModel {
@@ -14504,6 +14563,11 @@ public final class de/connect2x/trixnity/messenger/viewmodel/verification/SelfVe
 	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/verification/SelfVerificationViewModel;
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/verification/SelfVerificationRouter$Wrapper$ViewV2 : de/connect2x/trixnity/messenger/viewmodel/verification/SelfVerificationRouter$Wrapper {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;)V
+	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verification/SelfVerificationViewModel {
 	public abstract fun backToChoose ()V
 	public abstract fun backToHelp ()V
@@ -15258,5 +15322,77 @@ public final class de/connect2x/trixnity/messenger/viewmodel/verification/Verify
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/verification/VerifyAccountImpl$Companion {
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel {
+	public abstract fun continueWithoutVerification ()V
+	public abstract fun getAvailableSelfVerificationMethods ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getPassphrase ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
+	public abstract fun getPassphraseVerificationInProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getPassphraseWrong ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getRecoveryKey ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
+	public abstract fun getRecoveryKeyVerificationInProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getRecoveryKeyWrong ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public abstract fun resetRecovery ()V
+	public abstract fun verifyWithOtherDevice ()V
+	public abstract fun verifyWithPassphrase ()V
+	public abstract fun verifyWithRecoveryKey ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModelFactory$Companion;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModelFactory {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModelFactory$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun continueWithoutVerification ()V
+	public fun getAvailableSelfVerificationMethods ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
+	public fun getPassphrase ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
+	public fun getPassphraseVerificationInProgress ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getPassphraseVerificationInProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getPassphraseWrong ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getPassphraseWrong ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getRecoveryKey ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
+	public fun getRecoveryKeyVerificationInProgress ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getRecoveryKeyVerificationInProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getRecoveryKeyWrong ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getRecoveryKeyWrong ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun resetRecovery ()V
+	public fun verifyWithOtherDevice ()V
+	public fun verifyWithPassphrase ()V
+	public fun verifyWithRecoveryKey ()V
 }
 

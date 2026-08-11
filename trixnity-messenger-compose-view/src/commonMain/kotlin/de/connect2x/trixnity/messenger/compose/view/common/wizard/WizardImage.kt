@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.common
+package de.connect2x.trixnity.messenger.compose.view.common.wizard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraintsScope

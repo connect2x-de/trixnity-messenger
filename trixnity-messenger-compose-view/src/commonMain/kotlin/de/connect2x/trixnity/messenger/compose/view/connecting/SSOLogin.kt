@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -35,20 +36,25 @@ class SSOLoginViewImpl : SSOLoginView {
         val waitForRedirect = ssoLoginViewModel.waitForRedirect.collectAsState().value
         val i18n = DI.get<I18nView>()
 
-        if (waitForRedirect) {
-            Text(i18n.externalLogin(ssoLoginViewModel.providerName ?: "SSO"))
-            Spacer(Modifier.height(20.dp))
-        }
+        WizardSection {
+            if (waitForRedirect) {
+                Text(i18n.externalLogin(ssoLoginViewModel.providerName ?: "SSO"))
+                Spacer(Modifier.height(20.dp))
+            }
 
-        Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
-            when (state) {
-                AddMatrixAccountState.None -> {}
-                AddMatrixAccountState.Connecting ->
-                    ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
+            Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
+                when (state) {
+                    AddMatrixAccountState.None -> {}
+                    AddMatrixAccountState.Connecting ->
+                        ThemedProgressIndicator(
+                            Modifier.fillMaxWidth(),
+                            MaterialTheme.components.linearProgressIndicator,
+                        )
 
-                is AddMatrixAccountState.Failure -> Text(state.message, color = MaterialTheme.colorScheme.error)
+                    is AddMatrixAccountState.Failure -> Text(state.message, color = MaterialTheme.colorScheme.error)
 
-                AddMatrixAccountState.Success -> {}
+                    AddMatrixAccountState.Success -> {}
+                }
             }
         }
     }

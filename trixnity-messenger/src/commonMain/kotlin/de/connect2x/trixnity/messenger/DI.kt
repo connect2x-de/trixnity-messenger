@@ -672,7 +672,8 @@ private fun verificationViewModels() = module {
     single<CrossSigningBootstrapViewModelFactory> { CrossSigningBootstrapViewModelFactory }
     single<RedoSelfVerificationViewModelFactory> { RedoSelfVerificationViewModelFactory }
     single<SelectVerificationMethodViewModelFactory> { SelectVerificationMethodViewModelFactory }
-    single<SelfVerificationViewModelFactory> { SelfVerificationViewModelFactory }
+    // for JS, since package names are not part of the distinction for Koin
+    single<SelfVerificationViewModelFactory>(named("v1")) { SelfVerificationViewModelFactory }
     single<de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModelFactory> {
         de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModelFactory
     }

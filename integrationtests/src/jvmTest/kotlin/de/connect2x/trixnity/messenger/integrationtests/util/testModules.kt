@@ -43,7 +43,10 @@ fun createTrixnityMessengerTestModule() = module {
 
 suspend fun createTestMatrixMessenger(): MatrixMessengerWithRoot {
     val matrixMessenger =
-        MatrixMessenger.create(Dispatchers.Default) { modulesFactories += { createTrixnityMessengerTestModule() } }
+        MatrixMessenger.create(Dispatchers.Default) {
+            features.apply { enableNewAccountWizard = false }
+            modulesFactories += { createTrixnityMessengerTestModule() }
+        }
     matrixMessenger.di.get<MatrixMessengerSettingsHolder>().update<MatrixMessengerSettingsBase> {
         it.copy(preferredLang = "en")
     }
@@ -52,7 +55,10 @@ suspend fun createTestMatrixMessenger(): MatrixMessengerWithRoot {
 
 suspend fun createTestMatrixMultiMessenger(coroutineContext: CoroutineContext = Dispatchers.Default) =
     MatrixMultiMessengerImpl(coroutineContext) {
-        messenger = { modulesFactories += { createTrixnityMessengerTestModule() } }
+        messenger = {
+            features.apply { enableNewAccountWizard = false }
+            modulesFactories += { createTrixnityMessengerTestModule() }
+        }
         modulesFactories += { module { single<FileSystem> { FakeFileSystem() } } }
     }
 

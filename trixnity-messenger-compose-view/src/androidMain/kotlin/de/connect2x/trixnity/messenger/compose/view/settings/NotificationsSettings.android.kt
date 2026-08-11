@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -19,16 +20,28 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSi
 @SuppressLint("UnrememberedMutableState")
 @Composable
 actual fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
+    PlatformDeviceNotificationSettings(
+        enabled = viewModel.enabledForThisDevice.collectAsState().value,
+        notificationHandlerId = viewModel.notificationHandlerId,
+    )
+}
+
+@Composable
+actual fun ColumnScope.PlatformDeviceNotificationSettings(
+    enabled: Boolean,
+    notificationHandlerId: String,
+    modifier: Modifier,
+) {
     val i18n = DI.get<I18nView>()
     val context = LocalContext.current
-    val enabled = viewModel.enabledForThisDevice.collectAsState().value
     ThemedButton(
+        modifier = modifier,
         style = MaterialTheme.components.primaryButton,
         onClick = {
             val intent: Intent =
                 Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
                     .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                    .putExtra(Settings.EXTRA_CHANNEL_ID, viewModel.notificationHandlerId)
+                    .putExtra(Settings.EXTRA_CHANNEL_ID, notificationHandlerId)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)
         },

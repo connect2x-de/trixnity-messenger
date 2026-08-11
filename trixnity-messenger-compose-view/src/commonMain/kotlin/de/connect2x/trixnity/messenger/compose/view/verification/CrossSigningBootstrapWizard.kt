@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -41,12 +40,12 @@ import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.CloseMessengerButton
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.common.LargeSpacer
-import de.connect2x.trixnity.messenger.compose.view.common.Paragraphs
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
-import de.connect2x.trixnity.messenger.compose.view.common.Wizard
-import de.connect2x.trixnity.messenger.compose.view.common.WizardImage
-import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton
-import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.Wizard
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardImage
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardNavigationButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.copyToClipboard
 import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -65,7 +64,6 @@ const val RECOVERY_KEY_EXPLANATION = "RECOVERY_KEY_EXPLANATION"
 const val RECOVERY_KEY = "RECOVERY_KEY"
 const val FINISHED = "FINISHED"
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel) {
     val i18n = DI.get<I18nView>()
@@ -79,7 +77,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                         val isBootstrapRunning =
                             crossSigningBootstrapViewModel.isBootstrapRunning.collectAsState().value
                         val error = crossSigningBootstrapViewModel.error.collectAsState().value
-                        Paragraphs {
+                        WizardSection {
                             Text(i18n.bootstrapRecoveryKeyExplanation1())
                             Text(i18n.bootstrapRecoveryKeyExplanation2())
                             WizardImage(Res.drawable.vault, i18n.bootstrapVault(), 300.dp, boxWithConstraintsScope)
@@ -142,7 +140,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                             )
                             crossSigningBootstrapViewModel.confirmRecoveryKeyCopied()
                         }
-                        Paragraphs {
+                        WizardSection {
                             Text(text = i18n.bootstrapRecoveryKeyHandling())
                             Text(i18n.bootstrapRecoveryKeyWarning())
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -235,19 +233,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                 WizardStep(
                     id = FINISHED,
                     title = { i18n.bootstrapFinished() },
-                    content = {
-                        // TODO content?
-                    },
-                    nextButton = {
-                        WizardNavigationButton.Custom {
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                onClick = { crossSigningBootstrapViewModel.close() },
-                            ) {
-                                Text(i18n.commonConfirm())
-                            }
-                        }
-                    },
+                    content = { LaunchedEffect(Unit) { crossSigningBootstrapViewModel.close() } },
                 ),
             )
         }

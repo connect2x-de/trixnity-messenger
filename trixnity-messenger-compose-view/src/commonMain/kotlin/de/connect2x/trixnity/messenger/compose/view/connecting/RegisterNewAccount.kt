@@ -1,16 +1,12 @@
 package de.connect2x.trixnity.messenger.compose.view.connecting
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
@@ -18,8 +14,10 @@ import de.connect2x.trixnity.messenger.compose.view.common.MatrixUsername
 import de.connect2x.trixnity.messenger.compose.view.common.PasswordField
 import de.connect2x.trixnity.messenger.compose.view.common.TabInTextField
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 
 interface RegisterNewAccountView {
@@ -38,11 +36,10 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
         val canRegisterNewUser = registerMatrixAccountViewModel.canRegisterNewUser.collectAsState().value
         val error = registerMatrixAccountViewModel.error.collectAsState().value
 
-        Column {
+        WizardSection(contentSpacing = MaterialTheme.messengerDpConstants.middle) {
             if (error != null) {
                 ErrorView(error)
             }
-            Spacer(Modifier.size(20.dp))
             val tabToNextAndEnterSend = TabInTextField(canRegisterNewUser, registerMatrixAccountViewModel::register)
             MatrixUsername(
                 username = registerMatrixAccountViewModel.username.collectAsTextFieldValueState(),
@@ -51,7 +48,6 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             ) {
                 Tooltip({ Text(i18n.profileUserNameInfo()) }) { Icon(Icons.Default.Info, i18n.profileUserNameInfo()) }
             }
-            Spacer(Modifier.size(20.dp))
             PasswordField(
                 password = registerMatrixAccountViewModel.password.collectAsTextFieldValueState(),
                 modifier = tabToNextAndEnterSend,

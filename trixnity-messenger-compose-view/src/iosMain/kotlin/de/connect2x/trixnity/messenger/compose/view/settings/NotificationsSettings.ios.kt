@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -20,9 +21,21 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.s
 
 @Composable
 actual fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
+    PlatformDeviceNotificationSettings(
+        viewModel.enabledForThisDevice.collectAsState().value,
+        viewModel.notificationHandlerId,
+    )
+}
+
+@Composable
+actual fun ColumnScope.PlatformDeviceNotificationSettings(
+    enabled: Boolean,
+    notificationHandlerId: String,
+    modifier: Modifier,
+) {
     val i18n = DI.get<I18nView>()
-    val enabled = viewModel.enabledForThisDevice.collectAsState().value
     ThemedButton(
+        modifier = modifier,
         style = MaterialTheme.components.primaryButton,
         enabled = enabled,
         onClick = {
