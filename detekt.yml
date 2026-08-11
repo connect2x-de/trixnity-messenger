@@ -105,7 +105,7 @@ potential-bugs:
   CastNullableToNonNullableType:
     active: true
   CastToNullableType:
-    active: false
+    active: true
   CharArrayToStringCall:
     active: true
   DontDowncastCollectionTypes:
