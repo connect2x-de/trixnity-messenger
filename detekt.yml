@@ -103,7 +103,7 @@ potential-bugs:
   AvoidReferentialEquality:
     active: true
   CastNullableToNonNullableType:
-    active: false
+    active: true
   CastToNullableType:
     active: false
   CharArrayToStringCall:
