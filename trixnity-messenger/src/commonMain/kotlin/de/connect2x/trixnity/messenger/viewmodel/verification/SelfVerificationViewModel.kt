@@ -35,6 +35,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
+@Deprecated(
+    "use v2.SelfVerificationViewModelFactory",
+    ReplaceWith("de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModelFactory"),
+)
 interface SelfVerificationViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -47,6 +51,10 @@ interface SelfVerificationViewModelFactory {
     companion object : SelfVerificationViewModelFactory
 }
 
+@Deprecated(
+    "use v2.SelfVerificationViewModel",
+    replaceWith = ReplaceWith("de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModel"),
+)
 interface SelfVerificationViewModel {
     val userId: UserId
     val showVerificationHelp: MutableStateFlow<Boolean>

@@ -4,9 +4,8 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.util.gb
 import de.connect2x.trixnity.messenger.util.mb
-import io.ktor.client.HttpClient
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.*
+import io.ktor.client.engine.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -157,6 +156,8 @@ data class MatrixMessengerConfiguration(
          * @see [de.connect2x.trixnity.messenger.search.provider.SearchProvider].
          */
         var enableNewSearch: Boolean = true,
+        /** Uses the more concise account wizard when accounts log in. */
+        var enableNewAccountWizard: Boolean = true,
     )
 
     enum class CryptoDriver {

@@ -158,6 +158,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelF
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.InitialSettingsSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
@@ -520,6 +521,7 @@ private fun settingsViewModels() = module {
     single<AppearanceSettingsViewModelFactory> { AppearanceSettingsViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
     single<NotificationSettingsSingleAccountViewModelFactory> { NotificationSettingsSingleAccountViewModelFactory }
+    single<InitialSettingsSetupViewModelFactory> { InitialSettingsSetupViewModelFactory }
 }
 
 inline fun <reified F : TimelineElementViewModelFactory<*>> Module.timelineElementViewModelFactory(
@@ -671,6 +673,9 @@ private fun verificationViewModels() = module {
     single<RedoSelfVerificationViewModelFactory> { RedoSelfVerificationViewModelFactory }
     single<SelectVerificationMethodViewModelFactory> { SelectVerificationMethodViewModelFactory }
     single<SelfVerificationViewModelFactory> { SelfVerificationViewModelFactory }
+    single<de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModelFactory> {
+        de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModelFactory
+    }
     single<VerificationStepCancelledViewModelFactory> { VerificationStepCancelledViewModelFactory }
     single<VerificationStepCompareViewModelFactory> { VerificationStepCompareViewModelFactory }
     single<VerificationStepRejectedViewModelFactory> { VerificationStepRejectedViewModelFactory }
