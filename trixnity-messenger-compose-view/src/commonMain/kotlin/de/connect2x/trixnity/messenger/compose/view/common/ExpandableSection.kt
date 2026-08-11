@@ -106,7 +106,7 @@ private inline fun ExpandableSectionImpl(
 
     Surface(
         shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = modifier.focusHighlighting(interactionSource, shape = MaterialTheme.shapes.small).fillMaxWidth(),
     ) {
@@ -134,7 +134,7 @@ private inline fun ExpandableSectionImpl(
                     modifier = Modifier.animateRotation(rotateState),
                 )
             }
-            AnimatedVisibility(expanded.value) { Column(Modifier.padding(8.dp)) { content() } }
+            AnimatedVisibility(expanded.value) { Column(Modifier.padding(16.dp)) { content() } }
         }
     }
 }
