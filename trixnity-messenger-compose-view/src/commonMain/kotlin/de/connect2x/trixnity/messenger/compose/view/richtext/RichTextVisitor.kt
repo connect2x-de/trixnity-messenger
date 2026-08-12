@@ -74,6 +74,7 @@ internal class RichTextVisitor {
         }
     }
 
+    @Suppress("DoubleMutabilityForCollection")
     private fun queueChildren(nodes: List<HtmlNode>, acc: MutableList<RichText>) {
         var inlineAcc: MutableList<RichText.Inline>? = null
         for (child in nodes) {

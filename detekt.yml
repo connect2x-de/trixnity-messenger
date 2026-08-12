@@ -111,7 +111,7 @@ potential-bugs:
   DontDowncastCollectionTypes:
     active: true
   DoubleMutabilityForCollection:
-    active: false
+    active: true
   ElseCaseInsteadOfExhaustiveWhen:
     active: false
   EqualsAlwaysReturnsTrueOrFalse:
