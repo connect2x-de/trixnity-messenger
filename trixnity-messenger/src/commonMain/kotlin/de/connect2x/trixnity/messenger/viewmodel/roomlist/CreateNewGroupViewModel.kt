@@ -90,6 +90,8 @@ open class CreateNewGroupViewModelImpl(
     override val directoryVisibilityIsPublic = MutableStateFlow(false)
     override val isPrivate = MutableStateFlow(true)
 
+    override val isEncrypted = MutableStateFlow(true)
+
     override fun setIsPrivate(isPrivate: Boolean) {
         this.isPrivate.value = isPrivate
         if (isPrivate) {
@@ -106,7 +108,6 @@ open class CreateNewGroupViewModelImpl(
         if (!isPrivate.value) this.directoryVisibilityIsPublic.value = setDirectoryVisibilityIsPublic
     }
 
-    override val isEncrypted = MutableStateFlow(true)
     private val _isCreating = MutableStateFlow(false)
     override val isCreating: StateFlow<Boolean> = _isCreating
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =

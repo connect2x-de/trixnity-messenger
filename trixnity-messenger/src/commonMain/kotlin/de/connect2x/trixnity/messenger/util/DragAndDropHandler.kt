@@ -19,29 +19,29 @@ interface DragAndDropHandler {
 }
 
 open class DragAndDropHandlerBase : DragAndDropHandler {
-    fun drop(files: List<FileDescriptor>) {
-        _onDrop.tryEmit(files)
-    }
-
     private val _onDrop =
         MutableSharedFlow<List<FileDescriptor>>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val onDrop: SharedFlow<List<FileDescriptor>> = _onDrop.asSharedFlow()
 
-    fun drag(files: List<FileDescriptor>) {
-        _onDrag.tryEmit(files)
+    fun drop(files: List<FileDescriptor>) {
+        _onDrop.tryEmit(files)
     }
 
     private val _onDrag =
         MutableSharedFlow<List<FileDescriptor>>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val onDrag: SharedFlow<List<FileDescriptor>> = _onDrag.asSharedFlow()
 
-    fun dragExit() {
-        _onDragExit.tryEmit(Unit)
+    fun drag(files: List<FileDescriptor>) {
+        _onDrag.tryEmit(files)
     }
 
     private val _onDragExit =
         MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val onDragExit: SharedFlow<Unit> = _onDragExit.asSharedFlow()
+
+    fun dragExit() {
+        _onDragExit.tryEmit(Unit)
+    }
 }
 
 val MatrixMessenger.defaultDragAndDropHandler: DragAndDropHandlerBase

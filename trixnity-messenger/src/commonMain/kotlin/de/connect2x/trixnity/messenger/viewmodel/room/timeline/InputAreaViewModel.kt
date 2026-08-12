@@ -243,11 +243,6 @@ open class InputAreaViewModelImpl(
     override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
 
-    // TODO: Move this to an init block
-    @Suppress("unused")
-    private val completeAudioRecordingOnReplace =
-        isReplace.filter { it }.onEach { audio.recorder?.complete() }.launchIn(coroutineScope)
-
     private val currentReply = MutableStateFlow<Pair<RoomId, EventId>?>(null)
     override val isReply: StateFlow<Boolean> =
         currentReply.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
@@ -342,43 +337,42 @@ open class InputAreaViewModelImpl(
         override fun printHtml(html: CharSequence): CharSequence = html
     }
 
-    override val suggestedMentions: StateFlow<List<InputAreaViewModel.SuggestedMention>?> =
-        flow {
-                var lastEmptySearch: String? = null
-                fun calculateNextEmptySearch(currentEmptySearch: String?, listSize: Int, search: String): String? {
-                    return when {
-                        listSize != 0 -> null
-                        currentEmptySearch == null || currentEmptySearch.startsWith(search) -> search
-                        !search.startsWith(currentEmptySearch) -> null
-                        else -> currentEmptySearch
-                    }
-                }
-                emitAll(
-                    textField.map { textFieldValue ->
-                        val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
-                        if (idLocalPartBeforeCursor != null) {
-                            lastEmptySearch?.let {
-                                if (idLocalPartBeforeCursor.startsWith(it)) {
-                                    return@map emptyList()
-                                }
-                            }
-
-                            _suggestedMentionsLoading.value = true
-                            val listOfMentions = buildList {
-                                addAll(listOfUsers(idLocalPartBeforeCursor))
-                                getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { add(it) }
-                            }
-                            _suggestedMentionsLoading.value = false
-
-                            lastEmptySearch =
-                                calculateNextEmptySearch(lastEmptySearch, listOfMentions.size, idLocalPartBeforeCursor)
-
-                            listOfMentions
-                        } else null
-                    }
-                )
+    override val suggestedMentions: StateFlow<List<InputAreaViewModel.SuggestedMention>?> = flow {
+        var lastEmptySearch: String? = null
+        fun calculateNextEmptySearch(currentEmptySearch: String?, listSize: Int, search: String): String? {
+            return when {
+                listSize != 0 -> null
+                currentEmptySearch == null || currentEmptySearch.startsWith(search) -> search
+                !search.startsWith(currentEmptySearch) -> null
+                else -> currentEmptySearch
             }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        }
+        emitAll(
+            textField.map { textFieldValue ->
+                val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
+                if (idLocalPartBeforeCursor != null) {
+                    lastEmptySearch?.let {
+                        if (idLocalPartBeforeCursor.startsWith(it)) {
+                            return@map emptyList()
+                        }
+                    }
+
+                    _suggestedMentionsLoading.value = true
+                    val listOfMentions = buildList {
+                        addAll(listOfUsers(idLocalPartBeforeCursor))
+                        getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { add(it) }
+                    }
+                    _suggestedMentionsLoading.value = false
+
+                    lastEmptySearch =
+                        calculateNextEmptySearch(lastEmptySearch, listOfMentions.size, idLocalPartBeforeCursor)
+
+                    listOfMentions
+                } else null
+            }
+        )
+    }
+        .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val listOfMentions: StateFlow<List<UserInfoElement>?> =
         suggestedMentions
@@ -402,6 +396,8 @@ open class InputAreaViewModelImpl(
                 matrixClient.room.deleteDraftMessage(roomId)
             }
         }
+        isReplace.filter { it }.onEach { audio.recorder?.complete() }.launchIn(coroutineScope)
+
         if (enableMessageDrafts) {
             lifecycle.doOnDestroy {
                 get<CoroutineScope>().launch {
@@ -413,6 +409,23 @@ open class InputAreaViewModelImpl(
 
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
+
+    private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
+
+    private val defaultRoomNotificationPowerLevel = 50L
+    private val requiredRoomMentionPowerLevel =
+        matrixClient.room.getState<PowerLevelsEventContent>(roomId).map { powerLevelEvent ->
+            powerLevelEvent?.content?.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
+        }
+
+    private val canRoomMention: StateFlow<Boolean> =
+        combine(userPowerLevel, requiredRoomMentionPowerLevel) { userPowerLevel, requiredPowerLevel ->
+                when (userPowerLevel) {
+                    is PowerLevel.Creator -> true
+                    is PowerLevel.User -> userPowerLevel.level >= requiredPowerLevel
+                }
+            }
+            .stateIn(coroutineScope, Eagerly, false)
 
     private suspend fun loadDraftIntoTextArea() {
         val draftMessage = draftMessage.first()
@@ -742,22 +755,6 @@ open class InputAreaViewModelImpl(
                 room.toRoomInfoElement(this, initials, matrixClient, roomName, maxThumbnailSize)
             }
             .stateIn(coroutineScope, SharingStarted.Lazily, null)
-
-    private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
-    private val defaultRoomNotificationPowerLevel = 50L
-    private val requiredRoomMentionPowerLevel =
-        matrixClient.room.getState<PowerLevelsEventContent>(roomId).map { powerLevelEvent ->
-            powerLevelEvent?.content?.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
-        }
-
-    private val canRoomMention: StateFlow<Boolean> =
-        combine(userPowerLevel, requiredRoomMentionPowerLevel) { userPowerLevel, requiredPowerLevel ->
-                when (userPowerLevel) {
-                    is PowerLevel.Creator -> true
-                    is PowerLevel.User -> userPowerLevel.level >= requiredPowerLevel
-                }
-            }
-            .stateIn(coroutineScope, Eagerly, false)
 
     private suspend fun getRoomMentionIfAllowed(search: String): InputAreaViewModel.SuggestedMention.AllRoomMembers? {
         if (!canRoomMention.value) return null

@@ -39,6 +39,12 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.settings.SettingsHolderImpl")
     }
 
+    override val replayCache: List<S>
+        get() = settings.replayCache.filterNotNull()
+
+    override val value: S
+        get() = checkNotNull(settings.value) { "SettingsHolder has not been initialized" }
+
     private val updateMutex = Mutex()
 
     override suspend fun update(updater: MutableSettings<S>.(S) -> Unit) = updateMutex.withLock {
@@ -66,12 +72,6 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
             }
         }
     }
-
-    override val replayCache: List<S>
-        get() = settings.replayCache.filterNotNull()
-
-    override val value: S
-        get() = checkNotNull(settings.value) { "SettingsHolder has not been initialized" }
 
     override suspend fun collect(collector: FlowCollector<S>): Nothing = settings.collect {
         collector.emit(checkNotNull(it) { "SettingsHolder has not been initialized" })

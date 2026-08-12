@@ -106,7 +106,8 @@ class AudioRecordingAreaViewModelImpl(
                         AudioRecorder.State.Ready,
                         is AudioRecorder.State.Recording,
                         is AudioRecorder.State.Failed -> {
-                            capturePlayer.value?.pause()
+                            // This works because this is lazily called after definition
+                            @Suppress("PropertyUsedBeforeDeclaration") capturePlayer.value?.pause()
                             null
                         }
                         is AudioRecorder.State.Completed -> {

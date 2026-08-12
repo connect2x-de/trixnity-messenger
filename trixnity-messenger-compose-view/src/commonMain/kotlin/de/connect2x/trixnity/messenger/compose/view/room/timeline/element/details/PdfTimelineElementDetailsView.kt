@@ -108,6 +108,12 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
+    // The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its
+    // DPI as the value
+    private val cache = mutableStateMapOf<Int, MutableStateFlow<PDFCacheEntry?>>()
+
+    val queue = MutableSharedFlow<Int>()
+
     override fun supportsMimeType(mimeType: ContentType): Boolean {
         return ContentType.Application.Pdf.match(mimeType)
     }
@@ -124,10 +130,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         }
     }
 
-    // The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its
-    // DPI as the value
-    private val cache = mutableStateMapOf<Int, MutableStateFlow<PDFCacheEntry?>>()
-
     private fun getCacheElement(cacheKey: Int, scope: CoroutineScope): StateFlow<PDFCacheEntry?> {
         return cache[cacheKey]
             ?: run {
@@ -137,8 +139,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                 }
             }
     }
-
-    val queue = MutableSharedFlow<Int>()
 
     private suspend fun loadImageWithDpi(
         reader: PDFReader,

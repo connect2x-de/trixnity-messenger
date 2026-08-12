@@ -14,7 +14,6 @@ import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
-import kotlin.collections.plus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -132,40 +131,6 @@ class PowerlevelViewModelImpl(
                 removedEvents.value = emptySet()
             }
         }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun setPowerLevels() {
-        coroutineScope.launch {
-            val c = getModifiedContent()
-            if (c == state.value) return@launch
-            error.value =
-                when (c) {
-                    // this means the user tried to submit while a text field had an invalid state
-                    null -> i18n.powerLevelWronglyConfiguredError()
-                    else ->
-                        matrixClient.api.room.sendStateEvent(roomId, c).exceptionOrNull()?.let {
-                            when (it) {
-                                is MatrixServerException -> it.errorResponse.error
-                                else -> it.message ?: i18n.commonUnknown() // some internal Exception occurred
-                            }
-                        }
-                }
-        }
-    }
-
-    override fun resetAll() {
-        addedEvents.value = emptyMap()
-        removedEvents.value = emptySet()
-
-        ban.resetInput()
-        eventsDefault.resetInput()
-        invite.resetInput()
-        kick.resetInput()
-        redact.resetInput()
-        stateDefault.resetInput()
-        usersDefault.resetInput()
-        events.value.forEach { (_, v) -> v.resetInput() }
     }
 
     override val ban =
@@ -320,6 +285,40 @@ class PowerlevelViewModelImpl(
                 (messageEvents + stateEvents).filter { !events.keys.contains(it) }.toSet()
             }
             .stateIn(coroutineScope, WhileSubscribed(), emptySet())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun setPowerLevels() {
+        coroutineScope.launch {
+            val c = getModifiedContent()
+            if (c == state.value) return@launch
+            error.value =
+                when (c) {
+                    // this means the user tried to submit while a text field had an invalid state
+                    null -> i18n.powerLevelWronglyConfiguredError()
+                    else ->
+                        matrixClient.api.room.sendStateEvent(roomId, c).exceptionOrNull()?.let {
+                            when (it) {
+                                is MatrixServerException -> it.errorResponse.error
+                                else -> it.message ?: i18n.commonUnknown() // some internal Exception occurred
+                            }
+                        }
+                }
+        }
+    }
+
+    override fun resetAll() {
+        addedEvents.value = emptyMap()
+        removedEvents.value = emptySet()
+
+        ban.resetInput()
+        eventsDefault.resetInput()
+        invite.resetInput()
+        kick.resetInput()
+        redact.resetInput()
+        stateDefault.resetInput()
+        usersDefault.resetInput()
+        events.value.forEach { (_, v) -> v.resetInput() }
+    }
 
     // This function only returns null if a text field does not contain a number
     private fun getModifiedContent(): PowerLevelsEventContent? {

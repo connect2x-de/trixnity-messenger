@@ -20,7 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import io.ktor.http.*
+import io.ktor.http.Url
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -119,6 +119,20 @@ open class OAuth2AuthorizationCodeLoginViewModelImpl(
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
 
     private val flow: MutableStateFlow<OAuth2AuthorizationCodeLoginFlow> = MutableStateFlow(makeLoginFlow())
+
+    private val loginHint: AtomicReference<String?> = AtomicReference(null)
+
+    @TrixnityMessengerPrivateApi
+    fun setLoginHint(hint: String?) {
+        loginHint.store(hint)
+    }
+
+    private val promptValue: AtomicReference<PromptValue?> = AtomicReference(null)
+
+    @TrixnityMessengerPrivateApi
+    fun setPromptValue(value: PromptValue?) {
+        promptValue.store(value)
+    }
 
     private fun makeLoginFlow(loginHint: String? = null, promptValue: PromptValue? = null) =
         MatrixClientAuthProviderData.oAuth2AuthorizationCodeLogin(
@@ -223,20 +237,6 @@ open class OAuth2AuthorizationCodeLoginViewModelImpl(
     }
 
     val backCallback = BackCallback { back() }
-
-    private val loginHint: AtomicReference<String?> = AtomicReference(null)
-
-    @TrixnityMessengerPrivateApi
-    fun setLoginHint(hint: String?) {
-        loginHint.store(hint)
-    }
-
-    private val promptValue: AtomicReference<PromptValue?> = AtomicReference(null)
-
-    @TrixnityMessengerPrivateApi
-    fun setPromptValue(value: PromptValue?) {
-        promptValue.store(value)
-    }
 
     init {
         registerBackCallback(backCallback)

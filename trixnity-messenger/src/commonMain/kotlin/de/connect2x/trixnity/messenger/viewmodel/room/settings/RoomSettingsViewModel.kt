@@ -123,6 +123,27 @@ class RoomSettingsViewModelImpl(
 
     override val error = MutableStateFlow<String?>(null)
 
+    override val leaveRoomSettingEntryText = MutableStateFlow("")
+    override val leaveRoomWarningTitle = MutableStateFlow("")
+    override val leaveRoomWarningMessage = MutableStateFlow("")
+    override val leaveRoomWarningConfirmButtonText = MutableStateFlow("")
+    override val leaveRoomWarningOpen = MutableStateFlow(false)
+    override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isLeave: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    override val memberListViewModel: MemberListViewModel =
+        get<MemberListViewModelFactory>()
+            .create(
+                viewModelContext = childContext("memberList-${selectedRoomId}"),
+                selectedRoomId = selectedRoomId,
+                onOpenUserProfile = ::openUserProfile,
+                error = error,
+            )
+
+    override val hasPowerToInvite: StateFlow<Boolean> =
+        matrixClient.user.canInvite(selectedRoomId).stateIn(coroutineScope, WhileSubscribed(), false)
+
     override val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel by lazy {
         get<ChangeRoomAvatarViewModelFactory>().create(viewModelContext, selectedRoomId, onOpenAvatarCutter)
     }
@@ -153,27 +174,6 @@ class RoomSettingsViewModelImpl(
     override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel by lazy {
         get<RoomSettingsAliasViewModelFactory>().create(viewModelContext, selectedRoomId, isDirect, error, error, error)
     }
-
-    override val leaveRoomSettingEntryText = MutableStateFlow("")
-    override val leaveRoomWarningTitle = MutableStateFlow("")
-    override val leaveRoomWarningMessage = MutableStateFlow("")
-    override val leaveRoomWarningConfirmButtonText = MutableStateFlow("")
-    override val leaveRoomWarningOpen = MutableStateFlow(false)
-    override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isLeave: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
-    override val memberListViewModel: MemberListViewModel =
-        get<MemberListViewModelFactory>()
-            .create(
-                viewModelContext = childContext("memberList-${selectedRoomId}"),
-                selectedRoomId = selectedRoomId,
-                onOpenUserProfile = ::openUserProfile,
-                error = error,
-            )
-
-    override val hasPowerToInvite: StateFlow<Boolean> =
-        matrixClient.user.canInvite(selectedRoomId).stateIn(coroutineScope, WhileSubscribed(), false)
 
     init {
         coroutineScope.launch {

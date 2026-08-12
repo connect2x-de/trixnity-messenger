@@ -148,7 +148,7 @@ potential-bugs:
   NullableToStringCall:
     active: false
   PropertyUsedBeforeDeclaration:
-    active: false
+    active: true
   UnconditionalJumpStatementInLoop:
     active: true
   UnnecessaryNotNullCheck:

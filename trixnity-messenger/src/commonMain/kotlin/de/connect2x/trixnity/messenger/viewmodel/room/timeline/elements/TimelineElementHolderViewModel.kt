@@ -421,17 +421,16 @@ class TimelineElementHolderViewModelImpl(
             }
             .stateIn(coroutineScope, Eagerly, null)
 
-    override val isReply: StateFlow<Boolean?> =
-        flow {
-                val eventContent = timelineEventFlow.first().event.content
-                if (eventContent !is MessageEventContent) {
-                    emit(false)
-                    return@flow
-                }
-                val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-                if (repliedEventId == null) emit(false) else emit(true)
-            }
-            .stateIn(coroutineScope, Lazily, null)
+    override val isReply: StateFlow<Boolean?> = flow {
+        val eventContent = timelineEventFlow.first().event.content
+        if (eventContent !is MessageEventContent) {
+            emit(false)
+            return@flow
+        }
+        val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
+        if (repliedEventId == null) emit(false) else emit(true)
+    }
+        .stateIn(coroutineScope, Lazily, null)
 
     private data class RepliedTimelineElementViewModelWrapper(
         val viewModel: TimelineElementHolderViewModel,
@@ -518,6 +517,8 @@ class TimelineElementHolderViewModelImpl(
             .map { event -> event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent }
             .shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
+    override val isByMe: Boolean = senderUserId == userId
+
     override val showSender: StateFlow<Boolean?> =
         combine(isOneToOneRoom, previousEventIsStateOrNotBySender) { is1on1Room, previousEventIsStateOrNotBySender ->
                 !is1on1Room && previousEventIsStateOrNotBySender && !isByMe
@@ -537,8 +538,6 @@ class TimelineElementHolderViewModelImpl(
                 }
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
-
-    override val isByMe: Boolean = senderUserId == userId
 
     private val lastReplaceOrRedaction =
         timelineEventFlow
@@ -588,15 +587,14 @@ class TimelineElementHolderViewModelImpl(
             .map { it.event.sender == matrixClient.userId && it.content?.getOrNull() is TextBased }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    override val canBeRedacted: StateFlow<Boolean> =
-        channelFlow {
-                timelineEventFlow
-                    .flatMapLatest { timelineEvent ->
-                        matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId)
-                    }
-                    .collectLatest { send(it) }
+    override val canBeRedacted: StateFlow<Boolean> = channelFlow {
+        timelineEventFlow
+            .flatMapLatest { timelineEvent ->
+                matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId)
             }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+            .collectLatest { send(it) }
+    }
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isRead: StateFlow<Boolean> =
         lastReplaceOrRedaction

@@ -33,6 +33,10 @@ object WinCredentials : Library {
 
 class Credential(pointer: Pointer?) : Structure(pointer) {
 
+    lateinit var targetName: String
+    @JvmField var credentialBlobSize: Int = 0
+    lateinit var credentialBlob: Pointer
+
     constructor(targetName: String, credentialBlobSize: Int, credentialBlob: Pointer) : this(null) {
         this.targetName = targetName
         this.credentialBlobSize = credentialBlobSize
@@ -47,13 +51,8 @@ class Credential(pointer: Pointer?) : Structure(pointer) {
 
     @JvmField var type: Int = 1 // GENERIC
 
-    lateinit var targetName: String
     lateinit var comment: String
     lateinit var lastWritten: FILETIME
-
-    @JvmField var credentialBlobSize: Int = 0
-
-    lateinit var credentialBlob: Pointer
 
     @JvmField var persist: Int = 2 // PERSIST LOCALLY
 

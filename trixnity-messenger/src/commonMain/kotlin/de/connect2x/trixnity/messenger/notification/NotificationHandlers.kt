@@ -69,6 +69,13 @@ class NotificationHandlersImpl(
             }
     }
 
+    private val _global: Lazy<NotificationHandler> = lazy {
+        notificationHandler(idSuffix = "global", name = config.appName, contributesToCounter = false)
+    }
+
+    override val global: NotificationHandler
+        get() = _global.value
+
     override suspend fun continuouslyRequestPermissions() {
         combine(notificationProviders.map { provider -> provider.isEnabled }) { states -> states.any { it } }
             .distinctUntilChanged()
@@ -110,13 +117,6 @@ class NotificationHandlersImpl(
             name = name,
             contributesToCounter = contributesToCounter,
         )
-
-    private val _global: Lazy<NotificationHandler> = lazy {
-        notificationHandler(idSuffix = "global", name = config.appName, contributesToCounter = false)
-    }
-
-    override val global: NotificationHandler
-        get() = _global.value
 
     override operator fun get(account: UserId): NotificationHandler {
         val profile = multiSettings?.value?.base?.activeProfile
