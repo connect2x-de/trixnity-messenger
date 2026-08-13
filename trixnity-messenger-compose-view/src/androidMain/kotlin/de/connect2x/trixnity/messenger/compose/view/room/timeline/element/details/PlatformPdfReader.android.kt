@@ -19,21 +19,27 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.core.module.Module
+import org.koin.dsl.module
 
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfElementDetailsViewKt")
 
-actual suspend fun getPlatformPDFReader(
-    media: PlatformMedia,
-    coroutineScope: CoroutineScope,
-    onError: (String?) -> Unit,
-): PDFReader {
-    val reader = PDFPlatformReader(media, coroutineScope, onError)
-    reader.initialize()
-    return reader
+actual fun getPlatformPdfReaderModule(): Module {
+    return module {
+        single<PDFReaderFactory> {
+            object : PDFReaderFactory {
+                val coroutineScope: CoroutineScope = get()
+
+                override suspend fun create(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
+                    return AndroidPDFReader(media, coroutineScope, onError).also { it.initialize() }
+                }
+            }
+        }
+    }
 }
 
-class PDFPlatformReader(
+class AndroidPDFReader(
     val media: PlatformMedia,
     private val coroutineScope: CoroutineScope,
     val onError: (String?) -> Unit,

@@ -9,6 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- SDK: platform specific pdfReaderFactory
 - UI: Ability to reset encryption keys for a room in room developer settings
 - CI, INTERNAL: Enabled more detekt linting rules
 - SDK,UI: Add better error handling with UI feedback to the `AudioRecorder` API

@@ -152,6 +152,7 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.detail
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.getPlatformPdfReaderModule
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EncryptedErrorTimelineElementView
@@ -634,6 +635,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
 fun timelineElementDetailsViewsModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
     timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsViewImpl() }
     if (messengerConfiguration?.features?.enablePdfReader == true) {
+        includes(getPlatformPdfReaderModule())
         timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsViewImpl() }
     }
 }
