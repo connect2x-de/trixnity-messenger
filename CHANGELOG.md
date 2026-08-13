@@ -14,6 +14,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - UI: improved redaction warning
+- INTERNAL: Use new runner infrastructure
 
 ### Deprecated
 
