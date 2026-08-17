@@ -532,7 +532,11 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
                 node.config.getOrNull(SemanticsActions.RequestFocus) != null
         if (focusable) {
             if (el.focusListener == null) {
-                val focusListener: (Event) -> Unit = { doIf(SemanticsActions.RequestFocus) { it.action?.invoke() } }
+                val focusListener: (Event) -> Unit = {
+                    if (node.layoutInfo.isAttached) {
+                        doIf(SemanticsActions.RequestFocus) { it.action?.invoke() }
+                    }
+                }
 
                 if (el is HTMLDivElement) el.setAttribute("tabindex", "-1")
 

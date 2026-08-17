@@ -1,6 +1,10 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
 import de.connect2x.trixnity.utils.ByteArrayFlow
@@ -27,10 +31,19 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.datetime.TimeZone
 
 class AudioRecorderTest {
     private val platformAudioRecorder = mock<PlatformAudioRecorder>()
     private val clock = mock<Clock>()
+    private val i18n =
+        object :
+            I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
 
     private val intoMediaStoreMock = { _: ByteArrayFlow ->
         AudioRecorder.State.Completed.MediaReference.Unencrypted("unused")
@@ -63,18 +76,23 @@ class AudioRecorderTest {
 
             val startTime = Clock.System.now()
             everySuspend { platformAudioRecorder.start(any()) } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5f },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
-                        ) {}
-                    },
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5f },
+                        {
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
+                            )
+                        },
+                        failure = { null },
+                    )
                 )
             val nextTime = startTime + 5.seconds
             every { clock.now() } returns nextTime
@@ -85,27 +103,29 @@ class AudioRecorderTest {
         }
 
     @Test
-    fun `start - when starting in any state then close the platform recorder and possibly delete capture before starting`() =
+    fun `start - when starting in any state then close the platform recorder before starting`() =
         runTestWithCoroutineScope { coroutineScope ->
             val cut = commonAudioRecorder(coroutineScope)
 
             val startTime = Clock.System.now()
-            var captureDeleted = false
             everySuspend { platformAudioRecorder.start(any()) } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
-                        ) {
-                            captureDeleted = true
-                        }
-                    },
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        {
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
+                            )
+                        },
+                        failure = { null },
+                    )
                 )
             var platformRecorderClosed = false
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
@@ -119,20 +139,33 @@ class AudioRecorderTest {
             platformRecorderClosed = false
             backgroundScope.launch { cut.start(intoMediaStoreMock) }
             delay(1.seconds)
-            captureDeleted shouldBe true
             platformRecorderClosed shouldBe true
             (cut.state.value is AudioRecorder.State.Recording) shouldBe true
 
             platformRecorderClosed = false
-            captureDeleted = false
             backgroundScope.launch {
                 cut.complete()
                 cut.start(intoMediaStoreMock)
             }
             delay(1.seconds)
-            captureDeleted shouldBe true
             platformRecorderClosed shouldBe true
             (cut.state.value is AudioRecorder.State.Recording) shouldBe true
+        }
+
+    @Test
+    fun `start - when requesting permission on start and the platform recorder is not able to wait for completion then do not fail`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
+
+            val startTime = Clock.System.now()
+
+            everySuspend { platformAudioRecorder.start(any()) } returns
+                PlatformAudioRecorder.StartResult.RequestedPermissions
+
+            every { clock.now() } returns (startTime + 5.seconds)
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Ready) shouldBe true
         }
 
     @Test
@@ -141,18 +174,23 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(
-                startTime,
-                { 5f },
-                { _ ->
-                    AudioRecorderImpl.State.Completed(
-                        AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                        1.seconds,
-                        1000L,
-                        ContentType("audio", "ogg"),
-                        "ogg",
-                    ) {}
-                },
+            PlatformAudioRecorder.StartResult.Success(
+                AudioRecorderImpl.State.Recording(
+                    startTime,
+                    { 5f },
+                    {
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
+                        )
+                    },
+                    failure = { null },
+                )
             )
 
         var nextTime = startTime
@@ -168,6 +206,7 @@ class AudioRecorderTest {
             is AudioRecorder.State.Completed -> throw AssertionError("Should be Recording")
             AudioRecorder.State.Ready -> throw AssertionError("Should be Recording")
             is AudioRecorder.State.Recording -> state.duration shouldBeGreaterThan 5.seconds
+            is AudioRecorder.State.Failed -> throw AssertionError("Should be Recording")
         }
     }
 
@@ -183,18 +222,23 @@ class AudioRecorderTest {
             return nextLoudness
         }
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(
-                startTime,
-                { increasingLoudness() },
-                { _ ->
-                    AudioRecorderImpl.State.Completed(
-                        AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                        1.seconds,
-                        1000L,
-                        ContentType("audio", "ogg"),
-                        "ogg",
-                    ) {}
-                },
+            PlatformAudioRecorder.StartResult.Success(
+                AudioRecorderImpl.State.Recording(
+                    startTime,
+                    { increasingLoudness() },
+                    {
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
+                        )
+                    },
+                    failure = { null },
+                )
             )
 
         every { clock.now() } returns (startTime + 5.seconds)
@@ -205,6 +249,7 @@ class AudioRecorderTest {
             is AudioRecorder.State.Completed -> throw AssertionError("Should be Recording")
             AudioRecorder.State.Ready -> throw AssertionError("Should be Recording")
             is AudioRecorder.State.Recording -> state.loudness shouldBeGreaterThan 5F
+            is AudioRecorder.State.Failed -> throw AssertionError("Should be Recording")
         }
     }
 
@@ -214,18 +259,23 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(
-                startTime,
-                { throw IllegalStateException() },
-                { _ ->
-                    AudioRecorderImpl.State.Completed(
-                        AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                        1.seconds,
-                        1000L,
-                        ContentType("audio", "ogg"),
-                        "ogg",
-                    ) {}
-                },
+            PlatformAudioRecorder.StartResult.Success(
+                AudioRecorderImpl.State.Recording(
+                    startTime,
+                    { throw IllegalStateException() },
+                    {
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
+                        )
+                    },
+                    failure = { null },
+                )
             )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch { cut.start(intoMediaStoreMock) }
@@ -240,18 +290,23 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(
-                startTime,
-                { null },
-                { _ ->
-                    AudioRecorderImpl.State.Completed(
-                        AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                        1.seconds,
-                        1000L,
-                        ContentType("audio", "ogg"),
-                        "ogg",
-                    ) {}
-                },
+            PlatformAudioRecorder.StartResult.Success(
+                AudioRecorderImpl.State.Recording(
+                    startTime,
+                    { null },
+                    {
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
+                        )
+                    },
+                    failure = { null },
+                )
             )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch { cut.start(intoMediaStoreMock) }
@@ -266,22 +321,24 @@ class AudioRecorderTest {
             val cut = commonAudioRecorder(coroutineScope)
 
             val startTime = Clock.System.now()
-            var captureDeleted = false
             everySuspend { platformAudioRecorder.start(any()) } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
-                        ) {
-                            captureDeleted = true
-                        }
-                    },
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        {
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
+                            )
+                        },
+                        failure = { null },
+                    )
                 )
 
             var nextTime = startTime
@@ -300,9 +357,85 @@ class AudioRecorderTest {
             }
             delay(1.seconds)
 
-            captureDeleted shouldBe false
             platformRecorderClosed shouldBe false
             (cut.state.value is AudioRecorder.State.Completed) shouldBe true
+        }
+
+    @Test
+    fun `fail while recording - when platform recorder signals a failure while recording then enter failed state and clean resources`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
+
+            val startTime = Clock.System.now()
+
+            var failure: AudioRecorderImpl.State.Failed? = null
+            var resourcesCleaned = false
+            everySuspend { platformAudioRecorder.start(any()) } returns
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        {
+                            resourcesCleaned = true
+                            Result.failure(Throwable("unused"))
+                        },
+                        failure = { failure },
+                    )
+                )
+
+            every { clock.now() } returns (startTime + 5.seconds)
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Recording) shouldBe true
+            resourcesCleaned shouldBe false
+
+            failure = AudioRecorderImpl.State.Failed("unused")
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Failed) shouldBe true
+            resourcesCleaned shouldBe true
+        }
+
+    @Test
+    fun `fail while starting - when starting platform recorder fails then enter failed state`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
+
+            val startTime = Clock.System.now()
+
+            everySuspend { platformAudioRecorder.start(any()) } returns
+                PlatformAudioRecorder.StartResult.Failure("unused")
+
+            every { clock.now() } returns (startTime + 5.seconds)
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Failed) shouldBe true
+        }
+
+    @Test
+    fun `fail while completing - when platform recorder fails to complete then enter failed state`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
+
+            val startTime = Clock.System.now()
+
+            everySuspend { platformAudioRecorder.start(any()) } returns
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        { Result.failure(Throwable("unused")) },
+                        failure = { null },
+                    )
+                )
+
+            every { clock.now() } returns (startTime + 5.seconds)
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Recording) shouldBe true
+
+            backgroundScope.launch { cut.complete() }
+            delay(1.seconds)
+            (cut.state.value is AudioRecorder.State.Failed) shouldBe true
         }
 
     @Test
@@ -312,18 +445,23 @@ class AudioRecorderTest {
 
             val startTime = Clock.System.now()
             everySuspend { platformAudioRecorder.start(any()) } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
-                        ) {}
-                    },
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        {
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
+                            )
+                        },
+                        failure = { null },
+                    )
                 )
             every { clock.now() } returns (startTime + 5.seconds)
             backgroundScope.launch {
@@ -343,12 +481,19 @@ class AudioRecorderTest {
         }
 
     @Test
-    fun `complete - should reset to ready when complete throws`() = runTestWithCoroutineScope { coroutineScope ->
+    fun `complete - should be in failed state when complete throws`() = runTestWithCoroutineScope { coroutineScope ->
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(startTime, { 5F }, { _ -> throw IllegalStateException() })
+            PlatformAudioRecorder.StartResult.Success(
+                AudioRecorderImpl.State.Recording(
+                    startTime,
+                    { 5F },
+                    { throw IllegalStateException() },
+                    failure = { null },
+                )
+            )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
             cut.start(intoMediaStoreMock)
@@ -356,7 +501,15 @@ class AudioRecorderTest {
         }
         delay(1.seconds)
 
-        cut.state.value shouldBe AudioRecorder.State.Ready
+        val isFailed =
+            when (cut.state.value) {
+                is AudioRecorder.State.Completed,
+                AudioRecorder.State.Ready,
+                is AudioRecorder.State.Recording -> false
+
+                is AudioRecorder.State.Failed -> true
+            }
+        isFailed shouldBe true
     }
 
     @Test
@@ -365,18 +518,23 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(
-                startTime,
-                { 5F },
-                { _ ->
-                    AudioRecorderImpl.State.Completed(
-                        AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                        1.seconds,
-                        1000L,
-                        ContentType("audio", "ogg"),
-                        "ogg",
-                    ) {}
-                },
+            PlatformAudioRecorder.StartResult.Success(
+                AudioRecorderImpl.State.Recording(
+                    startTime,
+                    { 5F },
+                    {
+                        Result.success(
+                            AudioRecorderImpl.State.Completed(
+                                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                1.seconds,
+                                1000L,
+                                ContentType("audio", "ogg"),
+                                "ogg",
+                            )
+                        )
+                    },
+                    failure = { null },
+                )
             )
         every { clock.now() } returns (startTime + 5.seconds)
         var stateEmits = 0
@@ -391,27 +549,29 @@ class AudioRecorderTest {
     }
 
     @Test
-    fun `close when completed - when sending or cancelling a voice message then close the platform recorder and delete capture and return to ready state`() =
+    fun `close when completed - when sending or cancelling a voice message then close the platform recorder and return to ready state`() =
         runTestWithCoroutineScope { coroutineScope ->
             val cut = commonAudioRecorder(coroutineScope)
 
             val startTime = Clock.System.now()
-            var captureDeleted = false
             everySuspend { platformAudioRecorder.start(any()) } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
-                        ) {
-                            captureDeleted = true
-                        }
-                    },
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        {
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
+                            )
+                        },
+                        failure = { null },
+                    )
                 )
             var platformRecorderClosed = false
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
@@ -423,33 +583,34 @@ class AudioRecorderTest {
             }
             delay(1.seconds)
 
-            captureDeleted shouldBe true
             platformRecorderClosed shouldBe true
             cut.state.value shouldBe AudioRecorder.State.Ready
         }
 
     @Test
-    fun `close - when closing in any state then close the platform recorder and possibly delete capture and return to ready state`() =
+    fun `close - when closing in any state then close the platform recorder and return to ready state`() =
         runTestWithCoroutineScope { coroutineScope ->
             val cut = commonAudioRecorder(coroutineScope)
 
             val startTime = Clock.System.now()
-            var captureDeleted = false
             everySuspend { platformAudioRecorder.start(any()) } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg"),
-                            "ogg",
-                        ) {
-                            captureDeleted = true
-                        }
-                    },
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        startTime,
+                        { 5F },
+                        {
+                            Result.success(
+                                AudioRecorderImpl.State.Completed(
+                                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                                    1.seconds,
+                                    1000L,
+                                    ContentType("audio", "ogg"),
+                                    "ogg",
+                                )
+                            )
+                        },
+                        failure = { null },
+                    )
                 )
             var platformRecorderClosed = false
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
@@ -461,7 +622,6 @@ class AudioRecorderTest {
                 cut.close()
             }
             delay(1.seconds)
-            captureDeleted shouldBe true
             platformRecorderClosed shouldBe true
             cut.state.value shouldBe AudioRecorder.State.Ready
 
@@ -472,40 +632,8 @@ class AudioRecorderTest {
             cut.state.value shouldBe AudioRecorder.State.Ready
         }
 
-    @Test
-    fun `close - should reset to ready when deleteCapture throws`() = runTestWithCoroutineScope { coroutineScope ->
-        val cut = commonAudioRecorder(coroutineScope)
-
-        val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(
-                startTime,
-                { 5F },
-                { _ ->
-                    AudioRecorderImpl.State.Completed(
-                        AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
-                        1.seconds,
-                        1000L,
-                        ContentType("audio", "ogg"),
-                        "ogg",
-                    ) {
-                        throw IllegalStateException()
-                    }
-                },
-            )
-        every { clock.now() } returns (startTime + 5.seconds)
-        backgroundScope.launch {
-            cut.start(intoMediaStoreMock)
-            cut.complete()
-            cut.close()
-        }
-        delay(1.seconds)
-
-        cut.state.value shouldBe AudioRecorder.State.Ready
-    }
-
     fun TestScope.commonAudioRecorder(coroutineScope: CoroutineScope): AudioRecorderImpl {
-        val cut = AudioRecorderImpl(platformAudioRecorder, clock, coroutineScope)
+        val cut = AudioRecorderImpl(platformAudioRecorder, clock, coroutineScope, i18n)
         backgroundScope.launch { cut.state.collect() }
         return cut
     }

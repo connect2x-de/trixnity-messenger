@@ -2,10 +2,10 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.handleFirst
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import js.array.asList
 import js.buffer.ArrayBuffer
 import js.errors.JsErrorName
@@ -23,6 +23,7 @@ import kotlin.js.toList
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -36,6 +37,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
 import web.blob.byteArray
+import web.errors.ERROR
 import web.events.ERROR
 import web.events.Event
 import web.events.STOP
@@ -51,13 +53,14 @@ class WebAudioRecorder(
     private val audioContext: AudioContext,
     private val clock: Clock,
     private val coroutineScope: CoroutineScope,
+    private val i18n: I18n,
 ) : PlatformAudioRecorder {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebAudioRecorder")
 
     @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun start(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): AudioRecorderImpl.State.Recording? {
+    ): PlatformAudioRecorder.StartResult {
         return try {
             val microphone =
                 try {
@@ -67,32 +70,46 @@ class WebAudioRecorder(
                     }
                 } catch (e: JsException) {
                     if (e.toJsErrorLike().toJsError().name == JsErrorName("NotAllowedError")) {
-                        log.info { "Microphone permission denied" }
+                        return PlatformAudioRecorder.StartResult.Failure(i18n.microphonePermissionDenied())
                     }
-                    return null
+                    throw e
                 }
             if (microphone != null) {
                 val recorder = startRecorder(microphone)
                 val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
-                AudioRecorderImpl.State.Recording(
-                    start = clock.now(),
-                    loudness = loudness(microphone),
-                    complete = complete(recorder, microphone, media, mediaSize),
+                val start = clock.now()
+                PlatformAudioRecorder.StartResult.Success(
+                    AudioRecorderImpl.State.Recording(
+                        start = start,
+                        loudness = loudness(microphone),
+                        complete = complete(recorder, microphone, media, mediaSize, start),
+                        failure = genericFailureOnError(recorder),
+                    )
                 )
             } else {
-                log.info { "Microphone permission request timed out." }
-                null
+                PlatformAudioRecorder.StartResult.Failure(i18n.microphonePermissionTimeout())
             }
         } catch (e: Throwable) {
             log.error(e) { "Unexpected error. Could not start recording" }
-            null
+            PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
         }
     }
+
+    private fun genericFailureOnError(recorder: MediaRecorder): () -> AudioRecorderImpl.State.Failed? =
+        AudioRecorderImpl.genericFailureOnError(i18n) { setFailure ->
+            recorder.addEventHandler(
+                type = Event.ERROR,
+                options = unsafeJso { once = true },
+                handler = {
+                    log.error { "Unexpected error while recording audio" }
+                    setFailure()
+                },
+            )
+        }
 
     private fun startRecorder(microphone: MediaStream): MediaRecorder {
         val recorder = MediaRecorder(microphone)
         recorder.start()
-        recorder.addEventHandler(type = Event.ERROR, handler = { log.error { "Error while recording audio" } })
         return recorder
     }
 
@@ -115,7 +132,6 @@ class WebAudioRecorder(
                             recorder.addEventHandler(
                                 type = Event.ERROR,
                                 handler = { event ->
-                                    log.error { "Unexpected error while recording audio" }
                                     close(IllegalStateException("Unexpected error while recording audio"))
                                 },
                             ),
@@ -136,42 +152,37 @@ class WebAudioRecorder(
         microphone: MediaStream,
         mediaDeferred: Deferred<AudioRecorder.State.Completed.MediaReference>,
         mediaSize: () -> Double,
-    ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
+        start: Instant,
+    ): suspend () -> Result<AudioRecorderImpl.State.Completed> {
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         val opusFileExtension = "ogg"
-        return { recordingState: AudioRecorderImpl.State.Recording ->
+        return {
             try {
                 recorder.stop()
                 val recordingSuccessful =
-                    withTimeoutOrNull(30.seconds) {
+                    withTimeoutOrNull(5.seconds) {
                         suspendCancellableCoroutine { cont ->
                             handleFirst(
                                 eventTarget = recorder,
                                 handlers =
-                                    mapOf(
-                                        Event.STOP to { cont.resume(Unit) },
-                                        Event.ERROR to
-                                            {
-                                                log.error { "Unexpected error while recording audio" }
-                                                cont.resume(null)
-                                            },
-                                    ),
+                                    mapOf(Event.STOP to { cont.resume(Unit) }, Event.ERROR to { cont.resume(null) }),
                             )
                         }
                     }
                 if (recordingSuccessful != null) {
                     val media = mediaDeferred.await()
-                    AudioRecorderImpl.State.Completed(
-                        media,
-                        clock.now() - recordingState.start,
-                        mediaSize().toLong(),
-                        opusContentType,
-                        opusFileExtension,
-                    ) {
-                        // Automatically deleted by media store
-                    }
+                    Result.success(
+                        AudioRecorderImpl.State.Completed(
+                            media,
+                            clock.now() - start,
+                            mediaSize().toLong(),
+                            opusContentType,
+                            opusFileExtension,
+                        )
+                    )
                 } else {
-                    null
+                    log.warn { "Stopping the web API recorder failed or timed out" }
+                    Result.failure(Throwable(i18n.genericRecordingError()))
                 }
             } finally {
                 mediaDeferred.cancel()
@@ -210,7 +221,7 @@ class WebAudioRecorder(
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
             fileExtension = state.fileExtension,
-        ) {}
+        )
     }
 
     override fun close() {
