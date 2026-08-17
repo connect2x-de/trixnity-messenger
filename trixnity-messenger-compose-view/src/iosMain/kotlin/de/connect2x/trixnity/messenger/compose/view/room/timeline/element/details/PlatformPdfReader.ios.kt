@@ -126,11 +126,7 @@ class IosPDFReader(
     }
 
     override fun onDispose() {
-        coroutineScope.launch {
-            withContext(NonCancellable) {
-                temporaryFile.value?.delete()
-            }
-        }
+        coroutineScope.launch { withContext(NonCancellable) { temporaryFile.value?.delete() } }
         document.value = null
     }
 }

@@ -16,10 +16,7 @@ interface PDFReader {
 
 interface PDFReaderFactory {
 
-    suspend fun create(
-        media: PlatformMedia,
-        onError: (String?) -> Unit,
-    ): PDFReader
+    suspend fun create(media: PlatformMedia, onError: (String?) -> Unit): PDFReader
 }
 
 expect fun getPlatformPdfReaderModule(): Module

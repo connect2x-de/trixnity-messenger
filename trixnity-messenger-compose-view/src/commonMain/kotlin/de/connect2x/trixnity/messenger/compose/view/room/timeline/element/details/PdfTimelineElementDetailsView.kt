@@ -308,10 +308,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                     media != null -> {
                         val density = LocalDensity.current.density
                         LaunchedEffect(Unit) {
-                            reader.value =
-                                pdfReaderFactory.create(media) {
-                                    setError(i18n.fileCouldNotBeLoaded())
-                                }
+                            reader.value = pdfReaderFactory.create(media) { setError(i18n.fileCouldNotBeLoaded()) }
                         }
                         DisposableEffect(Unit) {
                             onDispose {

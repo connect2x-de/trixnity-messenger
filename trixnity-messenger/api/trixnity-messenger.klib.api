@@ -17507,7 +17507,7 @@ final class de.connect2x.trixnity.messenger.export/Destination { // de.connect2x
 
 // Targets: [js, wasmJs]
 final class de.connect2x.trixnity.messenger.export/WebZipFileBasedExportRoomSinkWriter : de.connect2x.trixnity.messenger.export/FileBasedExportRoomSinkWriter { // de.connect2x.trixnity.messenger.export/WebZipFileBasedExportRoomSinkWriter|null[0]
-    constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.export/WebZipFileBasedExportRoomSinkWriter.<init>|<init>(kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlinx.coroutines/CoroutineScope) // de.connect2x.trixnity.messenger.export/WebZipFileBasedExportRoomSinkWriter.<init>|<init>(kotlin.String;kotlinx.coroutines.CoroutineScope){}[0]
 
     final suspend fun addContent(kotlin/String) // de.connect2x.trixnity.messenger.export/WebZipFileBasedExportRoomSinkWriter.addContent|addContent(kotlin.String){}[0]
     final suspend fun addMedia(kotlinx.coroutines.flow/Flow<kotlin/ByteArray>, kotlin/String) // de.connect2x.trixnity.messenger.export/WebZipFileBasedExportRoomSinkWriter.addMedia|addMedia(kotlinx.coroutines.flow.Flow<kotlin.ByteArray>;kotlin.String){}[0]

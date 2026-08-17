@@ -421,16 +421,17 @@ class TimelineElementHolderViewModelImpl(
             }
             .stateIn(coroutineScope, Eagerly, null)
 
-    override val isReply: StateFlow<Boolean?> = flow {
-        val eventContent = timelineEventFlow.first().event.content
-        if (eventContent !is MessageEventContent) {
-            emit(false)
-            return@flow
-        }
-        val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-        if (repliedEventId == null) emit(false) else emit(true)
-    }
-        .stateIn(coroutineScope, Lazily, null)
+    override val isReply: StateFlow<Boolean?> =
+        flow {
+                val eventContent = timelineEventFlow.first().event.content
+                if (eventContent !is MessageEventContent) {
+                    emit(false)
+                    return@flow
+                }
+                val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
+                if (repliedEventId == null) emit(false) else emit(true)
+            }
+            .stateIn(coroutineScope, Lazily, null)
 
     private data class RepliedTimelineElementViewModelWrapper(
         val viewModel: TimelineElementHolderViewModel,
@@ -587,14 +588,15 @@ class TimelineElementHolderViewModelImpl(
             .map { it.event.sender == matrixClient.userId && it.content?.getOrNull() is TextBased }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    override val canBeRedacted: StateFlow<Boolean> = channelFlow {
-        timelineEventFlow
-            .flatMapLatest { timelineEvent ->
-                matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId)
+    override val canBeRedacted: StateFlow<Boolean> =
+        channelFlow {
+                timelineEventFlow
+                    .flatMapLatest { timelineEvent ->
+                        matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId)
+                    }
+                    .collectLatest { send(it) }
             }
-            .collectLatest { send(it) }
-    }
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isRead: StateFlow<Boolean> =
         lastReplaceOrRedaction

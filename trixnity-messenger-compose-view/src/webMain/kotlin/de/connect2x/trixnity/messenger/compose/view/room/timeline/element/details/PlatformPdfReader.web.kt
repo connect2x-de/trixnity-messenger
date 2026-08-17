@@ -84,10 +84,6 @@ class WebPDFReader(
     }
 
     override fun onDispose() {
-        coroutineScope.launch {
-            withContext(NonCancellable) {
-                fileDeleteFunction.value?.invoke()
-            }
-        }
+        coroutineScope.launch { withContext(NonCancellable) { fileDeleteFunction.value?.invoke() } }
     }
 }

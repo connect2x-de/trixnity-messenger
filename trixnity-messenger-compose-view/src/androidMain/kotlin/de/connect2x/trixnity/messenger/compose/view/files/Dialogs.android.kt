@@ -45,7 +45,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
-import io.ktor.http.*
+import io.ktor.http.ContentType
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
@@ -76,75 +76,70 @@ actual fun SaveFileDialog(
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError)
+        if (!hasError) {
             downloadFile(
                 { byteArrayFlow ->
-                    withContext(Dispatchers.IO) {
-                        val values =
-                            ContentValues().apply {
-                                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                                put(
-                                    MediaStore.MediaColumns.MIME_TYPE,
-                                    mimeType ?: ContentType.Application.OctetStream.toString(),
-                                )
-                                if (Build.VERSION.SDK_INT >= 29) {
-                                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                    var uri: Uri? = null
+                    try {
+                        withContext(Dispatchers.IO) {
+                            val values =
+                                ContentValues().apply {
+                                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                                    put(
+                                        MediaStore.MediaColumns.MIME_TYPE,
+                                        mimeType ?: ContentType.Application.OctetStream.toString(),
+                                    )
+                                    if (Build.VERSION.SDK_INT >= 29) {
+                                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                                    }
                                 }
-                            }
 
-                        var uri: Uri? = null
+                            val contentResolver = context.contentResolver
 
-                        runCatching {
-                                with(context.contentResolver) {
-                                    if (Build.VERSION.SDK_INT < 29) {
-                                            val permission =
-                                                context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                            if (permission == PackageManager.PERMISSION_DENIED) {
-                                                throw IOException("Insufficient permissions to save files.")
-                                            }
-                                            Uri.fromFile(
-                                                Environment.getExternalStoragePublicDirectory(
-                                                        Environment.DIRECTORY_DOWNLOADS
-                                                    )
-                                                    .resolve(fileName)
-                                            )
-                                        } else {
-                                            insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                                        }
-                                        ?.also {
-                                            uri = it // Keep uri reference so it can be removed on failure
-                                            openOutputStream(it)
-                                                ?.use { stream -> byteArrayFlow.collect { stream.write(it) } }
-                                                ?.also {
-                                                    uri?.let { uri1 ->
-                                                        val intent =
-                                                            Intent().apply {
-                                                                action = Intent.ACTION_VIEW
-                                                                type = mimeType.toString()
-                                                                uri = uri1
-                                                            }
-                                                        try {
-                                                            context.startActivity(intent)
-                                                        } catch (exc: ActivityNotFoundException) {
-                                                            log.error(exc) { "intent could not be called" }
-                                                        }
-                                                    }
-                                                } ?: throw IOException("Failed to open output stream.")
-                                        } ?: throw IOException("Failed to create new MediaStore record.")
+                            uri =
+                                if (Build.VERSION.SDK_INT < 29) {
+                                    val permission =
+                                        context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                    if (permission == PackageManager.PERMISSION_DENIED) {
+                                        throw IOException("Insufficient permissions to save files.")
+                                    }
+                                    Uri.fromFile(
+                                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                            .resolve(fileName)
+                                    )
+                                } else {
+                                    contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                                } ?: throw IOException("Failed to create new MediaStore record.")
+
+                            val stream =
+                                contentResolver.openOutputStream(uri)
+                                    ?: throw IOException("Failed to open output stream.")
+                            stream.use { stream -> byteArrayFlow.collect { stream.write(it) } }
+
+                            val intent =
+                                Intent().apply {
+                                    action = Intent.ACTION_VIEW
+                                    type = mimeType.toString()
+                                    this.data = uri
                                 }
-                            }
-                            .getOrElse {
-                                // Don't leave an orphan entry in the MediaStore
-                                uri?.let { uri -> context.contentResolver.delete(uri, null, null) }
-
-                                throw it
+                            try {
+                                context.startActivity(intent)
+                            } catch (exc: ActivityNotFoundException) {
+                                log.error(exc) { "intent could not be called" }
                             }
 
-                        onCloseSaveFileDialog()
+                            onCloseSaveFileDialog()
+                        }
+                    } catch (throwable: Throwable) {
+                        // Don't leave an orphan entry in the MediaStore
+                        uri?.let { context.contentResolver.delete(it, null, null) }
+
+                        throw throwable
                     }
                 },
                 onCloseSaveFileDialog,
             )
+        }
     }
 }
 

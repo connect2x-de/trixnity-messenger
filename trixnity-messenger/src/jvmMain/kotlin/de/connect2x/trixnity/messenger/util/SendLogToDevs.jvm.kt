@@ -23,7 +23,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
                         Files.readString(rootPath.resolve("messenger.log").toNioPath()) // TODO configurable and as file
                     }
                 } catch (exc: Exception) {
-                    log.error(exc ) { "cannot read log content" }
+                    log.error(exc) { "cannot read log content" }
                     ""
                 }
             try {
