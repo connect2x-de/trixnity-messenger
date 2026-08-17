@@ -43,8 +43,7 @@ trixnity-client-cryptodriver-libolm = { module = "de.connect2x.trixnity:trixnity
 trixnity-client-cryptodriver-vodozemac = { module = "de.connect2x.trixnity:trixnity-client-cryptodriver-vodozemac", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x.sysnotify:sysnotify-core", version.ref = "sysnotify" }
-sqlitenity-bundled = { module = "de.connect2x.sqlitenity:sqlitenity-bundled", version.ref = "sqlitenity" }
-sqlitenity-compat = { module = "de.connect2x.sqlitenity:sqlitenity-compat", version.ref = "sqlitenity" }
+sqlitenity-encryptedDriver = { module = "de.connect2x.sqlitenity:sqlitenity-encrypted-driver", version.ref = "sqlitenity" }
 
 unifiedpush-android-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedPush" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }

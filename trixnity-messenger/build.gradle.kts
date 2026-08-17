@@ -134,8 +134,7 @@ kotlin {
             dependencies {
                 implementation(libs.trixnity.client.repository.room)
                 // implementation(sharedLibs.androidx.sqlite3mc.bundled)
-                implementation(libs.sqlitenity.bundled)
-                implementation(libs.sqlitenity.compat)
+                implementation(libs.sqlitenity.encryptedDriver)
                 api(libs.trixnity.client.media.okio)
                 implementation(sharedLibs.androidx.room3Runtime)
             }
