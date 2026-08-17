@@ -57,6 +57,7 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },
@@ -72,6 +73,7 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },

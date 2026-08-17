@@ -181,6 +181,7 @@ internal fun VideoReplyElement(
     val videoImage = element.thumbnail.collectAsState().value
     ReferencedMessagePill(
         holder = holder,
+        element = element,
         modifier = modifier,
         interactionSource = interactionSource,
         content = {

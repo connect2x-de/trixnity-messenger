@@ -130,6 +130,7 @@ internal fun LocationReplyElement(
     val uriHandler = LocalUriHandler.current
     ReferencedMessagePill(
         holder = holder,
+        element = element,
         modifier = modifier,
         interactionSource = interactionSource,
         content = {

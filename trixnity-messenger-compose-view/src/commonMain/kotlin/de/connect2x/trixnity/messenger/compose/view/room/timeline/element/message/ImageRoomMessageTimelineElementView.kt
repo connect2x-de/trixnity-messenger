@@ -216,6 +216,7 @@ internal fun ImageReplyElement(
     val i18n = DI.get<I18nView>()
     ReferencedMessagePill(
         holder = holder,
+        element = element,
         modifier = modifier,
         interactionSource = interactionSource,
         content = {
@@ -223,7 +224,6 @@ internal fun ImageReplyElement(
             val fallback = rememberFallbackPainter(element)
             val imagePainter = animateImage(thumbnail, fallback)
             val thumbnailLoading = element.thumbnailLoading.collectAsState().value
-
             Column {
                 if (imagePainter != null) {
                     Box {

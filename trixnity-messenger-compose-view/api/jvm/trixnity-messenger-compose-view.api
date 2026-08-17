@@ -2991,8 +2991,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/ComposableSingletons$EncryptedErrorTimelineElementViewKt;
 	public fun <init> ()V
 	public final fun getLambda$-1496301447$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-1654738740$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$613018730$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-21841011$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1845150025$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$797250414$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
@@ -3000,9 +3000,9 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/ComposableSingletons$EncryptedWaitTimelineElementViewKt;
 	public fun <init> ()V
 	public final fun getLambda$-2062916181$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-427083031$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$1540246656$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$632922567$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1865053862$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$795519594$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/ComposableSingletons$ImageRoomMessageTimelineElementViewKt {
@@ -3453,7 +3453,17 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/bubble/ReferencedMessagePillKt {
-	public static final fun ReferencedMessagePill (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ReferencedMessagePill (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/bubble/ReferencedMessagePillView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/bubble/ReferencedMessagePillViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/bubble/ReferencedMessagePillView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/bubble/RepliedElementKt {

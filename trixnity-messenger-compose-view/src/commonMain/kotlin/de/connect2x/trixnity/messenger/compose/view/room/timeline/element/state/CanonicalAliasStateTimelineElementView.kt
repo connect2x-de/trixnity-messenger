@@ -56,6 +56,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },
@@ -71,6 +72,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },

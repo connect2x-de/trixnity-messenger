@@ -50,6 +50,7 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = {
@@ -73,6 +74,7 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = {
