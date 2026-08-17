@@ -44,6 +44,7 @@ trixnity-client-cryptodriver-vodozemac = { module = "de.connect2x.trixnity:trixn
 
 sysnotify = { module = "de.connect2x.sysnotify:sysnotify-core", version.ref = "sysnotify" }
 sqlitenity-encryptedDriver = { module = "de.connect2x.sqlitenity:sqlitenity-encrypted-driver", version.ref = "sqlitenity" }
+sqlitenity-webWorker = { module = "de.connect2x.sqlitenity:sqlitenity-web-worker", version.ref = "sqlitenity" }
 
 unifiedpush-android-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedPush" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
