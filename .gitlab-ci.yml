@@ -98,7 +98,7 @@ check:vulnerable-dependencies:
   interruptible: true
   timeout: 30m
   needs: [ ]
-  tags: [ "c2x","shell","small" ]
+  tags: [ "c2x","linux","shell","small" ]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       allow_failure: true
@@ -307,7 +307,7 @@ staging:web:
 
 publish:snapshot:
   stage: publish
-  tags: [ "c2x","mac","shell","medium"]
+  tags: [ "c2x","mac","shell","medium" ]
   resource_group: publish:snapshot-$CI_COMMIT_REF_SLUG
   rules:
     - *if-dev-release
