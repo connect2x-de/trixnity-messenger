@@ -71,6 +71,7 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { EncryptedMessageWaitElement() },
@@ -86,6 +87,7 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { EncryptedMessageWaitElement() },

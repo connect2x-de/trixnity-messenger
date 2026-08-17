@@ -140,6 +140,7 @@ fun TextReplyInTimeline(
 ) {
     ReferencedMessagePill(
         holder = holder,
+        element = element,
         modifier = modifier,
         interactionSource = interactionSource,
         content = { TextReply(element, 4) },
@@ -155,6 +156,7 @@ fun TextReplyInSendMessage(
 ) {
     ReferencedMessagePill(
         holder = holder,
+        element = element,
         modifier = modifier,
         interactionSource = interactionSource,
         content = { TextReply(element, 2) },

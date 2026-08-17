@@ -56,6 +56,7 @@ class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementVie
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },
@@ -71,6 +72,7 @@ class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementVie
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },

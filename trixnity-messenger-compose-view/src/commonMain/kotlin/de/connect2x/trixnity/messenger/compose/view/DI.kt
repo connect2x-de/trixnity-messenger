@@ -182,6 +182,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.VideoRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePillView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePillViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.CanonicalAliasStateTimelineElementView
@@ -626,6 +628,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     single<SendAttachmentTitleView> { SendAttachmentTitleViewImpl() }
     single<TypingIndicatorView> { TypingIndicatorViewImpl() }
     single<RedactionWarningView> { RedactionWarningViewImpl() }
+    single<ReferencedMessagePillView> { ReferencedMessagePillViewImpl() }
 }
 
 fun timelineElementDetailsViewsModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {

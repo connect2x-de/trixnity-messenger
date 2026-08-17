@@ -63,6 +63,7 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { EncryptedMessageErrorElement() },
@@ -78,6 +79,7 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { EncryptedMessageErrorElement() },

@@ -73,6 +73,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { RedactedMessageElement(element) },
@@ -88,6 +89,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { RedactedMessageElement(element) },

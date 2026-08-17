@@ -114,6 +114,7 @@ internal fun FileReplyElement(
     val i18n = DI.get<I18nView>()
     ReferencedMessagePill(
         holder = holder,
+        element = element,
         modifier = modifier,
         interactionSource = interactionSource,
         content = {

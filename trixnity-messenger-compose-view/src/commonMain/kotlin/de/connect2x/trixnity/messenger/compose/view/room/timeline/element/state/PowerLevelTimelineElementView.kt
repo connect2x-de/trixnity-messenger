@@ -55,6 +55,7 @@ class PowerLevelTimelineElementViewImpl : PowerLevelTimelineElementView {
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },
@@ -70,6 +71,7 @@ class PowerLevelTimelineElementViewImpl : PowerLevelTimelineElementView {
     ) {
         ReferencedMessagePill(
             holder = holder,
+            element = element,
             modifier = modifier,
             interactionSource = interactionSource,
             content = { StateElement(element) },
