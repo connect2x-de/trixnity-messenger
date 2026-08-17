@@ -59,8 +59,15 @@ interface AudioRecorder : AutoCloseable {
             val fileExtension: String,
         ) : State {
             sealed interface MediaReference {
+                /**
+                 * @param uri Should be produced by [de.connect2x.trixnity.client.media.MediaService.prepareUploadMedia]
+                 */
                 data class Unencrypted(val uri: String) : MediaReference
 
+                /**
+                 * @param uriWithMetadata Should be produced by
+                 *   [de.connect2x.trixnity.client.media.MediaService.prepareUploadEncryptedMedia]
+                 */
                 data class Encrypted(val uriWithMetadata: EncryptedFile) : MediaReference
             }
         }
