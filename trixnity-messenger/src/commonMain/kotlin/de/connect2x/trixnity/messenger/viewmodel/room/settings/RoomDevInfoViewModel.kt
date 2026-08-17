@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.store.OlmCryptoStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -40,7 +41,8 @@ class RoomDevInfoViewModelImpl(
 
     private val backCallback = BackCallback { onBack() }
 
-    private val olmCryptoStore: OlmCryptoStore = matrixClient.di.get<OlmCryptoStore>()
+    private val storeTransactionManager: StoreTransactionManager = matrixClient.di.get()
+    private val olmCryptoStore: OlmCryptoStore = matrixClient.di.get()
 
     override val showResetEncryptionButton =
         matrixClient.room
@@ -55,7 +57,7 @@ class RoomDevInfoViewModelImpl(
     override fun resetEncryption() {
         coroutineScope.launch {
             if (showResetEncryptionButton.value) {
-                olmCryptoStore.updateOutboundMegolmSession(roomId) { null }
+                storeTransactionManager.writeTransaction { olmCryptoStore.updateOutboundMegolmSession(roomId) { null } }
             }
         }
     }
