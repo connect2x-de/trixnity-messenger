@@ -59,8 +59,15 @@ interface AudioRecorder : AutoCloseable {
             val fileExtension: String,
         ) : State {
             sealed interface MediaReference {
+                /**
+                 * @param uri Should be produced by [de.connect2x.trixnity.client.media.MediaService.prepareUploadMedia]
+                 */
                 data class Unencrypted(val uri: String) : MediaReference
 
+                /**
+                 * @param uriWithMetadata Should be produced by
+                 *   [de.connect2x.trixnity.client.media.MediaService.prepareUploadEncryptedMedia]
+                 */
                 data class Encrypted(val uriWithMetadata: EncryptedFile) : MediaReference
             }
         }
@@ -113,7 +120,15 @@ class AudioRecorderImpl(
     override suspend fun load(state: AudioRecorder.State.Completed) {
         closeSuspending()
 
-        platformAudioRecorder.load(state)?.let { stateImpl.value = it }
+        val newStateImpl =
+            State.Completed(
+                capture = state.media,
+                duration = state.duration,
+                sizeBytes = state.sizeBytes,
+                contentType = state.contentType,
+                fileExtension = state.fileExtension,
+            )
+        stateImpl.value = newStateImpl
     }
 
     override suspend fun complete() {

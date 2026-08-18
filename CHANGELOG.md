@@ -24,6 +24,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Removed
 
+- SDK: remove unnecessary `load()` function from `PlatformAudioRecorder`
+
 ### Fixed
 
 ### Security

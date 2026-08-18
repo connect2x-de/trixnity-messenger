@@ -37,7 +37,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
 import web.blob.byteArray
-import web.errors.ERROR
 import web.events.ERROR
 import web.events.Event
 import web.events.STOP
@@ -212,16 +211,6 @@ class WebAudioRecorder(
         val analyser = AnalyserNode(audioContext)
         input.connect(analyser)
         return analyser
-    }
-
-    override suspend fun load(state: AudioRecorder.State.Completed): AudioRecorderImpl.State.Completed {
-        return AudioRecorderImpl.State.Completed(
-            capture = state.media,
-            duration = state.duration,
-            sizeBytes = state.sizeBytes,
-            contentType = state.contentType,
-            fileExtension = state.fileExtension,
-        )
     }
 
     override fun close() {
