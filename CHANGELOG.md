@@ -92,6 +92,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI, ANDROID: Correctly require foreground permissions for media playback
 - UI: Fix various issues when adding, removing and interacting with optional room power levels
 - UI: Restore message bubble edges after state events from the same sender
+- SDK,IOS: Behaviour of the external media player controls do not align with Android and other platforms
 
 ### Security
 
