@@ -66,7 +66,9 @@ class TimelineElementDevInfoViewModelImpl(
         timelineEventEvent
             .map { event ->
                 json.encodeToString(
-                    json.serializersModule.getContextual(ClientEvent.RoomEvent::class)
+                    requireNotNull(json.serializersModule.getContextual(ClientEvent.RoomEvent::class)) {
+                        "There was no contextual serializer for class ${ClientEvent.RoomEvent::class}"
+                    }
                         as SerializationStrategy<ClientEvent.RoomEvent<*>>,
                     event,
                 )
@@ -78,7 +80,9 @@ class TimelineElementDevInfoViewModelImpl(
             .filterNotNull()
             .map { event ->
                 json.encodeToString(
-                    json.serializersModule.getContextual(ClientEvent.RoomEvent::class)
+                    requireNotNull(json.serializersModule.getContextual(ClientEvent.RoomEvent::class)) {
+                        "There was no contextual serializer for class ${ClientEvent.RoomEvent::class}"
+                    }
                         as SerializationStrategy<ClientEvent.RoomEvent<*>>,
                     event,
                 )

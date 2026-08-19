@@ -7,22 +7,37 @@ import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.files.PdfReaderWeb
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.core.module.Module
+import org.koin.dsl.module
 import pdfjs.GlobalWorkerOptions
 import web.blob.Blob
 
-actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
-    val reader = PDFPlatformReader(media, onError)
-    reader.initialize()
-    return reader
+actual fun getPlatformPdfReaderModule(): Module {
+    return module {
+        single<PDFReaderFactory> {
+            object : PDFReaderFactory {
+                val coroutineScope: CoroutineScope = get()
+
+                override suspend fun create(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
+                    return WebPDFReader(media, coroutineScope, onError).also { it.initialize() }
+                }
+            }
+        }
+    }
 }
 
-class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit) : PDFReader {
+class WebPDFReader(
+    val media: PlatformMedia,
+    private val coroutineScope: CoroutineScope,
+    val onError: (String?) -> Unit,
+) : PDFReader {
 
     private val fileDeleteFunction: MutableStateFlow<(suspend () -> Unit)?> = MutableStateFlow(null)
     private val temporaryFile: MutableStateFlow<Blob?> = MutableStateFlow(null)
@@ -68,8 +83,7 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         return reader.renderPage(pageId + 1, dpi)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
-        GlobalScope.launch { fileDeleteFunction.value?.invoke() }
+        coroutineScope.launch { withContext(NonCancellable) { fileDeleteFunction.value?.invoke() } }
     }
 }

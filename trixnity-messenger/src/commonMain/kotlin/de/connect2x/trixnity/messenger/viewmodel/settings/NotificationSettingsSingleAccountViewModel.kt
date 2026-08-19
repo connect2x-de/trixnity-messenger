@@ -321,14 +321,12 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
                             .map { it?.global }
                             .timeout(10.seconds)
                             .first { it?.toNotificationSettings() == settings }
+                    } catch (exception: TimeoutCancellationException) {
+                        log.warn(exception) { "there was an error updating the notification settings" }
+                        updateAccountSettingsError.value = i18n.updateNotificationSettingsTimeoutError()
                     } catch (exception: Exception) {
                         log.warn(exception) { "there was an error updating the notification settings" }
-                        if (exception is TimeoutCancellationException) {
-                            updateAccountSettingsError.value = i18n.updateNotificationSettingsTimeoutError()
-                        } else {
-                            updateAccountSettingsError.value =
-                                i18n.updateNotificationSettingsError(exception.message ?: "")
-                        }
+                        updateAccountSettingsError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
                     }
                 }
                 .invokeOnCompletion { accountSettingsIsUpdating.value = false }

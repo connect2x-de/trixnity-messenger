@@ -21,8 +21,10 @@ actual fun getPlatformNotificationIconModule(): Module = module {
                     val height = minOf(bitmap.height, maxHeight)
                     val scaledBitmap = bitmap.asAndroidBitmap().scale(width, height)
                     return NotificationIcon.fromBitmap(scaledBitmap)
-                } catch (e: Exception) {
-                    if (e is CancellationException) throw e else return null
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    return null
                 }
             }
 

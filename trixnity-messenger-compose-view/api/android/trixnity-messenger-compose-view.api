@@ -3037,6 +3037,18 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public static final fun TimelineElementSelector (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/AndroidPDFReader : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PDFReader {
+	public static final field $stable I
+	public fun <init> (Lde/connect2x/trixnity/client/media/PlatformMedia;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;)V
+	public fun getDocumentWidth ()Landroidx/compose/runtime/MutableState;
+	public final fun getMedia ()Lde/connect2x/trixnity/client/media/PlatformMedia;
+	public fun getNumOfPages ()Landroidx/compose/runtime/MutableState;
+	public final fun getOnError ()Lkotlin/jvm/functions/Function1;
+	public fun getPage (IFLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun initialize (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onDispose ()V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$FileBasedDetailsDialogKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$FileBasedDetailsDialogKt;
 	public fun <init> ()V
@@ -3116,18 +3128,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PDFPlatformReader : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PDFReader {
-	public static final field $stable I
-	public fun <init> (Lde/connect2x/trixnity/client/media/PlatformMedia;Lkotlin/jvm/functions/Function1;)V
-	public fun getDocumentWidth ()Landroidx/compose/runtime/MutableState;
-	public final fun getMedia ()Lde/connect2x/trixnity/client/media/PlatformMedia;
-	public fun getNumOfPages ()Landroidx/compose/runtime/MutableState;
-	public final fun getOnError ()Lkotlin/jvm/functions/Function1;
-	public fun getPage (IFLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun initialize (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun onDispose ()V
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PDFReader {
 	public abstract fun getDocumentWidth ()Landroidx/compose/runtime/MutableState;
 	public abstract fun getNumOfPages ()Landroidx/compose/runtime/MutableState;
@@ -3135,8 +3135,8 @@ public abstract interface class de/connect2x/trixnity/messenger/compose/view/roo
 	public abstract fun onDispose ()V
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PdfElementDetailsView_androidKt {
-	public static final fun getPlatformPDFReader (Lde/connect2x/trixnity/client/media/PlatformMedia;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PDFReaderFactory {
+	public abstract fun create (Lde/connect2x/trixnity/client/media/PlatformMedia;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PdfTimelineElementDetailsView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/TimelineElementDetailsView {
@@ -3150,6 +3150,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public final fun getQueue ()Lkotlinx/coroutines/flow/MutableSharedFlow;
 	public fun getSupports ()Lkotlin/reflect/KClass;
 	public fun supportsMimeType (Lio/ktor/http/ContentType;)Z
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PlatformPdfReader_androidKt {
+	public static final fun getPlatformPdfReaderModule ()Lorg/koin/core/module/Module;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/PreviewNotSupportedTimelineElementDetailsView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/TimelineElementDetailsView {

@@ -103,20 +103,24 @@ private fun createImageBitmap(unreadMessages: Int, iconSize: Float): ImageBitmap
                 iconSize < 1024f -> 15f
                 else -> 160f
             }
-        FontMgr.default.matchFamilyStyle("verdana", FontStyle.NORMAL)?.use { typeface ->
-            Font(typeface, fontSize).use { font ->
-                Shaper.makePrimitive().use { shaper ->
-                    val string = if (unreadMessages > 99) "99+" else unreadMessages.toString()
-                    val text = shaper.shape(string, font, 400f)
-                    when {
-                        iconSize < 1024f ->
-                            text?.let { drawTextBlob(text, 23f - ((string.length - 1) * 5f), 0f, skiaPaint) }
 
-                        else -> text?.let { drawTextBlob(text, 720f - ((string.length - 1) * 60f), 80f, skiaPaint) }
-                    }
+        withTextShaper(fontSize) { font, shaper ->
+            val string = if (unreadMessages > 99) "99+" else unreadMessages.toString()
+            val text = shaper.shape(string, font, 400f)
+            val textPos =
+                if (iconSize < 1024f) {
+                    (23f - (string.length - 1) * 5f) to 0f
+                } else {
+                    (720f - (string.length - 1) * 60f) to 80f
                 }
-            }
+            text?.let { drawTextBlob(text, textPos.first, textPos.second, skiaPaint) }
         }
     }
     return image
+}
+
+private fun withTextShaper(fontSize: Float, block: (Font, Shaper) -> Unit) {
+    FontMgr.default.matchFamilyStyle("verdana", FontStyle.NORMAL)?.use { typeface ->
+        Font(typeface, fontSize).use { font -> Shaper.makePrimitive().use { shaper -> block(font, shaper) } }
+    }
 }

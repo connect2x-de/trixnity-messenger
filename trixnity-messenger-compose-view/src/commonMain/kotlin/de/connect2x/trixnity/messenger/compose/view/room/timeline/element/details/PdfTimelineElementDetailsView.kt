@@ -41,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,7 +70,6 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.Platform
@@ -88,7 +86,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.ktor.http.*
+import io.ktor.http.ContentType
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
@@ -108,6 +106,12 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
+    // The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its
+    // DPI as the value
+    private val cache = mutableStateMapOf<Int, MutableStateFlow<PDFCacheEntry?>>()
+
+    val queue = MutableSharedFlow<Int>()
+
     override fun supportsMimeType(mimeType: ContentType): Boolean {
         return ContentType.Application.Pdf.match(mimeType)
     }
@@ -124,10 +128,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         }
     }
 
-    // The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its
-    // DPI as the value
-    private val cache = mutableStateMapOf<Int, MutableStateFlow<PDFCacheEntry?>>()
-
     private fun getCacheElement(cacheKey: Int, scope: CoroutineScope): StateFlow<PDFCacheEntry?> {
         return cache[cacheKey]
             ?: run {
@@ -137,8 +137,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                 }
             }
     }
-
-    val queue = MutableSharedFlow<Int>()
 
     private suspend fun loadImageWithDpi(
         reader: PDFReader,
@@ -201,6 +199,8 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val reader = remember { mutableStateOf<PDFReader?>(null) }
         val currentSize = remember { mutableStateOf(DpSize.Zero) }
         val scrollRequest = remember { mutableStateOf<Size?>(null) }
+        val pdfReaderFactory = DI.get<PDFReaderFactory>()
+
         LaunchedEffect(scrollRequest.value) {
             val currentRequest = scrollRequest.value
             if (currentRequest != null) {
@@ -308,7 +308,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                     media != null -> {
                         val density = LocalDensity.current.density
                         LaunchedEffect(Unit) {
-                            reader.value = getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
+                            reader.value = pdfReaderFactory.create(media) { setError(i18n.fileCouldNotBeLoaded()) }
                         }
                         DisposableEffect(Unit) {
                             onDispose {
@@ -402,18 +402,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     }
 }
 
-interface PDFReader {
-    suspend fun getPage(pageId: Int, dpi: Float): ImageBitmap?
-
-    fun onDispose()
-
-    val numOfPages: MutableState<Int?>
-    val documentWidth: MutableState<Int?>
-}
-
 data class PDFCacheEntry(val creationTime: Long, val page: ImageBitmap?, val dpi: Int)
-
-expect suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader
 
 private data class PageNumber(val pageIndex: Int, val scroll: Boolean, val updateIndexViaList: Boolean)
 

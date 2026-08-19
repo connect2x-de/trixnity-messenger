@@ -10,10 +10,13 @@ import de.connect2x.trixnity.messenger.util.toByteArray
 import de.connect2x.trixnity.messenger.util.toNSUrl
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.decodeToImageBitmap
+import org.koin.core.module.Module
+import org.koin.dsl.module
 import platform.CoreGraphics.CGContextFillRect
 import platform.CoreGraphics.CGContextRestoreGState
 import platform.CoreGraphics.CGContextSaveGState
@@ -31,8 +34,19 @@ import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 
-actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader =
-    PlatformPDFReader(media, onError).also { it.initialize() }
+actual fun getPlatformPdfReaderModule(): Module {
+    return module {
+        single<PDFReaderFactory> {
+            object : PDFReaderFactory {
+                val coroutineScope: CoroutineScope = get()
+
+                override suspend fun create(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
+                    return IosPDFReader(media, coroutineScope, onError).also { it.initialize() }
+                }
+            }
+        }
+    }
+}
 
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsViewKt")
@@ -41,7 +55,11 @@ fun UIImage.toByteArray(compressionQuality: Double = 0.9): ByteArray? =
     UIImageJPEGRepresentation(this, compressionQuality)?.toByteArray()
 
 @OptIn(ExperimentalForeignApi::class)
-class PlatformPDFReader(private val media: PlatformMedia, private val onError: (String?) -> Unit) : PDFReader {
+class IosPDFReader(
+    private val media: PlatformMedia,
+    private val coroutineScope: CoroutineScope,
+    private val onError: (String?) -> Unit,
+) : PDFReader {
     override val numOfPages: MutableState<Int?> = mutableStateOf(null)
     override val documentWidth: MutableState<Int?> = mutableStateOf(null)
     private val document: MutableState<PDFDocument?> = mutableStateOf(null)
@@ -107,9 +125,8 @@ class PlatformPDFReader(private val media: PlatformMedia, private val onError: (
         return data.decodeToImageBitmap()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
-        GlobalScope.launch { temporaryFile.value?.delete() }
+        coroutineScope.launch { withContext(NonCancellable) { temporaryFile.value?.delete() } }
         document.value = null
     }
 }

@@ -6,6 +6,13 @@ import io.kotest.matchers.shouldBe
 import js.promise.await
 import js.string.JsStrings.toKotlinString
 import js.typedarrays.toByteArray
+import kotlin.OptIn
+import kotlin.byteArrayOf
+import kotlin.collections.associateBy
+import kotlin.collections.copyOfRange
+import kotlin.collections.getValue
+import kotlin.collections.listOf
+import kotlin.collections.sorted
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toList
 import kotlin.test.Test
@@ -30,7 +37,7 @@ class FileBasedExportRoomSinkWriterTest {
         val fileName = "events.txt"
         val firstMedia = byteArrayOf(1, 2, 3, 4)
         val secondMedia = byteArrayOf(5, 6, 7, 8)
-        val cut = WebZipFileBasedExportRoomSinkWriter(fileName)
+        val cut = WebZipFileBasedExportRoomSinkWriter(fileName, backgroundScope)
 
         cut.start()
         cut.addContent("first ")

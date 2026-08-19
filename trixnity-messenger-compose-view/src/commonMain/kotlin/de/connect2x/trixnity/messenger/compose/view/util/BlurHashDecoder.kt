@@ -105,6 +105,8 @@ object BlurHashDecoder {
     private fun signedPow2(value: Float) = value.pow(2f).withSign(value)
 
     private object Base83 {
+
+        @Suppress("PropertyUsedBeforeDeclaration")
         fun decode(str: String, from: Int = 0, to: Int = str.length): Int {
             var result = 0
             for (i in from until to) {

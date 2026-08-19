@@ -16,7 +16,7 @@ coroutines:
   CoroutineLaunchedInTestWithoutRunTest:
     active: true
   GlobalCoroutineUsage:
-    active: false
+    active: true
   InjectDispatcher:
     active: false
   RedundantSuspendModifier:
@@ -24,7 +24,7 @@ coroutines:
   SleepInsteadOfDelay:
     active: true
   SuspendFunInFinallySection:
-    active: false
+    active: true
   SuspendFunSwallowedCancellation:
     active: false
   SuspendFunWithCoroutineScopeReceiver:
@@ -69,7 +69,7 @@ exceptions:
   ExceptionRaisedInUnexpectedLocation:
     active: true
   InstanceOfCheckForException:
-    active: false
+    active: true
   RethrowCaughtException:
     active: true
   ReturnFromFinally:
@@ -103,15 +103,15 @@ potential-bugs:
   AvoidReferentialEquality:
     active: true
   CastNullableToNonNullableType:
-    active: false
+    active: true
   CastToNullableType:
-    active: false
+    active: true
   CharArrayToStringCall:
     active: true
   DontDowncastCollectionTypes:
     active: true
   DoubleMutabilityForCollection:
-    active: false
+    active: true
   ElseCaseInsteadOfExhaustiveWhen:
     active: false
   EqualsAlwaysReturnsTrueOrFalse:
@@ -119,7 +119,7 @@ potential-bugs:
   EqualsWithHashCodeExist:
     active: true
   ExitOutsideMain:
-    active: false
+    active: true
   ExplicitGarbageCollectionCall:
     active: true
   HasPlatformType:
@@ -148,7 +148,7 @@ potential-bugs:
   NullableToStringCall:
     active: false
   PropertyUsedBeforeDeclaration:
-    active: false
+    active: true
   UnconditionalJumpStatementInLoop:
     active: true
   UnnecessaryNotNullCheck:

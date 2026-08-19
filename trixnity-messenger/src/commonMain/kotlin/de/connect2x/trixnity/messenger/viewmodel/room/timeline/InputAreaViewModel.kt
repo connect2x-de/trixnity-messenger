@@ -243,11 +243,6 @@ open class InputAreaViewModelImpl(
     override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
 
-    // TODO: Move this to an init block
-    @Suppress("unused")
-    private val completeAudioRecordingOnReplace =
-        isReplace.filter { it }.onEach { audio.recorder?.complete() }.launchIn(coroutineScope)
-
     private val currentReply = MutableStateFlow<Pair<RoomId, EventId>?>(null)
     override val isReply: StateFlow<Boolean> =
         currentReply.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
@@ -402,6 +397,8 @@ open class InputAreaViewModelImpl(
                 matrixClient.room.deleteDraftMessage(roomId)
             }
         }
+        isReplace.filter { it }.onEach { audio.recorder?.complete() }.launchIn(coroutineScope)
+
         if (enableMessageDrafts) {
             lifecycle.doOnDestroy {
                 get<CoroutineScope>().launch {
@@ -413,6 +410,23 @@ open class InputAreaViewModelImpl(
 
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
+
+    private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
+
+    private val defaultRoomNotificationPowerLevel = 50L
+    private val requiredRoomMentionPowerLevel =
+        matrixClient.room.getState<PowerLevelsEventContent>(roomId).map { powerLevelEvent ->
+            powerLevelEvent?.content?.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
+        }
+
+    private val canRoomMention: StateFlow<Boolean> =
+        combine(userPowerLevel, requiredRoomMentionPowerLevel) { userPowerLevel, requiredPowerLevel ->
+                when (userPowerLevel) {
+                    is PowerLevel.Creator -> true
+                    is PowerLevel.User -> userPowerLevel.level >= requiredPowerLevel
+                }
+            }
+            .stateIn(coroutineScope, Eagerly, false)
 
     private suspend fun loadDraftIntoTextArea() {
         val draftMessage = draftMessage.first()
@@ -742,22 +756,6 @@ open class InputAreaViewModelImpl(
                 room.toRoomInfoElement(this, initials, matrixClient, roomName, maxThumbnailSize)
             }
             .stateIn(coroutineScope, SharingStarted.Lazily, null)
-
-    private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
-    private val defaultRoomNotificationPowerLevel = 50L
-    private val requiredRoomMentionPowerLevel =
-        matrixClient.room.getState<PowerLevelsEventContent>(roomId).map { powerLevelEvent ->
-            powerLevelEvent?.content?.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
-        }
-
-    private val canRoomMention: StateFlow<Boolean> =
-        combine(userPowerLevel, requiredRoomMentionPowerLevel) { userPowerLevel, requiredPowerLevel ->
-                when (userPowerLevel) {
-                    is PowerLevel.Creator -> true
-                    is PowerLevel.User -> userPowerLevel.level >= requiredPowerLevel
-                }
-            }
-            .stateIn(coroutineScope, Eagerly, false)
 
     private suspend fun getRoomMentionIfAllowed(search: String): InputAreaViewModel.SuggestedMention.AllRoomMembers? {
         if (!canRoomMention.value) return null

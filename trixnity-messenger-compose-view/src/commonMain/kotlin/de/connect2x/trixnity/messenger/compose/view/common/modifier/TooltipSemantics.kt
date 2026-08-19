@@ -56,11 +56,11 @@ internal fun Modifier.tooltipGestures(
                                     try {
                                         isLongPressedFlow.tryEmit(true)
                                         state.show(MutatePriority.PreventUserInput)
-                                    } finally {
-                                        isLongPressedFlow.collectLatest { isLongPressed ->
-                                            if (!isLongPressed) {
-                                                state.dismiss()
-                                            }
+                                    } catch (_: Exception) {}
+
+                                    isLongPressedFlow.collectLatest { isLongPressed ->
+                                        if (!isLongPressed) {
+                                            state.dismiss()
                                         }
                                     }
                                 }

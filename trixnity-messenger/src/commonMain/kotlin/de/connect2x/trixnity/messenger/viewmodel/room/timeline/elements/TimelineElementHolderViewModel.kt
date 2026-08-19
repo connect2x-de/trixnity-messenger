@@ -518,6 +518,8 @@ class TimelineElementHolderViewModelImpl(
             .map { event -> event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent }
             .shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
+    override val isByMe: Boolean = senderUserId == userId
+
     override val showSender: StateFlow<Boolean?> =
         combine(isOneToOneRoom, previousEventIsStateOrNotBySender) { is1on1Room, previousEventIsStateOrNotBySender ->
                 !is1on1Room && previousEventIsStateOrNotBySender && !isByMe
@@ -537,8 +539,6 @@ class TimelineElementHolderViewModelImpl(
                 }
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
-
-    override val isByMe: Boolean = senderUserId == userId
 
     private val lastReplaceOrRedaction =
         timelineEventFlow

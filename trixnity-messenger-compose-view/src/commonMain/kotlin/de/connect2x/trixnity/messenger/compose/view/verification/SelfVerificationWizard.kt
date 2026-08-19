@@ -418,16 +418,14 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                             style = MaterialTheme.components.primaryButton,
                             enabled = selectedMethod.value != null,
                             onClick = {
-                                when (selectedMethod.value) {
+                                when (val selected = selectedMethod.value) {
                                     is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification -> {
                                         selfVerificationViewModel.close()
                                     }
 
                                     is SelectSelfVerificationMethod -> {
-                                        selfVerificationViewModel.launchVerification(
-                                            (selectedMethod.value as SelectSelfVerificationMethod).method
-                                        )
-                                        when ((selectedMethod.value as SelectSelfVerificationMethod).method) {
+                                        selfVerificationViewModel.launchVerification(selected.method)
+                                        when (selected.method) {
                                             is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
                                                 currentStepId.value =
                                                     SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey.stepId
