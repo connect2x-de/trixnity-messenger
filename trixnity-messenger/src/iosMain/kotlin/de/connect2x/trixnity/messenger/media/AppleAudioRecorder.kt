@@ -21,7 +21,6 @@ import okio.Path.Companion.toPath
 import platform.AVFAudio.AVAudioQualityHigh
 import platform.AVFAudio.AVAudioRecorder
 import platform.AVFAudio.AVAudioSession
-import platform.AVFAudio.AVAudioSessionCategoryPlayAndRecord
 import platform.AVFAudio.AVAudioSessionRecordPermissionDenied
 import platform.AVFAudio.AVAudioSessionRecordPermissionGranted
 import platform.AVFAudio.AVAudioSessionRecordPermissionUndetermined
@@ -54,8 +53,7 @@ internal class AppleAudioRecorder(
     ): PlatformAudioRecorder.StartResult {
         val granted = requestMicrophonePermission()
         return if (granted) {
-            val configurationSuccessful = configureSession()
-            if (configurationSuccessful != null) {
+            if (configureSession().isSuccess) {
                 startRecording(intoMediaStore)
             } else {
                 PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
@@ -180,27 +178,6 @@ internal class AppleAudioRecorder(
                 },
             )
         )
-    }
-
-    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-    private fun configureSession(): Unit? {
-        val session = AVAudioSession.sharedInstance()
-        memScoped {
-            val categoryError = alloc<ObjCObjectVar<NSError?>>()
-            session.setCategory(AVAudioSessionCategoryPlayAndRecord, error = categoryError.ptr)
-            categoryError.value?.let {
-                log.error { "AudioRecorder setCategory error: ${it.localizedDescription}" }
-                return null
-            }
-
-            val activeError = alloc<ObjCObjectVar<NSError?>>()
-            session.setActive(true, error = activeError.ptr)
-            activeError.value?.let {
-                log.error { "AudioRecorder setActive error: ${it.localizedDescription}" }
-                return null
-            }
-        }
-        return Unit
     }
 
     private fun openSettings() {

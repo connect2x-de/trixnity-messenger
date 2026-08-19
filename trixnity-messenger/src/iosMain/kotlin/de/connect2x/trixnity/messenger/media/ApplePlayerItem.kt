@@ -7,6 +7,8 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
@@ -28,6 +30,7 @@ import platform.darwin.NSObjectProtocol
 @OptIn(ExperimentalForeignApi::class)
 internal class ApplePlayerItem(
     override val id: String,
+    internal val displayName: String,
     override val duration: Duration,
     asset: AVURLAsset,
     private val tempFile: OkioPlatformMedia.TemporaryFile,
@@ -38,6 +41,7 @@ internal class ApplePlayerItem(
     private var playFailedObserver: NSObjectProtocol? = null
     private var playEndObserver: NSObjectProtocol? = null
     private var timeObserver: Any? = null
+    private val pausedSeekObserver: Job
 
     init {
         val notificationCenter = NSNotificationCenter.defaultCenter
@@ -66,6 +70,14 @@ internal class ApplePlayerItem(
                 log.error { "Playback failed for item $id: $error" }
                 setError(error)
             }
+
+        pausedSeekObserver = coroutineScope.launch {
+            elapsedTime.filterNotNull().collect { position ->
+                if (state.value is MediaPlayer.Item.State.Ready) {
+                    player.refreshNowPlayingInfo(this@ApplePlayerItem, position)
+                }
+            }
+        }
     }
 
     override suspend fun onPlay(duration: Duration): Result<Unit> =
@@ -73,6 +85,8 @@ internal class ApplePlayerItem(
             try {
                 applePlayer.seekToTime(CMTimeMake(duration.inWholeMilliseconds, 1000))
                 applePlayer.play()
+
+                player.updateNowPlayingInfo(this, duration, isPlaying = true)
 
                 val interval = CMTimeMakeWithSeconds(0.125, NSEC_PER_SEC.toInt()) // 125ms
                 timeObserver =
@@ -98,6 +112,7 @@ internal class ApplePlayerItem(
     override suspend fun onSeekTo(position: Duration) = onSeekToNotBlocking(position)
 
     override fun close() {
+        pausedSeekObserver.cancel()
         val notificationCenter = NSNotificationCenter.defaultCenter
         playEndObserver?.let { observer -> notificationCenter.removeObserver(observer) }
 
@@ -108,18 +123,23 @@ internal class ApplePlayerItem(
                 pauseWithoutLock()
             }
 
+            player.clearNowPlayingInfo(this@ApplePlayerItem)
             tempFile.delete()
         }
     }
 
     private fun onPauseNotBlocking() {
-        onSeekToNotBlocking(Duration.ZERO)
         player.withPlayer(null) { applePlayer ->
             applePlayer.pause()
             timeObserver?.let {
                 applePlayer.removeTimeObserver(it)
                 timeObserver = null
             }
+        }
+        if (state.value is MediaPlayer.Item.State.Failed) {
+            player.clearNowPlayingInfo(this)
+        } else {
+            player.updateNowPlayingInfo(this, elapsedTime.value ?: Duration.ZERO, isPlaying = false)
         }
     }
 
@@ -130,5 +150,6 @@ internal class ApplePlayerItem(
             val time = CMTimeMake(position.inWholeMilliseconds, 1000)
             applePlayer.seekToTime(time)
         }
+        player.updateNowPlayingInfo(this, position, isPlaying = true)
     }
 }
