@@ -162,7 +162,6 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
 
     override fun close() {
         if (isClosed) return
-
         isClosed = true
         remoteCommandTargets.forEach { (command, target) -> command.removeTarget(target) }
         player?.pause()
@@ -178,25 +177,18 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
         if (item != null) {
             try {
                 player?.replaceCurrentItemWithPlayerItem(item)
-                if (player == null) {
-                    player = AVPlayer.playerWithPlayerItem(item)
-                }
+                if (player == null) player = AVPlayer.playerWithPlayerItem(item)
             } catch (ex: Exception) {
                 log.error(ex) { "Unable to prepare media player" }
                 return null
             }
         }
-
-        if (player != null) {
-            return closure(requireNotNull(player))
-        }
-
+        if (player != null) return closure(requireNotNull(player))
         return null
     }
 
     internal fun updateNowPlayingInfo(item: ApplePlayerItem, elapsedTime: Duration, isPlaying: Boolean) {
         if (isClosed) return
-
         nowPlayingItem = item
         MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo =
             mapOf(
@@ -210,7 +202,6 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
 
     internal fun refreshNowPlayingInfo(item: ApplePlayerItem, elapsedTime: Duration) {
         if (nowPlayingItem != item) return
-
         updateNowPlayingInfo(
             item = item,
             elapsedTime = elapsedTime,
@@ -220,7 +211,6 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
 
     internal fun clearNowPlayingInfo(item: ApplePlayerItem) {
         if (nowPlayingItem != item) return
-
         nowPlayingItem = null
         MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo = null
     }

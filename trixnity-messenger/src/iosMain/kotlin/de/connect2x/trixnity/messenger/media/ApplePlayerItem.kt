@@ -115,14 +115,11 @@ internal class ApplePlayerItem(
         pausedSeekObserver.cancel()
         val notificationCenter = NSNotificationCenter.defaultCenter
         playEndObserver?.let { observer -> notificationCenter.removeObserver(observer) }
-
         playFailedObserver?.let { observer -> notificationCenter.removeObserver(observer) }
-
         coroutineScope.launch {
             if (state.value is MediaPlayer.Item.State.Playing) {
                 pauseWithoutLock()
             }
-
             player.clearNowPlayingInfo(this@ApplePlayerItem)
             tempFile.delete()
         }
