@@ -18,8 +18,11 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
+import de.connect2x.trixnity.messenger.secrets.GetKey
+import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyProvider
 import kotlin.coroutines.CoroutineContext
 import kotlinx.datetime.TimeZone
+import kotlinx.serialization.json.JsonObject
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
 import org.koin.dsl.module
@@ -43,6 +46,28 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
             {
                 module {
                     single<FileSystem> { FakeFileSystem() }
+                    single<SecretByteArrayKeyProvider> {
+                        object : SecretByteArrayKeyProvider {
+                            override val id: String = "dummy"
+                            override val level: Int = 0
+
+                            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey? = null
+
+                            override suspend fun rotate(
+                                oldExtra: JsonObject?,
+                                getOldInputKey: GetKey?,
+                                getNewInputKey: GetKey?,
+                            ): SecretByteArrayKeyProvider.RotateResult =
+                                SecretByteArrayKeyProvider.RotateResult(
+                                    getOldKey = get(null, getOldInputKey),
+                                    getNewKey = get(null, getNewInputKey),
+                                    newExtra = null,
+                                )
+
+                            @Deprecated("for backwards compatibility")
+                            override suspend fun getLegacy(): ByteArray? = null
+                        }
+                    }
 
                     single<MatrixMultiMessengerSettingsHolder> { createTestMatrixMultiMessengerSettingsHolder() }
                 }

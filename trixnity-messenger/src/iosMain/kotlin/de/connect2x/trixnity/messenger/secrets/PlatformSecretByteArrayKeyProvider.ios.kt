@@ -11,6 +11,8 @@ import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonObject
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -48,8 +50,10 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override val id = PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID
             override val level: Int = 0
 
-            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey {
-                return GetKey { size ->
+            private val mutex = Mutex()
+
+            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey = mutex.withLock {
+                GetKey { size ->
                     try {
                         val appId = config.appId
                         val existingKey = getSecret(appId, id)

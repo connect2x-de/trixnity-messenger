@@ -11,10 +11,13 @@ import de.connect2x.trixnity.messenger.create
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
+import de.connect2x.trixnity.messenger.secrets.GetKey
+import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyProvider
 import de.connect2x.trixnity.messenger.update
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.JsonObject
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
 import org.koin.dsl.module
@@ -39,6 +42,27 @@ fun createTrixnityMessengerTestModule() = module {
         }
     }
     single<FileSystem> { FakeFileSystem() }
+    single<SecretByteArrayKeyProvider> {
+        object : SecretByteArrayKeyProvider {
+            override val id: String = "dummy"
+            override val level: Int = 0
+
+            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey? = null
+
+            override suspend fun rotate(
+                oldExtra: JsonObject?,
+                getOldInputKey: GetKey?,
+                getNewInputKey: GetKey?,
+            ): SecretByteArrayKeyProvider.RotateResult =
+                SecretByteArrayKeyProvider.RotateResult(
+                    getOldKey = get(null, getOldInputKey),
+                    getNewKey = get(null, getNewInputKey),
+                    newExtra = null,
+                )
+
+            @Deprecated("for backwards compatibility") override suspend fun getLegacy(): ByteArray? = null
+        }
+    }
 }
 
 suspend fun createTestMatrixMessenger(): MatrixMessengerWithRoot {

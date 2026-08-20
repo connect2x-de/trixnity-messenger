@@ -21,6 +21,8 @@ import de.connect2x.trixnity.messenger.util.SecretNotFoundException
 import de.connect2x.trixnity.messenger.util.WinCredentials
 import de.connect2x.trixnity.messenger.util.getOs
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import org.koin.core.module.Module
@@ -36,9 +38,11 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override val id = PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID
             override val level: Int = 0
 
-            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey? {
+            private val mutex = Mutex()
+
+            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey? = mutex.withLock {
                 val appId = config.appId
-                return when (getOs()) {
+                when (getOs()) {
                     OS.MAC_OS,
                     OS.WINDOWS -> {
                         GetKey { size ->
