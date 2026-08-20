@@ -272,7 +272,7 @@ class MatrixClientsImpl(
                     _initFromStoreResult.value = _initFromStoreResult.value?.remove(userId)
                 }
             }
-            .onFailure { log.warn(it) { "failed to remove user data fro $userId" } }
+            .onFailure { log.warn(it) { "failed to remove user data for $userId" } }
 
     override fun close() {
         value.values.forEach { it.close() }
