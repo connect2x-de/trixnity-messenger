@@ -7164,6 +7164,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/Previ
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModel {
 	public abstract fun back ()V
 	public abstract fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public abstract fun getShowResetEncryptionButton ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun resetEncryption ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModelFactory {
@@ -7199,10 +7201,12 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomD
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
 	public fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public fun getShowResetEncryptionButton ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun resetEncryption ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsAliasViewModel {
