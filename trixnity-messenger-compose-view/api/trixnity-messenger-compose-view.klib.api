@@ -3864,7 +3864,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun accountSetupWizardFinishSetupTitle(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountSetupWizardFinishSetupTitle|accountSetupWizardFinishSetupTitle(){}[0]
     open fun accountSetupWizardReset(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountSetupWizardReset|accountSetupWizardReset(){}[0]
     open fun accountYourAccounts(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountYourAccounts|accountYourAccounts(){}[0]
-    open fun accountsOverviewCreateNewAccount(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountsOverviewCreateNewAccount|accountsOverviewCreateNewAccount(){}[0]
+    open fun accountsOverviewAddNewAccount(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountsOverviewAddNewAccount|accountsOverviewAddNewAccount(){}[0]
     open fun accountsOverviewLogout(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountsOverviewLogout|accountsOverviewLogout(){}[0]
     open fun accountsOverviewLogoutWarning(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountsOverviewLogoutWarning|accountsOverviewLogoutWarning(kotlin.String){}[0]
     open fun accountsOverviewLogoutWarningExplanation(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.accountsOverviewLogoutWarningExplanation|accountsOverviewLogoutWarningExplanation(){}[0]
