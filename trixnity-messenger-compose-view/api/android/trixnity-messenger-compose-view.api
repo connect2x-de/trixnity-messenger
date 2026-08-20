@@ -1103,7 +1103,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun accountSetupWizardFinishSetupTitle ()Ljava/lang/String;
 	public fun accountSetupWizardReset ()Ljava/lang/String;
 	public fun accountYourAccounts ()Ljava/lang/String;
-	public fun accountsOverviewCreateNewAccount ()Ljava/lang/String;
+	public fun accountsOverviewAddNewAccount ()Ljava/lang/String;
 	public fun accountsOverviewLogout ()Ljava/lang/String;
 	public fun accountsOverviewLogoutWarning (Ljava/lang/String;)Ljava/lang/String;
 	public fun accountsOverviewLogoutWarningExplanation ()Ljava/lang/String;

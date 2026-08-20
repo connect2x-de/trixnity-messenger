@@ -1751,9 +1751,9 @@ open class I18nView(
         DE - "Drücken Sie hier um dieses Gerät für ihr Konto $userId zu verifizieren."
     }
 
-    open fun accountsOverviewCreateNewAccount() = translate {
-        EN - "Create new account"
-        DE - "Neues Konto anlegen"
+    open fun accountsOverviewAddNewAccount() = translate {
+        EN - "Add new account"
+        DE - "Neues Konto hinzufügen"
     }
 
     open fun accountsOverviewLogoutWarning(userId: String) = translate {

@@ -82,7 +82,7 @@ fun AccountsOverview(accountsViewModel: AccountsViewModel) {
                         ThemedFloatingActionButton(
                             expanded = true,
                             onClick = { accountsViewModel.createNewAccount() },
-                            text = { Text(i18n.accountsOverviewCreateNewAccount()) },
+                            text = { Text(i18n.accountsOverviewAddNewAccount()) },
                             icon = { Icon(Icons.Default.AddCircle, null) },
                         )
                     }
