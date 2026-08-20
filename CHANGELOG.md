@@ -19,7 +19,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: improved redaction warning
 - INTERNAL: Use new runner infrastructure
 - INTERNAL: Use resource_group for publish CI jobs
-- DEPENDENCY: Update Trixnity to 5.7.2-SNAPSHOT.CI-20260817.102056
+- DEPENDENCY: Update Trixnity to 5.8.0-SNAPSHOT.CI-20260820.073051
 - UI: added interface for `ReferencedMessagePill`
 
 ### Deprecated
