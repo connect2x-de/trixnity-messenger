@@ -382,6 +382,11 @@ open class I18nView(
         DE - "tooltip anzeigen"
     }
 
+    open fun commonOtherOptions() = translate {
+        EN - "Other Options"
+        DE - "Andere Optionen"
+    }
+
     open fun ban() = translate {
         EN - "ban"
         DE - "Bannen"
@@ -1309,11 +1314,6 @@ open class I18nView(
     open fun roomSettingsRoomId() = translate {
         EN - "Room Id"
         DE - "Raum Id"
-    }
-
-    open fun roomSettingsResetEncryption() = translate {
-        EN - "Reset outbound encryption"
-        DE - "Ausgehende Verschlüsselung zurücksetzen"
     }
 
     open fun userSearchSearchPeople() = translate {
@@ -3659,10 +3659,9 @@ open class I18nView(
     }
 
     open fun redactionWarningInfo() = translate {
-        EN -
-            "Are you sure you want to delete this message? This action affects all room members and cannot be reversed!"
+        EN - "Are you sure you want to delete this message? This action cannot be reversed!"
         DE -
-            "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang betrifft alle Raummitglieder und kann nicht rückgängig gemacht werden!"
+            "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
     }
 
     open fun redactionWarningSettingTitle() = translate {
@@ -3777,6 +3776,30 @@ open class I18nView(
     open fun searchUserNoResultsFound() = translate {
         EN - "no search results found"
         DE - "keine Suchergebnisse gefunden"
+    }
+
+    open fun initialSettingsSetupWelcomeMessage() = translate {
+        EN - "Please select your preferred settings. You can change and refine those later in the 'Settings' menu."
+        DE -
+            "Bitte wählen Sie Ihre bevorzugten Einstellungen aus. Sie können diese jederzeit im Menü 'Einstellungen' ändern bzw. verfeinern."
+    }
+
+    open fun initialSettingsSetupStrictPrivacy() = translate {
+        EN - "Strict Privacy"
+        DE - "Strenger Datenschutz"
+    }
+
+    open fun initialSettingsSetupStrictPrivacyExplanation() = translate {
+        EN - "Hide your online status, whether you are typing and which messages you have read from other users."
+        DE -
+            "Verbergen Sie ihren Online-Status, ob Sie tippen und welche Nachrichten Sie gelesen haben vor anderen Nutzern."
+    }
+
+    open fun initialSettingsSetupNotificationsExplanation() = translate {
+        EN -
+            "If you have disabled notifications, you have to check manually in the app whether you have received new messages."
+        DE -
+            "Falls Benachrichtigungen deaktiviert sind, müssen Sie manuell prüfen, ob Sie neue Nachrichten erhalten haben."
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

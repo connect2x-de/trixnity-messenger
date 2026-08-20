@@ -21,15 +21,8 @@ suspend fun ComposeUiTest.login(testName: String, username: String, password: St
     serverLogin(testName, username, password)
     vault(testName)
     accountSetup(testName)
-    selfVerification(testName)
 
-    waitUntilExactlyOneExists(
-            testName,
-            hasText("confirm", ignoreCase = true) and hasAnyAncestor(hasTestTag("AccountSetupWizard")),
-        )
-        .performClick()
-    waitForIdle()
-    screenshot(testName, "Login - AccountSetup - After Step 4")
+    screenshot(testName, "Login - AccountSetup - Finished")
 }
 
 private fun getUrl(): String {
@@ -74,51 +67,15 @@ private suspend fun ComposeUiTest.vault(testName: String) {
                 hasAnyAncestor(hasTestTag("CrossSigningBootstrapWizard")),
         )
         .performClick()
-
-    screenshot(testName, "Login - Vault - Finished", surface = "CrossSigningBootstrapWizard")
-    waitUntilExactlyOneExists(testName, hasText("confirm", ignoreCase = true)).performClick()
     waitForIdle()
 }
 
 private suspend fun ComposeUiTest.accountSetup(testName: String) {
+    screenshot(testName, "Login - AccountSetup", surface = "AccountSetupWizard")
     waitUntilExactlyOneExists(
             testName,
             hasText("next", ignoreCase = true) and hasAnyAncestor(hasTestTag("AccountSetupWizard")),
         )
         .performClick()
     waitForIdle()
-    screenshot(testName, "Login - AccountSetup - After Step 1", surface = "AccountSetupWizard")
-
-    waitUntilExactlyOneExists(
-            testName,
-            hasText("next", ignoreCase = true) and hasAnyAncestor(hasTestTag("AccountSetupWizard")),
-        )
-        .performClick()
-    waitForIdle()
-    screenshot(testName, "Login - AccountSetup - After Step 2", surface = "AccountSetupWizard")
-
-    waitUntilExactlyOneExists(
-            testName,
-            hasText("next", ignoreCase = true) and hasAnyAncestor(hasTestTag("AccountSetupWizard")),
-        )
-        .performClick()
-    waitForIdle()
-    screenshot(testName, "Login - AccountSetup - After Step 3", surface = "AccountSetupWizard")
-
-    waitUntilExactlyOneExists(
-            testName,
-            hasText("next", ignoreCase = true) and hasAnyAncestor(hasTestTag("AccountSetupWizard")),
-        )
-        .performClick()
-    waitForIdle()
-}
-
-private suspend fun ComposeUiTest.selfVerification(testName: String) {
-    waitUntilExactlyOneExists(
-            testName,
-            hasText("next", ignoreCase = true) and hasAnyAncestor(hasTestTag("SelfVerificationWizard")),
-        )
-        .performClick()
-    waitForIdle()
-    screenshot(testName, "Login - SelfVerification") // should be done here
 }

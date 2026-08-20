@@ -59,10 +59,10 @@ import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.PasswordField
 import de.connect2x.trixnity.messenger.compose.view.common.RunningText
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
-import de.connect2x.trixnity.messenger.compose.view.common.Wizard
-import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton.Custom
-import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.Wizard
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardNavigationButton.Custom
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.form.AutofillButton
 import de.connect2x.trixnity.messenger.compose.view.form.LocalHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
@@ -77,10 +77,18 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 
+@Deprecated(
+    "use v2.SelfVerificationWizardView",
+    ReplaceWith("de.connect2x.trixnity.messenger.compose.view.verification.v2.SelfVerificationWizardView"),
+)
 interface SelfVerificationWizardView {
     @Composable fun create(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean)
 }
 
+@Deprecated(
+    "use v2.SelfVerificationWizard",
+    ReplaceWith("de.connect2x.trixnity.messenger.compose.view.verification.v2.SelfVerificationWizard"),
+)
 @Composable
 fun SelfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean = true) {
     DI.get<SelfVerificationWizardView>().create(selfVerificationViewModel, showHelpScreen)
@@ -95,48 +103,20 @@ open class SelfVerificationMethodsListEntries {
 }
 
 class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
-    companion object {
-        private val stepList =
-            listOf(
-                SelfVerificationWizardStep.SelfVerificationWizardHelp,
-                SelfVerificationWizardStep.SelfVerificationWizardMethods,
-                SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
-                SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
-                SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
-                SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation,
-            )
-    }
-
     @Composable
     override fun create(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean) {
-        selfVerificationWizard(selfVerificationViewModel)
-    }
-
-    open class SelfVerificationWizardStep(val stepId: String) {
-        data object SelfVerificationWizardHelp : SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_HELP")
-
-        data object SelfVerificationWizardMethods : SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_METHODS")
-
-        data object SelfVerificationWizardRecoveryKey :
-            SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_RECOVERY_KEY")
-
-        data object SelfVerificationWizardPassphrase : SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_PASSPHRASE")
-
-        data object SelfVerificationWizardResetRecoveryKeyConfirmation :
-            SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_RESET_RECOVERY_KEY_CONFIRM")
-
-        data object SelfVerificationWizardVerificationConfirmation :
-            SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_VERIFICATION_CONFIRMATION")
+        this@SelfVerificationWizardViewImpl.SelfVerificationWizard(selfVerificationViewModel)
     }
 
     @Composable
-    private fun selfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel) {
+    private fun SelfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel) {
         val i18n = DI.get<I18nView>()
+        val steps = DI.get<SelfVerificationWizardStepList>().steps
 
         val hiddenRegistrationForm = rememberHiddenRegistrationForm()
         val wizardSteps =
             remember(selfVerificationViewModel, i18n) {
-                stepList.mapNotNull {
+                steps.mapNotNull {
                     when (it) {
                         is SelfVerificationWizardStep.SelfVerificationWizardHelp ->
                             selfVerificationWizardHelpStep(

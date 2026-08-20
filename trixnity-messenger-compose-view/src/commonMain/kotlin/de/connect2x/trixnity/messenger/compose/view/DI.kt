@@ -362,6 +362,8 @@ import de.connect2x.trixnity.messenger.compose.view.verification.DeviceVerificat
 import de.connect2x.trixnity.messenger.compose.view.verification.DeviceVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.compose.view.verification.RedoSelfVerificationWizardView
 import de.connect2x.trixnity.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
+import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardStepList
+import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardStepListImpl
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
@@ -665,8 +667,14 @@ fun settingsViewModule() = module {
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<ProfilesSettingsView> { ProfilesSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
-    single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
+    single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl(get<MatrixMessengerConfiguration>().features) }
+    single<SelfVerificationWizardStepList> {
+        SelfVerificationWizardStepListImpl(get<MatrixMessengerConfiguration>().features)
+    }
     single<SelfVerificationWizardView> { SelfVerificationWizardViewImpl() }
+    single<de.connect2x.trixnity.messenger.compose.view.verification.v2.SelfVerificationWizardView> {
+        de.connect2x.trixnity.messenger.compose.view.verification.v2.SelfVerificationWizardViewImpl()
+    }
     single<DeviceVerificationWizardView> { DeviceVerificationWizardViewImpl() }
 }
 

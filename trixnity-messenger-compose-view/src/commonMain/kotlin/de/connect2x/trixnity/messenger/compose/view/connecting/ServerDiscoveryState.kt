@@ -1,33 +1,37 @@
 package de.connect2x.trixnity.messenger.compose.view.connecting
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.filled.DevicesOther
-import androidx.compose.material.icons.filled.Password
-import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.filled.Web
 import androidx.compose.material.icons.outlined.AlternateEmail
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.outlined.DevicesOther
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItem
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
@@ -80,7 +84,11 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
                     }
                     if (nonOauth2AuthorizationCodeAddMatrixAccountMethods.isNotEmpty())
                         ExpandableSection(heading = i18n.loginWithMoreClassic(), icon = Icons.Outlined.AlternateEmail) {
-                            ClassicLoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.middle)
+                            ) {
+                                ClassicLoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
+                            }
                         }
                 } else ClassicLoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
             }
@@ -103,40 +111,44 @@ private fun OAuth2LoginItems(
             is AddMatrixAccountMethod.OAuth2AuthorizationCode -> {
                 when (type.type) {
                     OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN -> {
-                        ThemedListItem(
-                            headlineContent = { Text(i18n.loginWithOAuth2()) },
-                            leadingContent = {
-                                Icon(Icons.AutoMirrored.Filled.Login, i18n.loginWithOAuth2(), Modifier.fillMaxHeight())
-                            },
-                            modifier =
-                                Modifier.clickable { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) }
-                                    .buttonPointerModifier(),
-                        )
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            LoginButton(
+                                onClick = { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) },
+                                isPrimary = true,
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.Login,
+                                    i18n.loginWithOAuth2(),
+                                    Modifier.fillMaxHeight(),
+                                )
+                                Text(i18n.loginWithOAuth2())
+                            }
+                        }
                     }
 
                     OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER -> {
-                        ThemedListItem(
-                            headlineContent = { Text(i18n.registerWithOAuth2()) },
-                            leadingContent = {
-                                Icon(Icons.Default.PersonAdd, i18n.registerWithOAuth2(), Modifier.fillMaxHeight())
-                            },
-                            modifier =
-                                Modifier.clickable { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) }
-                                    .buttonPointerModifier(),
-                        )
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            LoginButton(
+                                onClick = { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) },
+                                isPrimary = false,
+                            ) {
+                                Icon(Icons.Outlined.PersonAdd, i18n.registerWithOAuth2(), Modifier.fillMaxHeight())
+                                Text(i18n.registerWithOAuth2())
+                            }
+                        }
                     }
                 }
             }
             is AddMatrixAccountMethod.OAuth2DeviceAuthorization -> {
-                ThemedListItem(
-                    headlineContent = { Text(i18n.loginWithOAuth2Device()) },
-                    leadingContent = {
-                        Icon(Icons.Default.DevicesOther, i18n.loginWithOAuth2Device(), Modifier.fillMaxHeight())
-                    },
-                    modifier =
-                        Modifier.clickable { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) }
-                            .buttonPointerModifier(),
-                )
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    LoginButton(
+                        onClick = { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) },
+                        isPrimary = false,
+                    ) {
+                        Icon(Icons.Outlined.DevicesOther, i18n.loginWithOAuth2Device(), Modifier.fillMaxHeight())
+                        Text(i18n.loginWithOAuth2Device())
+                    }
+                }
             }
 
             is AddMatrixAccountMethod.Password,
@@ -155,47 +167,56 @@ private fun ClassicLoginItems(
     for (type in addMatrixAccountMethods) {
         when (type) {
             is AddMatrixAccountMethod.Password -> {
-                ThemedListItem(
-                    headlineContent = { Text(i18n.loginWithPassword()) },
-                    leadingContent = {
-                        Icon(Icons.Default.Password, i18n.loginWithPassword(), Modifier.fillMaxHeight())
-                    },
-                    modifier =
-                        Modifier.clickable { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) }
-                            .buttonPointerModifier(),
-                )
+                LoginButton(
+                    onClick = { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) },
+                    isPrimary = true,
+                ) {
+                    Icon(Icons.Outlined.Password, i18n.loginWithPassword(), Modifier.fillMaxHeight())
+                    Text(i18n.loginWithPassword())
+                }
             }
 
             is AddMatrixAccountMethod.SSO -> {
                 val providerName = type.identityProvider?.name ?: "SSO"
-                ThemedListItem(
-                    headlineContent = { Text(i18n.loginWithSSO(providerName)) },
-                    leadingContent = {
-                        val icon = type.icon?.toImageBitmap()
-                        if (icon != null) Image(icon, i18n.loginWithSSO(providerName), Modifier.fillMaxHeight())
-                        else Icon(Icons.Default.Web, i18n.loginWithSSO(providerName), Modifier.fillMaxHeight())
-                    },
-                    modifier =
-                        Modifier.clickable { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) }
-                            .buttonPointerModifier(),
-                )
+                LoginButton(
+                    onClick = { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) },
+                    isPrimary = false,
+                ) {
+                    val icon = type.icon?.toImageBitmap()
+                    if (icon != null) Image(icon, i18n.loginWithSSO(providerName), Modifier.fillMaxHeight())
+                    else Icon(Icons.Default.Web, i18n.loginWithSSO(providerName), Modifier.fillMaxHeight())
+                    Text(i18n.loginWithSSO(providerName))
+                }
             }
 
             is AddMatrixAccountMethod.Register -> {
-                HorizontalDivider()
-                ThemedListItem(
-                    headlineContent = { Text(i18n.registerNewAccount()) },
-                    leadingContent = {
-                        Icon(Icons.Default.PersonAdd, i18n.registerNewAccount(), Modifier.fillMaxHeight())
-                    },
-                    modifier =
-                        Modifier.clickable { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) }
-                            .buttonPointerModifier(),
-                )
+                LoginButton(
+                    onClick = { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) },
+                    isPrimary = false,
+                ) {
+                    Icon(Icons.Outlined.PersonAdd, i18n.registerNewAccount(), Modifier.fillMaxHeight())
+                    Text(i18n.registerNewAccount())
+                }
             }
 
             is AddMatrixAccountMethod.OAuth2AuthorizationCode,
             is AddMatrixAccountMethod.OAuth2DeviceAuthorization -> {}
+        }
+    }
+}
+
+@Composable
+private fun LoginButton(onClick: () -> Unit, isPrimary: Boolean, content: @Composable () -> Unit) {
+    ThemedButton(
+        onClick = onClick,
+        style = if (isPrimary) MaterialTheme.components.primaryButton else ButtonStyle.outlined(),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.middle),
+        ) {
+            content()
         }
     }
 }

@@ -36,6 +36,7 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
@@ -706,6 +707,11 @@ class MainViewModelTest {
                                                 single { downloadManagerMock }
                                                 single { isNetworkAvailable }
                                                 single { runInitialSyncMock }
+                                                single<MatrixMessengerConfiguration> {
+                                                    MatrixMessengerConfiguration().apply {
+                                                        features.enableNewAccountWizard = false
+                                                    }
+                                                }
                                                 single<RoomHeaderViewModelFactory> {
                                                     object : RoomHeaderViewModelFactory {
                                                         override fun create(

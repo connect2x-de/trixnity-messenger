@@ -9,6 +9,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- SDK: new setup account view model (`AccountSetupViewModel`) and new setup self verification view model (`v2.SelfVerificationViewModel`); disable by setting `features.enableNewAccountWizard = false`
+- UI: Account setup wizard and self verification wizard in more concise form; disable by setting `features.enableNewAccountWizard = false`
+- UI: `detailsExpandedByDefault` determining the default expansion state of the error details in the error dialog
 - SDK: platform specific pdfReaderFactory
 - UI: Ability to reset encryption keys for a room in room developer settings
 - CI, INTERNAL: Enabled more detekt linting rules

@@ -41,13 +41,14 @@ interface AccountSetupViewModel {
     val appearanceSettingsViewModel: AppearanceSettingsViewModel
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
+    val initialSettingsSetupViewModel: InitialSettingsSetupViewModel
     val setupBackHandler: BackHandler
 }
 
 class AccountSetupViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext,
-    val onWizardClose: (UserId) -> Unit,
-    val onStartVerification: (UserId, Boolean) -> Unit,
+    private val viewModelContext: MatrixClientViewModelContext,
+    private val onWizardClose: (UserId) -> Unit,
+    private val onStartVerification: (UserId, Boolean) -> Unit,
 ) : ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
     override val displayName: StateFlow<String?> =
@@ -65,6 +66,9 @@ class AccountSetupViewModelImpl(
     }
     override val notificationSettingsViewModel by lazy {
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
+    }
+    override val initialSettingsSetupViewModel by lazy {
+        get<InitialSettingsSetupViewModelFactory>().create(viewModelContext, notificationSettingsViewModel)
     }
 
     private val verificationInProgress = MutableStateFlow(false)

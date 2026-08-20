@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.compose.view.settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,9 +15,9 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
-import de.connect2x.trixnity.messenger.compose.view.common.Wizard
-import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton.Custom
-import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.Wizard
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardNavigationButton.Custom
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -46,6 +45,13 @@ open class AccountSetupWizardStep(val stepId: String) {
     data object NotificationSettingsStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_NOTIFICATION")
 
     data object ConfirmationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_CONFIRM")
+
+    // --- version 2 of the account setup wizard ---
+    data object V2 {
+        data object SettingsStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_SETTINGS")
+
+        data object DeviceVerificationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_DEVICE_VERIFICATION")
+    }
 }
 
 /**
@@ -56,16 +62,20 @@ interface AccountSetupWizardStepList {
     val steps: List<AccountSetupWizardStep>
 }
 
-class AccountSetupWizardStepListImpl : AccountSetupWizardStepList {
+class AccountSetupWizardStepListImpl(features: MatrixMessengerConfiguration.Features) : AccountSetupWizardStepList {
     override val steps =
-        listOf(
-            AccountSetupWizardStep.ExplanationStep,
-            AccountSetupWizardStep.AccessibilityStep,
-            AccountSetupWizardStep.PrivacySettingsStep,
-            AccountSetupWizardStep.NotificationSettingsStep,
-            AccountSetupWizardStep.VerificationStep,
-            AccountSetupWizardStep.ConfirmationStep,
-        )
+        if (features.enableNewAccountWizard) {
+            listOf(AccountSetupWizardStep.V2.SettingsStep, AccountSetupWizardStep.V2.DeviceVerificationStep)
+        } else {
+            listOf(
+                AccountSetupWizardStep.ExplanationStep,
+                AccountSetupWizardStep.AccessibilityStep,
+                AccountSetupWizardStep.PrivacySettingsStep,
+                AccountSetupWizardStep.NotificationSettingsStep,
+                AccountSetupWizardStep.VerificationStep,
+                AccountSetupWizardStep.ConfirmationStep,
+            )
+        }
 }
 
 /**
@@ -92,7 +102,6 @@ class AdditionalAccountSetupWizardStepImpl : AdditionalAccountSetupWizardStep {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
     val i18n = DI.get<I18nView>()
@@ -115,6 +124,10 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
                     is AccountSetupWizardStep.PrivacySettingsStep -> wizardStepPrivacy(viewModel, it, i18n)
 
                     is AccountSetupWizardStep.VerificationStep -> wizardStepVerification(viewModel, it, i18n)
+
+                    is AccountSetupWizardStep.V2.SettingsStep -> wizardStepSettingsV2(viewModel, it, i18n)
+
+                    is AccountSetupWizardStep.V2.DeviceVerificationStep -> wizardStepVerificationV2(viewModel, it, i18n)
 
                     else -> additionalAccountSetupWizardStep.create(viewModel, it)
                 }
@@ -314,6 +327,39 @@ private fun wizardStepVerification(
                     viewModel.completedVerification.value = null
                     previousStep?.let { currentStepId.value = it }
                 }
+            }
+        },
+    )
+}
+
+private fun wizardStepSettingsV2(
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
+    i18n: I18nView,
+): WizardStep {
+    return WizardStep(
+        id = step.stepId,
+        title = { i18n.commonWelcome() },
+        subTitle = { "${i18n.commonAccount()}: ${viewModel.initialSettingsSetupViewModel.account.full}" },
+        content = { AccountSetupWizardStep(viewModel) },
+    )
+}
+
+private fun wizardStepVerificationV2(
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
+    i18n: I18nView,
+): WizardStep {
+    return WizardStep(
+        id = step.stepId,
+        title = { i18n.deviceVerification() },
+        content = {
+            LaunchedEffect(Unit) {
+                viewModel.startVerification()
+                // TODO:  calling closeAccountSetup already updates the settings so that
+                //        closing the app while in verification does not open the wizard
+                //        again on next start
+                viewModel.closeAccountSetup()
             }
         },
     )

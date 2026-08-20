@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.core.component.get
+import org.koin.core.qualifier.named
 
 class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
@@ -31,6 +32,8 @@ class SelfVerificationRouter(
     private val crossSigningBootstraps = MutableStateFlow(setOf<UserId>())
 
     private val navigation = StackNavigation<Config>()
+
+    private val features = get<MatrixMessengerConfiguration>().features
 
     val stack =
         viewModelContext.childStack(
@@ -48,28 +51,55 @@ class SelfVerificationRouter(
         when (selfVerificationConfig) {
             is Config.None -> Wrapper.None
             is Config.SelfVerification -> {
-                Wrapper.View(
-                    viewModelContext
-                        .get<SelfVerificationViewModelFactory>()
-                        .create(
-                            viewModelContext =
-                                viewModelContext.childContext(
-                                    "SelfVerification",
-                                    componentContext,
-                                    selfVerificationConfig.userId,
-                                ),
-                            onCloseSelfVerification = { completedVerification ->
-                                closeSelfVerification(selfVerificationConfig.userId)
-                                onCloseSelfVerification(selfVerificationConfig.userId, completedVerification)
-                            },
-                            onResetRecovery = {
-                                closeSelfVerification(selfVerificationConfig.userId)
-                                viewModelContext.coroutineScope.launch {
-                                    showCrossSigningBootstrap(selfVerificationConfig.userId)
-                                }
-                            },
-                        )
-                )
+                if (features.enableNewAccountWizard) {
+                    Wrapper.ViewV2(
+                        viewModelContext
+                            .get<
+                                de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModelFactory
+                            >()
+                            .create(
+                                viewModelContext =
+                                    viewModelContext.childContext(
+                                        "SelfVerification",
+                                        componentContext,
+                                        selfVerificationConfig.userId,
+                                    ),
+                                onCloseSelfVerification = {
+                                    closeSelfVerification(selfVerificationConfig.userId)
+                                    onCloseSelfVerification(selfVerificationConfig.userId, true)
+                                },
+                                onResetRecovery = {
+                                    closeSelfVerification(selfVerificationConfig.userId)
+                                    viewModelContext.coroutineScope.launch {
+                                        showCrossSigningBootstrap(selfVerificationConfig.userId)
+                                    }
+                                },
+                            )
+                    )
+                } else {
+                    Wrapper.View(
+                        viewModelContext
+                            .get<SelfVerificationViewModelFactory>(qualifier = named("v1"))
+                            .create(
+                                viewModelContext =
+                                    viewModelContext.childContext(
+                                        "SelfVerification",
+                                        componentContext,
+                                        selfVerificationConfig.userId,
+                                    ),
+                                onCloseSelfVerification = { completedVerification ->
+                                    closeSelfVerification(selfVerificationConfig.userId)
+                                    onCloseSelfVerification(selfVerificationConfig.userId, completedVerification)
+                                },
+                                onResetRecovery = {
+                                    closeSelfVerification(selfVerificationConfig.userId)
+                                    viewModelContext.coroutineScope.launch {
+                                        showCrossSigningBootstrap(selfVerificationConfig.userId)
+                                    }
+                                },
+                            )
+                    )
+                }
             }
 
             is Config.RedoSelfVerification ->
@@ -232,6 +262,10 @@ class SelfVerificationRouter(
         data object None : Wrapper()
 
         class View(val viewModel: SelfVerificationViewModel) : Wrapper()
+
+        class ViewV2(
+            val viewModel: de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificationViewModel
+        ) : Wrapper()
 
         class RedoSelfVerification(val viewModel: RedoSelfVerificationViewModel) : Wrapper()
 

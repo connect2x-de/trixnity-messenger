@@ -22,9 +22,9 @@ import androidx.compose.ui.text.intl.Locale
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.common.Wizard
-import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton.Custom
-import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.Wizard
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardNavigationButton.Custom
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components

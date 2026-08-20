@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.common
+package de.connect2x.trixnity.messenger.compose.view.common.wizard
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
@@ -50,14 +50,19 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.window.PopupProperties
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.common.WizardButtons.NextButton
-import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton.Custom
+import de.connect2x.trixnity.messenger.compose.view.common.MessengerModalButtonRow
+import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardButtons.NextButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardNavigationButton.Custom
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooter
 import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedPopup
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -100,6 +105,7 @@ sealed interface WizardButtons {
 data class WizardStep(
     val id: StepId,
     val title: @Composable () -> String,
+    val subTitle: (@Composable () -> String)? = null,
     val content: @Composable (BoxWithConstraintsScope) -> Unit,
     val additionalButton: (@Composable RowScope.((StepId) -> Unit) -> Unit)? = null,
     val nextButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
@@ -143,7 +149,7 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
             // (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
             savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
                 val scrollState = rememberScrollState()
-                Surface(Modifier.fillMaxSize().testTag(wizardId), color = MaterialTheme.colorScheme.background) {
+                Surface(Modifier.fillMaxSize().testTag(wizardId), color = MaterialTheme.colorScheme.surface) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small),
@@ -168,20 +174,22 @@ private fun BoxWithConstraintsScope.WizardContainer(
     scrollState: ScrollState,
 ) {
     val boxWithConstraints = this
-    Surface(
-        Modifier.widthIn(max = 800.dp)
-            .heightIn(min = max(1200.dp, this.maxHeight))
-            .padding(
-                if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.small
-                else MaterialTheme.messengerDpConstants.large
-            )
-            .clip(RoundedCornerShape(MaterialTheme.messengerDpConstants.small))
+    ThemedSurface(
+        modifier =
+            Modifier.widthIn(max = 800.dp)
+                .heightIn(min = max(1200.dp, this.maxHeight))
+                .padding(
+                    if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.small
+                    else MaterialTheme.messengerDpConstants.large
+                )
+                .clip(RoundedCornerShape(MaterialTheme.messengerDpConstants.small)),
+        style = SurfaceStyle.default(color = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Box(Modifier.fillMaxSize()) {
             Box(
                 Modifier.fillMaxSize()
                     .padding(
-                        if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.small
+                        if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.middle
                         else MaterialTheme.messengerDpConstants.large
                     ),
                 contentAlignment = Alignment.Center,
@@ -200,6 +208,10 @@ private fun BoxWithConstraintsScope.WizardContainer(
 @Composable
 private fun WizardHeading(wizardStep: WizardStep) {
     Text(wizardStep.title(), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+    wizardStep.subTitle?.invoke()?.let { subTitle ->
+        VerySmallSpacer()
+        Text(subTitle, style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })
+    }
     MiddleSpacer()
 }
 
@@ -209,7 +221,7 @@ private fun ColumnScope.WizardContent(
     scrollState: ScrollState,
     boxWithConstraints: BoxWithConstraintsScope,
 ) {
-    Surface(Modifier.weight(1.0f, fill = true)) {
+    Box(Modifier.weight(1.0f, fill = true)) {
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize().verticalScroll(scrollState)) { wizardStep.content(boxWithConstraints) }
         }
