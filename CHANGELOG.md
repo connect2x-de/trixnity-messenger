@@ -27,6 +27,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - DEPENDENCY: Update Trixnity to 5.8.0-SNAPSHOT.CI-20260820.073051
 - UI: added interface for `ReferencedMessagePill`
 - UI: i18n change "Add new account" instead of "Create new account"
+- SDK: More resilient MatrixClients when create is called concurrently
 
 ### Deprecated
 
