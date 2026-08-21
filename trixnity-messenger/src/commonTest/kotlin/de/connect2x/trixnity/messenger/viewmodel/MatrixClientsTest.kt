@@ -36,13 +36,19 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.plusAssign
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.fail
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.job
@@ -78,8 +84,8 @@ class MatrixClientsTest {
     private var createCalled = false
     private var loadCalled = false
     private var logoutCalled = false
-    private var createCalledCount = 0
-    private var loadCalledCount = 0
+    private var createCalledCount = AtomicInt(0)
+    private var loadCalledCount = AtomicInt(0)
 
     private val createMatrixClient: SuspendAnsweringScope<Result<MatrixClient>> = everySuspend {
         matrixClientFactory.create(any(), any(), any())
@@ -92,9 +98,10 @@ class MatrixClientsTest {
     init {
         createMatrixClient calls
             {
+                delay(100.milliseconds)
                 val userId = it.args[0] as? UserId
                 createCalled = true
-                createCalledCount++
+                createCalledCount += 1
                 val matrixClient =
                     when (userId) {
                         userId1 -> matrixClientMock1
@@ -106,9 +113,10 @@ class MatrixClientsTest {
 
         loadMatrixClient calls
             {
+                delay(100.milliseconds)
                 val userId = it.args[0] as? UserId
                 loadCalled = true
-                loadCalledCount++
+                loadCalledCount += 1
                 val matrixClient =
                     when (userId) {
                         userId1 -> matrixClientMock1
@@ -174,35 +182,46 @@ class MatrixClientsTest {
     fun setup() {
         configureTestLogging()
         createCalled = false
-        createCalledCount = 0
+        createCalledCount.store(0)
         logoutCalled = false
         loadCalled = false
-        loadCalledCount = 0
+        loadCalledCount.store(0)
     }
 
     @Test
-    fun `login » login and register new account locally`() = runTest {
+    fun `create » add new account locally`() = runTest {
         val cut = createCut()
         cut.create(authProviderData1) shouldBe MatrixClients.CreateResult.Success
         cut.value shouldBe mapOf(userId1 to matrixClientMock1)
         createCalled shouldBe true
-        createCalledCount shouldBe 1
+        createCalledCount.load() shouldBe 1
     }
 
     @Test
-    fun `login » login for another account and create additional MatrixClient`() = runTest {
+    fun `create » handle concurrency`() = runTest {
+        val cut = createCut()
+        val results = buildList { repeat(2) { add(async { cut.create(authProviderData1) }) } }.awaitAll()
+        cut.value shouldBe mapOf(userId1 to matrixClientMock1)
+        createCalled shouldBe true
+        createCalledCount.load() shouldBe 1
+        results.count { it is MatrixClients.CreateResult.Success } shouldBe 1
+        results.count { it is MatrixClients.CreateResult.Failure.AccountAlreadyExists } shouldBe 1
+    }
+
+    @Test
+    fun `create » add another account and create additional MatrixClient`() = runTest {
         val cut = createCut()
         cut.create(authProviderData1) shouldBe MatrixClients.CreateResult.Success
         cut.create(authProviderData2) shouldBe MatrixClients.CreateResult.Success
 
         createCalled shouldBe true
-        createCalledCount shouldBe 2
+        createCalledCount.load() shouldBe 2
 
         cut.value shouldBe mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
     }
 
     @Test
-    fun `login » not login again if MatrixClient already present for account`() = runTest {
+    fun `create » not add again if MatrixClient already present for account`() = runTest {
         val cut = createCut()
         cut.create(authProviderData1) shouldBe MatrixClients.CreateResult.Success
         createCalled = false
@@ -211,7 +230,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `login » return exception in Result if login is not possible`() = runTest {
+    fun `create » return exception in Result if login is not possible`() = runTest {
         val cut = createCut()
         createMatrixClient returns Result.failure(IllegalArgumentException())
 
@@ -240,7 +259,7 @@ class MatrixClientsTest {
 
         result shouldBe MatrixClients.InitFromStoreResult(setOf(userId2), mapOf())
         cut.value shouldBe mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
-        loadCalledCount shouldBe 1
+        loadCalledCount.load() shouldBe 1
     }
 
     @Test
