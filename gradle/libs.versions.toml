@@ -6,7 +6,7 @@ minSdkVersion = "28"
 
 seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.8.0-SNAPSHOT.CI-20260820.073051" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "5.8.0-SNAPSHOT.CI-20260821.120157" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.7.1" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.7" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
