@@ -63,30 +63,38 @@ fun Client(rootViewModel: RootViewModel) {
 class ClientViewImpl : ClientView {
     @Composable
     override fun create(rootViewModel: RootViewModel) {
-        val insets = WindowInsets.safeDrawing
-        val headerColor = MaterialTheme.components.systemUi.header
-        val footerColor = MaterialTheme.components.systemUi.footer
-
-        ThemedSurface(
-            style = MaterialTheme.components.background,
-            modifier =
-                Modifier.testTag("ClientSurface")
-                    .fillMaxSize()
-                    .drawBehind {
-                        val top = insets.getTop(this)
-                        val bottom = insets.getBottom(this)
-
-                        drawRect(headerColor, topLeft = Offset.Zero, size = size.copy(height = top.toFloat()))
-                        drawRect(
-                            footerColor,
-                            topLeft = Offset(0f, size.height - bottom),
-                            size = size.copy(height = bottom.toFloat()),
-                        )
-                    }
-                    .windowInsetsPadding(insets),
-        ) {
+        ClientViewLayout {
             RootSwitch(rootViewModel.stack)
             UiaSwitch(rootViewModel.uiaStack)
         }
+    }
+}
+
+@Composable
+internal fun ClientViewLayout(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val insets = WindowInsets.safeDrawing
+    val headerColor = MaterialTheme.components.systemUi.header
+    val footerColor = MaterialTheme.components.systemUi.footer
+
+    ThemedSurface(
+        style = MaterialTheme.components.background,
+        modifier =
+            modifier
+                .testTag("ClientSurface")
+                .fillMaxSize()
+                .drawBehind {
+                    val top = insets.getTop(this)
+                    val bottom = insets.getBottom(this)
+
+                    drawRect(headerColor, topLeft = Offset.Zero, size = size.copy(height = top.toFloat()))
+                    drawRect(
+                        footerColor,
+                        topLeft = Offset(0f, size.height - bottom),
+                        size = size.copy(height = bottom.toFloat()),
+                    )
+                }
+                .windowInsetsPadding(insets),
+    ) {
+        content()
     }
 }

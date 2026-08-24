@@ -64,6 +64,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.waitForElementWithTimeout
+import de.connect2x.trixnity.messenger.internal.hasNav3OptIn
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
@@ -282,7 +283,7 @@ class TimelineViewImpl : TimelineView {
                                 }
                             }
 
-                            ReportMessageSwitch(timelineViewModel)
+                            if (!DI.current.hasNav3OptIn) ReportMessageSwitch(timelineViewModel)
                         }
 
                         VerticalScrollbar(Modifier.align(Alignment.CenterEnd), listState, reverseLayout = true)

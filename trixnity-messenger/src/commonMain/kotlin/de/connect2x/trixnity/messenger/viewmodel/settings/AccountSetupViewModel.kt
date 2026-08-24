@@ -74,7 +74,7 @@ class AccountSetupViewModelImpl(
     private val verificationInProgress = MutableStateFlow(false)
 
     override fun startVerification() {
-        if (!verificationInProgress.value) {
+        if (!verificationInProgress.value && completedVerification.value == null) {
             onStartVerification(userId, true)
             verificationInProgress.value = true
             completedVerification.value = null
@@ -86,8 +86,10 @@ class AccountSetupViewModelImpl(
     }
 
     override fun changeVerificationCompleteStatus(newVerificationCompleteStatus: Boolean) {
-        completedVerification.value = newVerificationCompleteStatus
-        verificationInProgress.value = false
+        if (verificationInProgress.value) {
+            completedVerification.value = newVerificationCompleteStatus
+            verificationInProgress.value = false
+        }
     }
 
     override val setupBackHandler = trixnityMessengerBackHandler

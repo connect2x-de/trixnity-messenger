@@ -32,6 +32,8 @@ import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.internal.logic.ReportMessageLogic
+import de.connect2x.trixnity.messenger.internal.logic.SendAttachmentLogic
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.LeaveRoom
@@ -388,30 +390,23 @@ class TimelineViewModelImpl(
                 onOpenMention = onOpenMention,
             )
 
-    private val reportMessageRouter: ReportMessageRouter =
-        ReportMessageRouterImpl(
-            viewModelContext = viewModelContext,
-            onShowReportMessageDialog = ::showReportMessageDialog,
-            onReportMessageDialogDismiss = ::onReportMessageDialogDismiss,
-        )
+    private val reportMessageLogic =
+        getOrNull<ReportMessageLogic>()
+            ?: FallbackReportMessageLogic(viewModelContext = childContext("ReportMessage"), roomId = roomId)
 
-    internal fun onReportMessageDialogDismiss() = coroutineScope.launch {
-        log.trace { "Closing report popup dialog" }
-        reportMessageRouter.closeReportMessage()
-    }
+    override val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>>
+        get() =
+            (reportMessageLogic as? FallbackReportMessageLogic)?.stack
+                ?: error("using reportMessageStack is unsupported")
 
-    internal fun showReportMessageDialog(roomId: RoomId, eventId: EventId) = coroutineScope.launch {
-        reportMessageRouter.showReportMessage(roomId, eventId)
-    }
+    private val sendAttachmentLogic =
+        getOrNull<SendAttachmentLogic>()
+            ?: FallbackSendAttachmentLogic(viewModelContext = childContext("SendAttachment"), roomId = roomId)
 
-    override val reportMessageStack = reportMessageRouter.stack
-
-    private val sendAttachmentRouter =
-        SendAttachmentRouterImpl(
-            viewModelContext = viewModelContext.childContext("SendAttachmentRouter"),
-            roomId = roomId,
-        )
-    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = sendAttachmentRouter.stack
+    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
+        get() =
+            (sendAttachmentLogic as? FallbackSendAttachmentLogic)?.stack
+                ?: error("using sendAttachmentStack is unsupported")
 
     init {
         outerScope.removeMarkAsUnread()
@@ -763,12 +758,12 @@ class TimelineViewModelImpl(
     }
 
     private fun onShowAttachmentSendView(file: FileDescriptor) {
-        coroutineScope.launch { sendAttachmentRouter.showAttachmentSendView(file) }
+        coroutineScope.launch { sendAttachmentLogic.showAttachmentSendView(userId, roomId, file) }
     }
 
     private fun onShowReportMessageModal(roomId: RoomId, eventId: EventId) = coroutineScope.launch {
         log.debug { "report to message $eventId" }
-        reportMessageRouter.showReportMessage(roomId, eventId)
+        reportMessageLogic.showReportMessageDialog(userId, roomId, eventId)
     }
 
     private fun onMessageReplace(roomId: RoomId, eventId: EventId) {
@@ -1310,4 +1305,52 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override suspend fun markAsRead(key: String) {}
 
     override suspend fun finishedScrollTo(key: String) {}
+}
+
+private class FallbackReportMessageLogic(
+    private val viewModelContext: MatrixClientViewModelContext,
+    private val roomId: RoomId,
+) : MatrixClientViewModelContext by viewModelContext, ReportMessageLogic {
+    private val router =
+        ReportMessageRouterImpl(
+            viewModelContext = childContext("ReportMessageRouter"),
+            onShowReportMessageDialog = ::onShowReportMessageDialog,
+            onReportMessageDialogDismiss = ::onReportMessageDialogDismiss,
+        )
+
+    val stack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>>
+        get() = router.stack
+
+    override suspend fun showReportMessageDialog(userId: UserId, roomId: RoomId, eventId: EventId) {
+        require(this.userId == userId)
+        require(this.roomId == roomId)
+
+        router.showReportMessage(roomId, eventId)
+    }
+
+    private fun onShowReportMessageDialog(roomId: RoomId, eventId: EventId) {
+        viewModelContext.coroutineScope.launch { router.showReportMessage(roomId, eventId) }
+    }
+
+    private fun onReportMessageDialogDismiss() {
+        viewModelContext.coroutineScope.launch { router.closeReportMessage() }
+    }
+}
+
+private class FallbackSendAttachmentLogic(
+    private val viewModelContext: MatrixClientViewModelContext,
+    private val roomId: RoomId,
+) : MatrixClientViewModelContext by viewModelContext, SendAttachmentLogic {
+    private val router =
+        SendAttachmentRouterImpl(viewModelContext = childContext("SendAttachmentRouter"), roomId = roomId)
+
+    val stack: Value<ChildStack<Config, Wrapper>>
+        get() = router.stack
+
+    override suspend fun showAttachmentSendView(userId: UserId, roomId: RoomId, file: FileDescriptor) {
+        require(this.userId == userId)
+        require(this.roomId == roomId)
+
+        router.showAttachmentSendView(file)
+    }
 }
