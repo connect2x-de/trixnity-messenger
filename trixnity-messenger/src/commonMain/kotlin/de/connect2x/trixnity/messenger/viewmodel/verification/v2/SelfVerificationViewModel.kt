@@ -49,8 +49,8 @@ interface SelfVerificationViewModel {
     val userId: UserId
 
     /**
-     * After the initial sync is complete, this returns a non-`null` value: the available self-verification methods like
-     * recovery key, etc.
+     * Returns `null` when self verification methods cannot be determined yet, otherwise a non-`null` list of available
+     * self verification methods like recovery key, etc.
      */
     val availableSelfVerificationMethods: StateFlow<List<SelfVerificationMethod>?>
 
@@ -123,7 +123,7 @@ class SelfVerificationViewModelImpl(
                 when (foundSelfVerificationMethods) {
                     is PreconditionsNotMet -> {
                         log.debug { "$userId: cannot determine yet if cross-signing is needed" }
-                        emptyList()
+                        null // signal that we still do not know what to do here
                     }
 
                     is NoCrossSigningEnabled -> {

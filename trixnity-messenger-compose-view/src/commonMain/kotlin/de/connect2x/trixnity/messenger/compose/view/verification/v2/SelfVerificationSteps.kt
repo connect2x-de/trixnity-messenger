@@ -68,7 +68,7 @@ fun SelfVerificationSteps(viewModel: SelfVerificationViewModel) {
         if (availableSelfVerificationMethods == null) {
             WizardSection {
                 LoadingSpinner()
-                Text(i18n.verificationWait())
+                Text(i18n.selfVerificationWaitingForMethods())
             }
         } else {
             VerifyWithOtherDevice(viewModel)

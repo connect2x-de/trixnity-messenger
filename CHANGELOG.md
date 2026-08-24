@@ -41,6 +41,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - INTERNAL: Fix SecretByteArrayKeyProvider concurrency issues
 - UI: DI injection in compose was not remembered correctly
+- SDK,UI: `v2.SelfVerificationViewModel` now correctly waits for initial sync to show available self verification
+  methods
 
 ### Security
 
