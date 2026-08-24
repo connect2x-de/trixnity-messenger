@@ -13,6 +13,11 @@ stages:
   - staging
   - publish
 
+include:
+  - component: $CI_SERVER_FQDN/connect2x/meta/create-mr-discussions@main
+    inputs:
+      token: $MR_DISCUSSIONS_TOKEN
+
 variables:
   FF_USE_FASTZIP: "true"
   ARTIFACT_COMPRESSION_LEVEL: "fastest"

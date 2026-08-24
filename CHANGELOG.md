@@ -29,6 +29,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: added interface for `ReferencedMessagePill`
 - UI: i18n change "Add new account" instead of "Create new account"
 - SDK: More resilient MatrixClients when create is called concurrently
+- CI: include create-mr-discussions in CI
 
 ### Deprecated
 
