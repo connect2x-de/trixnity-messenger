@@ -2,11 +2,8 @@ package de.connect2x.trixnity.messenger.compose.view.verification.v2
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.Wizard
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.form.LocalHiddenRegistrationForm
@@ -64,13 +61,6 @@ private fun selfVerificationWizardMethodSelectionStep(
         id = step.stepId,
         title = { i18n.deviceVerification() },
         subTitle = { "${i18n.commonAccount()}: ${viewModel.userId.full}" },
-        content = {
-            val verificationsMethodsLoaded by viewModel.availableSelfVerificationMethods.collectAsState()
-            if (verificationsMethodsLoaded == null) {
-                LoadingSpinner()
-            } else {
-                SelfVerificationSteps(viewModel)
-            }
-        },
+        content = { SelfVerificationSteps(viewModel) },
     )
 }

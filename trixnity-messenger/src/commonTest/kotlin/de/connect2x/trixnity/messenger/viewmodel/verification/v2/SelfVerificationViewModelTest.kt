@@ -121,13 +121,13 @@ class SelfVerificationViewModelTest {
     }
 
     @Test
-    fun `availableSelfVerificationMethods should be empty if cannot determine whether cross-signing is needed`() =
+    fun `availableSelfVerificationMethods should be null if cannot determine whether cross-signing is needed`() =
         runTest {
             every { verificationServiceMock.getSelfVerificationMethods() } returns
                 MutableStateFlow(VerificationService.SelfVerificationMethods.PreconditionsNotMet(reasons = setOf()))
             val cut = selfVerificationViewModel()
             delay(100.milliseconds)
-            cut.availableSelfVerificationMethods.value shouldBe emptyList()
+            cut.availableSelfVerificationMethods.value shouldBe null
         }
 
     @Test
