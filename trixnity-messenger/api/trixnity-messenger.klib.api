@@ -670,6 +670,11 @@ abstract interface de.connect2x.trixnity.messenger.util/FileDescriptor { // de.c
         abstract fun <get-mimeType>(): io.ktor.http/ContentType? // de.connect2x.trixnity.messenger.util/FileDescriptor.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayName { // de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayName|null[0]
+    abstract fun fromMatrixClient(de.connect2x.trixnity.client/MatrixClient): kotlinx.coroutines.flow/Flow<kotlin/String> // de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayName.fromMatrixClient|fromMatrixClient(de.connect2x.trixnity.client.MatrixClient){}[0]
+    abstract fun fromUserId(de.connect2x.trixnity.core.model/UserId): kotlinx.coroutines.flow/Flow<kotlin/String> // de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayName.fromUserId|fromUserId(de.connect2x.trixnity.core.model.UserId){}[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.util/GraphemeIterable : kotlin.collections/Iterable<kotlin/String> { // de.connect2x.trixnity.messenger.util/GraphemeIterable|null[0]
     abstract val graphemeCount // de.connect2x.trixnity.messenger.util/GraphemeIterable.graphemeCount|{}graphemeCount[0]
         abstract fun <get-graphemeCount>(): kotlin/Int // de.connect2x.trixnity.messenger.util/GraphemeIterable.graphemeCount.<get-graphemeCount>|<get-graphemeCount>(){}[0]
@@ -7240,6 +7245,13 @@ final class de.connect2x.trixnity.messenger.util/FileTransferProgressElement { /
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.util/FileTransferProgressElement.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.util/FileTransferProgressElement.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.util/FileTransferProgressElement.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayNameImpl : de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayName { // de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayNameImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger/MatrixClients) // de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayNameImpl.<init>|<init>(de.connect2x.trixnity.messenger.MatrixClients){}[0]
+
+    final fun fromMatrixClient(de.connect2x.trixnity.client/MatrixClient): kotlinx.coroutines.flow/Flow<kotlin/String> // de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayNameImpl.fromMatrixClient|fromMatrixClient(de.connect2x.trixnity.client.MatrixClient){}[0]
+    final fun fromUserId(de.connect2x.trixnity.core.model/UserId): kotlinx.coroutines.flow/Flow<kotlin/String> // de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayNameImpl.fromUserId|fromUserId(de.connect2x.trixnity.core.model.UserId){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.util/InformationMarkdownFlavourImpl : de.connect2x.trixnity.messenger.util/InformationMarkdownFlavour, org.intellij.markdown.flavours.gfm/GFMFlavourDescriptor { // de.connect2x.trixnity.messenger.util/InformationMarkdownFlavourImpl|null[0]

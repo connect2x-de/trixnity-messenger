@@ -28,6 +28,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.NotificationAndUnreadMarker
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
@@ -40,6 +41,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropd
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatarStack
+import de.connect2x.trixnity.messenger.compose.view.util.UserIdText
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import kotlinx.coroutines.flow.map
@@ -138,6 +140,8 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 @Composable
 fun AvatarArea(accountInfo: AccountInfo, notificationCount: String?) {
     val i18n = DI.get<I18nView>()
+    val configuration = DI.get<MatrixMessengerConfiguration>()
+
     Row(
         Modifier.fillMaxWidth().clearAndSetSemantics {
             text = AnnotatedString("${i18n.commonAccount()}: ${accountInfo.displayName}, ${accountInfo.userId.full}")
@@ -159,14 +163,12 @@ fun AvatarArea(accountInfo: AccountInfo, notificationCount: String?) {
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
-            Tooltip({ Text(accountInfo.userId.full) }) {
-                Text(
-                    accountInfo.userId.full,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelMedium,
-                )
-            }
+            UserIdText(
+                userId = accountInfo.userId,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelMedium,
+            )
         }
     }
 }
@@ -274,7 +276,7 @@ fun AccountMenuItem(
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
-                Text(accountInfo.userId.full, style = MaterialTheme.typography.labelMedium)
+                UserIdText(userId = accountInfo.userId, style = MaterialTheme.typography.labelMedium)
             }
         },
         onClick = { selectAction(accountInfo.userId) },

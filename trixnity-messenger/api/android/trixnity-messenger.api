@@ -3408,6 +3408,17 @@ public final class de/connect2x/trixnity/messenger/util/FileTransferProgressElem
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/util/GetAccountProfileDisplayName {
+	public abstract fun fromMatrixClient (Lde/connect2x/trixnity/client/MatrixClient;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun fromUserId-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class de/connect2x/trixnity/messenger/util/GetAccountProfileDisplayNameImpl : de/connect2x/trixnity/messenger/util/GetAccountProfileDisplayName {
+	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixClients;)V
+	public fun fromMatrixClient (Lde/connect2x/trixnity/client/MatrixClient;)Lkotlinx/coroutines/flow/Flow;
+	public fun fromUserId-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/util/GetDefaultDeviceDisplayName {
 	public abstract fun invoke ()Ljava/lang/String;
 }

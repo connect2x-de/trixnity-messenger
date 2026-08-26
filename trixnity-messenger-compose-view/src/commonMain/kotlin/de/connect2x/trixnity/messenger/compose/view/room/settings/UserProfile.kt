@@ -35,21 +35,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import de.connect2x.trixnity.client.user.PowerLevel
-import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.trixnity.messenger.compose.view.common.CopyToClipboardButton
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
@@ -78,6 +74,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.util.CopyableUserId
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
@@ -106,6 +103,7 @@ class UserProfileViewImpl : UserProfileView {
         val userInfoElement = userProfileViewModel.userInfo.collectAsState().value
         val image = userInfoElement?.image?.collectAsState(null)?.value
         val userId = userProfileViewModel.userId
+        val messengerConfiguration = DI.get<MatrixMessengerConfiguration>()
 
         val membership = userProfileViewModel.membership.collectAsState().value
         val membershipReason = userProfileViewModel.membershipReason.collectAsState().value
@@ -217,25 +215,6 @@ class UserProfileViewImpl : UserProfileView {
                 UserOptions(userProfileViewModel, i18n)
             }
         }
-    }
-}
-
-@Composable
-fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
-    val i18n = DI.get<I18nView>()
-
-    @Suppress("DEPRECATION") // TODO: New clipboard API is not usable from common code, fix this eventually..
-    val clipboard = LocalClipboardManager.current
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        ThemedSelectableText(
-            userId.full,
-            MaterialTheme.components.selectionOnSurface,
-            style = textStyle,
-            overflow = TextOverflow.Visible,
-        )
-        Spacer(Modifier.size(5.dp))
-        CopyToClipboardButton(userId.full, i18n.userProfileCopyUserId())
     }
 }
 

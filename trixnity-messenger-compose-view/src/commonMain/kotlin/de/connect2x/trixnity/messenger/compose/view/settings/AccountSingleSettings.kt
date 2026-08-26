@@ -56,6 +56,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.util.ThemedSelectableUserIdText
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
@@ -262,6 +263,10 @@ fun AccountUserId(accountSingleViewModel: AccountSingleViewModel) {
             HelpIcon(i18n.profileUserNameInfo())
         }
         Spacer(Modifier.size(5.dp))
-        ThemedSelectableText(accountSingleViewModel.userId.full, MaterialTheme.components.selectionOnSurface)
+        ThemedSelectableUserIdText(
+            userId = accountSingleViewModel.userId,
+            showTooltip = false,
+            selectionStyle = MaterialTheme.components.selectionOnSurface,
+        )
     }
 }
