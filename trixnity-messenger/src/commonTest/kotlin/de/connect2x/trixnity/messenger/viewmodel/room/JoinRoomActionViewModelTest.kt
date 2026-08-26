@@ -74,13 +74,13 @@ class JoinRoomActionViewModelTest {
         resetMocks(matrixClientMock, roomServiceMock, matrixClientApiMock, roomApiClientMock)
         every { matrixClientMock.di } returns
             koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { matrixClientApiMock }
-                    }
-                )
-            }
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { matrixClientApiMock }
+                        }
+                    )
+                }
                 .koin
         every { matrixClientMock.api } returns matrixClientApiMock
         every { matrixClientApiMock.room } returns roomApiClientMock
@@ -553,9 +553,10 @@ class JoinRoomActionViewModelTest {
         return JoinRoomActionViewModelImpl(
             MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycle = lifecycle, backHandler = backPressedHandler),
-                di = koinApplication {
-                        modules(createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)))
-                    }
+                di =
+                    koinApplication {
+                            modules(createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)))
+                        }
                         .koin,
                 userId = user,
                 coroutineContext = backgroundScope.coroutineContext,

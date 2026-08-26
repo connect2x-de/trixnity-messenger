@@ -1381,8 +1381,9 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun joinRoomActionKnock ()Ljava/lang/String;
 	public fun joinRoomActionKnockSuccess ()Ljava/lang/String;
 	public fun joinRoomActionNotFound ()Ljava/lang/String;
+	public fun joinRoomActionRestricted (I)Ljava/lang/String;
 	public fun joinRoomActionRestricted (Ljava/util/Set;)Ljava/lang/String;
-	public fun joinRoomActionRestrictedNoRoomInfoAvailable ()Ljava/lang/String;
+	public fun joinRoomActionRestricted (Ljava/util/Set;I)Ljava/lang/String;
 	public fun joinRuleInvited ()Ljava/lang/String;
 	public fun joinRuleInvitedExplanation ()Ljava/lang/String;
 	public fun joinRuleKnock ()Ljava/lang/String;
@@ -1585,6 +1586,14 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun registrationToken ()Ljava/lang/String;
 	public fun registrationUsername ()Ljava/lang/String;
 	public fun registrationUsernamePassword ()Ljava/lang/String;
+	public fun rejoinRoomJoin ()Ljava/lang/String;
+	public fun rejoinRoomJoinButton ()Ljava/lang/String;
+	public fun rejoinRoomKnock ()Ljava/lang/String;
+	public fun rejoinRoomKnockButton ()Ljava/lang/String;
+	public fun rejoinRoomKnockKnocked ()Ljava/lang/String;
+	public fun rejoinRoomRestricted (I)Ljava/lang/String;
+	public fun rejoinRoomRestricted (Ljava/util/Set;)Ljava/lang/String;
+	public fun rejoinRoomRestricted (Ljava/util/Set;I)Ljava/lang/String;
 	public fun replyMessage ()Ljava/lang/String;
 	public fun replyTo ()Ljava/lang/String;
 	public fun replyToCancel ()Ljava/lang/String;

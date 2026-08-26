@@ -145,10 +145,7 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
 
         when (val joinRuleAction = element.rejoinRoomInfoType.collectAsState().value) {
             is JoinRoomActionViewModel.JoinRoomAction.Join -> {
-                RejoinRoomInfo(
-                    text = i18n.rejoinRoomJoin(),
-                    buttonText = i18n.rejoinRoomJoinButton(),
-                ) {
+                RejoinRoomInfo(text = i18n.rejoinRoomJoin(), buttonText = i18n.rejoinRoomJoinButton()) {
                     joinRuleAction.onJoinRoom()
                 }
             }
@@ -156,17 +153,11 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
             is JoinRoomActionViewModel.JoinRoomAction.Knock -> {
                 val hasKnocked = joinRuleAction.hasKnocked.collectAsState().value
                 if (hasKnocked == false) {
-                    RejoinRoomInfo(
-                        text = i18n.rejoinRoomKnock(),
-                        buttonText = i18n.rejoinRoomKnockButton(),
-                    ) {
+                    RejoinRoomInfo(text = i18n.rejoinRoomKnock(), buttonText = i18n.rejoinRoomKnockButton()) {
                         joinRuleAction.onKnock()
                     }
                 } else {
-                    RejoinRoomInfo(
-                        text = i18n.rejoinRoomKnockKnocked(),
-                        buttonText = null,
-                    )
+                    RejoinRoomInfo(text = i18n.rejoinRoomKnockKnocked(), buttonText = null)
                 }
             }
 
@@ -236,10 +227,7 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
                                 }
                                 if (buttonText != null) {
                                     SmallSpacer()
-                                    ThemedButton(
-                                        onClick = onClick,
-                                        style = MaterialTheme.components.primaryButton,
-                                    ) {
+                                    ThemedButton(onClick = onClick, style = MaterialTheme.components.primaryButton) {
                                         Text(buttonText, maxLines = 1)
                                     }
                                 }

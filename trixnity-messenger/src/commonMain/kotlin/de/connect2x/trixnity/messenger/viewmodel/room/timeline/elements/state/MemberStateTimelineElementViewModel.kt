@@ -127,11 +127,7 @@ class MemberStateTimelineElementViewModelImpl(
     private val lastEventId = matrixClient.room.getById(roomId).mapNotNull { it?.lastEventId }
 
     override val showRejoinRoomInfo: StateFlow<Boolean?> =
-        combine(
-                isAllowedToSendMessages,
-                timelineEvent,
-                lastEventId,
-            ) { canSend, event, lastEventId ->
+        combine(isAllowedToSendMessages, timelineEvent, lastEventId) { canSend, event, lastEventId ->
                 require(event is StateEvent)
                 lastEventId == eventId &&
                     !canSend &&

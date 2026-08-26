@@ -57,13 +57,13 @@ class MemberStateTimelineElementViewModelTest {
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
         every { matrixClientMock.di } returns
             koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                    }
-                )
-            }
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }
                 .koin
         senderName.value = "Sender"
         every { userServiceMock.getById(roomId, sender) } returns
@@ -749,18 +749,11 @@ class MemberStateTimelineElementViewModelTest {
                 flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
 
             val cut =
-                memberStatusViewModel(
-                    mockTimelineEvent(
-                        membership = Membership.LEAVE,
-                        stateKey = currentUser.full,
-                    )
-                )
+                memberStatusViewModel(mockTimelineEvent(membership = Membership.LEAVE, stateKey = currentUser.full))
 
             backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
 
-            eventually(1.seconds) {
-                cut.showRejoinRoomInfo.first() shouldBe true
-            }
+            eventually(1.seconds) { cut.showRejoinRoomInfo.first() shouldBe true }
         }
 
     @Test
@@ -778,18 +771,11 @@ class MemberStateTimelineElementViewModelTest {
                 flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
 
             val cut =
-                memberStatusViewModel(
-                    mockTimelineEvent(
-                        membership = Membership.LEAVE,
-                        stateKey = currentUser.full,
-                    )
-                )
+                memberStatusViewModel(mockTimelineEvent(membership = Membership.LEAVE, stateKey = currentUser.full))
 
             backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
 
-            eventually(1.seconds) {
-                cut.showRejoinRoomInfo.first() shouldBe false
-            }
+            eventually(1.seconds) { cut.showRejoinRoomInfo.first() shouldBe false }
         }
 
     @Test
@@ -807,18 +793,11 @@ class MemberStateTimelineElementViewModelTest {
                 flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = EventId("9999")))
 
             val cut =
-                memberStatusViewModel(
-                    mockTimelineEvent(
-                        membership = Membership.LEAVE,
-                        stateKey = currentUser.full,
-                    )
-                )
+                memberStatusViewModel(mockTimelineEvent(membership = Membership.LEAVE, stateKey = currentUser.full))
 
             backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
 
-            eventually(1.seconds) {
-                cut.showRejoinRoomInfo.first() shouldBe false
-            }
+            eventually(1.seconds) { cut.showRejoinRoomInfo.first() shouldBe false }
         }
 
     @Test
@@ -836,18 +815,11 @@ class MemberStateTimelineElementViewModelTest {
                 flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
 
             val cut =
-                memberStatusViewModel(
-                    mockTimelineEvent(
-                        membership = Membership.JOIN,
-                        stateKey = currentUser.full,
-                    )
-                )
+                memberStatusViewModel(mockTimelineEvent(membership = Membership.JOIN, stateKey = currentUser.full))
 
             backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
 
-            eventually(1.seconds) {
-                cut.showRejoinRoomInfo.first() shouldBe false
-            }
+            eventually(1.seconds) { cut.showRejoinRoomInfo.first() shouldBe false }
         }
 
     @Test
@@ -865,26 +837,21 @@ class MemberStateTimelineElementViewModelTest {
             every { roomServiceMock.getById(roomId) } returns
                 flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
 
-            val cut =
-                memberStatusViewModel(
-                    mockTimelineEvent(
-                        membership = Membership.LEAVE,
-                        stateKey = otherUser.full,
-                    )
-                )
+            val cut = memberStatusViewModel(mockTimelineEvent(membership = Membership.LEAVE, stateKey = otherUser.full))
 
             backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
 
-            eventually(1.seconds) {
-                cut.showRejoinRoomInfo.first() shouldBe false
-            }
+            eventually(1.seconds) { cut.showRejoinRoomInfo.first() shouldBe false }
         }
 
     private fun TestScope.memberStatusViewModel(timelineEvent: TimelineEvent): MemberStateTimelineElementViewModelImpl {
-        val di = koinApplication {
-            modules(createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)))
-        }
-            .koin
+        val di =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
+                    )
+                }
+                .koin
         return MemberStateTimelineElementViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(di = di, userId = UserId("test", "server")),
             content = timelineEvent.event.content as MemberEventContent,

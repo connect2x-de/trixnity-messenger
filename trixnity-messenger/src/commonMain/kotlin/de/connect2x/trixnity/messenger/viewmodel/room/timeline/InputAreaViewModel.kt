@@ -337,42 +337,43 @@ open class InputAreaViewModelImpl(
         override fun printHtml(html: CharSequence): CharSequence = html
     }
 
-    override val suggestedMentions: StateFlow<List<InputAreaViewModel.SuggestedMention>?> = flow {
-        var lastEmptySearch: String? = null
-        fun calculateNextEmptySearch(currentEmptySearch: String?, listSize: Int, search: String): String? {
-            return when {
-                listSize != 0 -> null
-                currentEmptySearch == null || currentEmptySearch.startsWith(search) -> search
-                !search.startsWith(currentEmptySearch) -> null
-                else -> currentEmptySearch
-            }
-        }
-        emitAll(
-            textField.map { textFieldValue ->
-                val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
-                if (idLocalPartBeforeCursor != null) {
-                    lastEmptySearch?.let {
-                        if (idLocalPartBeforeCursor.startsWith(it)) {
-                            return@map emptyList()
-                        }
+    override val suggestedMentions: StateFlow<List<InputAreaViewModel.SuggestedMention>?> =
+        flow {
+                var lastEmptySearch: String? = null
+                fun calculateNextEmptySearch(currentEmptySearch: String?, listSize: Int, search: String): String? {
+                    return when {
+                        listSize != 0 -> null
+                        currentEmptySearch == null || currentEmptySearch.startsWith(search) -> search
+                        !search.startsWith(currentEmptySearch) -> null
+                        else -> currentEmptySearch
                     }
+                }
+                emitAll(
+                    textField.map { textFieldValue ->
+                        val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
+                        if (idLocalPartBeforeCursor != null) {
+                            lastEmptySearch?.let {
+                                if (idLocalPartBeforeCursor.startsWith(it)) {
+                                    return@map emptyList()
+                                }
+                            }
 
-                    _suggestedMentionsLoading.value = true
-                    val listOfMentions = buildList {
-                        addAll(listOfUsers(idLocalPartBeforeCursor))
-                        getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { add(it) }
+                            _suggestedMentionsLoading.value = true
+                            val listOfMentions = buildList {
+                                addAll(listOfUsers(idLocalPartBeforeCursor))
+                                getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { add(it) }
+                            }
+                            _suggestedMentionsLoading.value = false
+
+                            lastEmptySearch =
+                                calculateNextEmptySearch(lastEmptySearch, listOfMentions.size, idLocalPartBeforeCursor)
+
+                            listOfMentions
+                        } else null
                     }
-                    _suggestedMentionsLoading.value = false
-
-                    lastEmptySearch =
-                        calculateNextEmptySearch(lastEmptySearch, listOfMentions.size, idLocalPartBeforeCursor)
-
-                    listOfMentions
-                } else null
+                )
             }
-        )
-    }
-        .stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val listOfMentions: StateFlow<List<UserInfoElement>?> =
         suggestedMentions
