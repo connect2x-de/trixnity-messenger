@@ -3241,7 +3241,7 @@ open class I18nView(
 
     open fun knockLabel() = translate {
         EN - "Why do you wish to join? (Optional)"
-        DE - "Warum möchtest du beitreten? (Optional)"
+        DE - "Warum möchten Sie beitreten? (Optional)"
     }
 
     open fun allRoomMembers() = translate {
