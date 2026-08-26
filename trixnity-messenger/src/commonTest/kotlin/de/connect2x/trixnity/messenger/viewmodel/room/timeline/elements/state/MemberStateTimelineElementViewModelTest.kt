@@ -17,6 +17,7 @@ import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -29,6 +30,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -55,13 +57,13 @@ class MemberStateTimelineElementViewModelTest {
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }
                 .koin
         senderName.value = "Sender"
         every { userServiceMock.getById(roomId, sender) } returns
@@ -125,6 +127,12 @@ class MemberStateTimelineElementViewModelTest {
                         ),
                 )
             )
+        every {
+            userServiceMock.canSendEvent(
+                any(),
+                de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent::class,
+            )
+        } returns flowOf(true)
     }
 
     @BeforeTest
@@ -726,14 +734,157 @@ class MemberStateTimelineElementViewModelTest {
         cut.changeMessage.value shouldBe ""
     }
 
-    private fun TestScope.memberStatusViewModel(timelineEvent: TimelineEvent): MemberStateTimelineElementViewModelImpl {
-        val di =
-            koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
+    @Test
+    fun `cannot send and is last event and membership leave and affected user is self » show rejoin room info`() =
+        runTest {
+            every {
+                userServiceMock.canSendEvent(
+                    any(),
+                    de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent::class,
+                )
+            } returns flowOf(false)
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns
+                flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
+
+            val cut =
+                memberStatusViewModel(
+                    mockTimelineEvent(
+                        membership = Membership.LEAVE,
+                        stateKey = currentUser.full,
                     )
-                }
-                .koin
+                )
+
+            backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
+
+            eventually(1.seconds) {
+                cut.showRejoinRoomInfo.first() shouldBe true
+            }
+        }
+
+    @Test
+    fun `can send event and is last event and membership leave and affected user is self » hide rejoin room info`() =
+        runTest {
+            every {
+                userServiceMock.canSendEvent(
+                    any(),
+                    de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent::class,
+                )
+            } returns flowOf(true)
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns
+                flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
+
+            val cut =
+                memberStatusViewModel(
+                    mockTimelineEvent(
+                        membership = Membership.LEAVE,
+                        stateKey = currentUser.full,
+                    )
+                )
+
+            backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
+
+            eventually(1.seconds) {
+                cut.showRejoinRoomInfo.first() shouldBe false
+            }
+        }
+
+    @Test
+    fun `cannot send and is not last event and membership leave and affected user is self » hide rejoin room info`() =
+        runTest {
+            every {
+                userServiceMock.canSendEvent(
+                    any(),
+                    de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent::class,
+                )
+            } returns flowOf(false)
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns
+                flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = EventId("9999")))
+
+            val cut =
+                memberStatusViewModel(
+                    mockTimelineEvent(
+                        membership = Membership.LEAVE,
+                        stateKey = currentUser.full,
+                    )
+                )
+
+            backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
+
+            eventually(1.seconds) {
+                cut.showRejoinRoomInfo.first() shouldBe false
+            }
+        }
+
+    @Test
+    fun `cannot send and is last event and membership join and affected user is self » hide rejoin room info`() =
+        runTest {
+            every {
+                userServiceMock.canSendEvent(
+                    any(),
+                    de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent::class,
+                )
+            } returns flowOf(false)
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns
+                flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
+
+            val cut =
+                memberStatusViewModel(
+                    mockTimelineEvent(
+                        membership = Membership.JOIN,
+                        stateKey = currentUser.full,
+                    )
+                )
+
+            backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
+
+            eventually(1.seconds) {
+                cut.showRejoinRoomInfo.first() shouldBe false
+            }
+        }
+
+    @Test
+    fun `cannot send and is last event and membership leave and affected user is other » hide rejoin room info`() =
+        runTest {
+            every {
+                userServiceMock.canSendEvent(
+                    any(),
+                    de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent::class,
+                )
+            } returns flowOf(false)
+            val currentUser = UserId("@bob:localhost")
+            val otherUser = UserId("@alice:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns
+                flowOf(Room(roomId, isDirect = false, encrypted = true, lastEventId = eventId))
+
+            val cut =
+                memberStatusViewModel(
+                    mockTimelineEvent(
+                        membership = Membership.LEAVE,
+                        stateKey = otherUser.full,
+                    )
+                )
+
+            backgroundScope.launch { cut.showRejoinRoomInfo.collect {} }
+
+            eventually(1.seconds) {
+                cut.showRejoinRoomInfo.first() shouldBe false
+            }
+        }
+
+    private fun TestScope.memberStatusViewModel(timelineEvent: TimelineEvent): MemberStateTimelineElementViewModelImpl {
+        val di = koinApplication {
+            modules(createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)))
+        }
+            .koin
         return MemberStateTimelineElementViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(di = di, userId = UserId("test", "server")),
             content = timelineEvent.event.content as MemberEventContent,

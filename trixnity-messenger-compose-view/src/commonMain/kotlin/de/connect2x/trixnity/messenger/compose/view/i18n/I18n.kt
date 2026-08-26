@@ -3759,6 +3759,52 @@ open class I18nView(
             "Der Raum konnte nicht gefunden werden. Das liegt daran, dass die id des Raumes ungültig ist oder die Beitrittsregeln des Raumes nicht öffentlich sind. Bitte fordern Sie stattdessen eine Einladung in den Raum an."
     }
 
+    open fun rejoinRoomJoinButton() = translate {
+        EN - "Rejoin room"
+        DE - "Raum erneut beitreten"
+    }
+
+    open fun rejoinRoomJoin() = translate {
+        EN - "Rejoin this room to see newer messages."
+        DE - "Treten Sie diesem Raum erneut bei, um neuere Nachrichten zu sehen."
+    }
+
+    open fun rejoinRoomKnockButton() = translate {
+        EN - "Request rejoin"
+        DE - "Wiederbeitritt anfragen"
+    }
+
+    open fun rejoinRoomKnock() = translate {
+        EN - "Rejoin this room to see newer messages."
+        DE - "Treten Sie diesem Raum erneut bei, um neuere Nachrichten zu sehen."
+    }
+
+    open fun rejoinRoomKnockKnocked() = translate {
+        EN - "Join request sent. Once it is accepted, you can see newer messages."
+        DE - "Die Beitrittsanfrage wurde gesendet. Sobald sie angenommen wurde, können Sie neuere Nachrichten lesen."
+    }
+
+    open fun rejoinRoomRestricted(requiredRooms: Set<RoomAliasId>) = translate {
+        EN -
+            "To read newer messages without an invitation, you must be a member of at least one of these rooms: ${requiredRooms.joinToString()}."
+        DE -
+            "Um ohne Einladung neuere Nachrichten zu lesen, müssen Sie Mitglied in mindestens einem dieser Räume sein: ${requiredRooms.joinToString()}."
+    }
+
+    open fun rejoinRoomRestricted(requiredUnknownRooms: Int) = translate {
+        EN -
+            "To read newer messages without an invitation, you must be a member of at least one of ${requiredUnknownRooms} private rooms."
+        DE -
+            "Um ohne Einladung neuere Nachrichten zu lesen, müssen Sie Mitglied in mindestens einem von ${requiredUnknownRooms} privaten Räumen sein."
+    }
+
+    open fun rejoinRoomRestricted(requiredRooms: Set<RoomAliasId>, requiredUnknownRooms: Int) = translate {
+        EN -
+            "To read newer messages without an invitation, you must be a member of ${requiredRooms.joinToString()} or one of ${requiredUnknownRooms} other private rooms to do so."
+        DE -
+            "Um ohne Einladung neuere Nachrichten zu lesen, müssen Sie Mitglied von ${requiredRooms.joinToString()} oder einem von ${requiredUnknownRooms} weiteren privaten Räumen sein."
+    }
+
     open fun userSearchFilter() = translate {
         EN - "filter"
         DE - "Filter"

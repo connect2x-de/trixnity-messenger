@@ -11,6 +11,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - SDK: platform specific pdfReaderFactory
 - UI: Ability to reset encryption keys for a room in room developer settings
+- UI: Ability to rejoin rooms
+- SDK: Fields for rejoin room information to member state timeline elements
 - CI, INTERNAL: Enabled more detekt linting rules
 - SDK,UI: Add better error handling with UI feedback to the `AudioRecorder` API
 
