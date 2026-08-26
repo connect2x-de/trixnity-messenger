@@ -74,13 +74,13 @@ class JoinRoomActionViewModelTest {
         resetMocks(matrixClientMock, roomServiceMock, matrixClientApiMock, roomApiClientMock)
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { matrixClientApiMock }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { matrixClientApiMock }
+                    }
+                )
+            }
                 .koin
         every { matrixClientMock.api } returns matrixClientApiMock
         every { matrixClientApiMock.room } returns roomApiClientMock
@@ -142,18 +142,100 @@ class JoinRoomActionViewModelTest {
     }
 
     @Test
-    fun `show knock action necessary when room is knock restricted and no invite exists and knock`() = runTest {
+    fun `show knock action necessary when room is knock restricted and no required rooms and no invite exists then knock`() =
+        runTest {
+            verifyJoinAction(
+                JoinRule.KnockRestricted,
+                getJoinRuleViaSummary = true,
+                additionalMocks = {
+                    everySuspend { roomApiClientMock.knockRoom(room, any(), any()) } returns Result.success(room)
+                },
+            ) {
+                eventually(2.seconds) {
+                    it.actionNecessary.value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Knock>()
+                    (it.actionNecessary.value as? JoinRoomActionViewModel.JoinRoomAction.Knock)?.onKnock()
+                    continually(2.seconds) { it.error.value.shouldBeNull() }
+                }
+            }
+        }
+
+    @Test
+    fun `show knock action when room is knock restricted and part of one required room and no invite exists`() =
+        runTest {
+            val restrictedRoom1 = RoomId("needToJoin1")
+            val restrictedRoom2 = RoomId("needToJoin2")
+            verifyJoinAction(
+                JoinRule.KnockRestricted,
+                getJoinRuleViaSummary = true,
+                allowRooms = setOf(restrictedRoom1, restrictedRoom2),
+                additionalMocks = {
+                    everySuspend { roomApiClientMock.getSummary(restrictedRoom1, any()) } returns
+                        Result.success(
+                            GetSummary.Response(
+                                roomId = restrictedRoom1,
+                                guestCanJoin = false,
+                                joinedMembersCount = 2,
+                                membership = Membership.JOIN,
+                                worldReadable = false,
+                                canonicalAlias = RoomAliasId("NeedToJoinAlias1"),
+                            )
+                        )
+                    everySuspend { roomApiClientMock.getSummary(restrictedRoom2, any()) } returns
+                        Result.success(
+                            GetSummary.Response(
+                                roomId = restrictedRoom1,
+                                guestCanJoin = false,
+                                joinedMembersCount = 1,
+                                worldReadable = false,
+                                canonicalAlias = RoomAliasId("NeedToJoinAlias2"),
+                            )
+                        )
+                    everySuspend { roomApiClientMock.knockRoom(room, any(), any()) } returns Result.success(room)
+                },
+            ) {
+                eventually(2.seconds) {
+                    val value = it.actionNecessary.value
+                    value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Knock>()
+                }
+            }
+        }
+
+    @Test
+    fun `show restricted action and correct rooms when room is knock restricted and no invite exists`() = runTest {
+        val restrictedRoom1 = RoomId("needToJoin1")
+        val restrictedRoom2 = RoomId("needToJoin2")
         verifyJoinAction(
             JoinRule.KnockRestricted,
             getJoinRuleViaSummary = true,
+            allowRooms = setOf(restrictedRoom1, restrictedRoom2),
             additionalMocks = {
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom1, any()) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            joinedMembersCount = 1,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias1"),
+                        )
+                    )
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom2, any()) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            joinedMembersCount = 1,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias2"),
+                        )
+                    )
                 everySuspend { roomApiClientMock.knockRoom(room, any(), any()) } returns Result.success(room)
             },
         ) {
             eventually(2.seconds) {
-                it.actionNecessary.value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Knock>()
-                (it.actionNecessary.value as? JoinRoomActionViewModel.JoinRoomAction.Knock)?.onKnock()
-                continually(2.seconds) { it.error.value.shouldBeNull() }
+                val value = it.actionNecessary.value
+                value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Restricted>()
+                value.requiredRooms shouldBe setOf(RoomAliasId("NeedToJoinAlias1"), RoomAliasId("NeedToJoinAlias2"))
             }
         }
     }
@@ -167,7 +249,7 @@ class JoinRoomActionViewModelTest {
             getJoinRuleViaSummary = true,
             allowRooms = setOf(restrictedRoom1, restrictedRoom2),
             additionalMocks = {
-                everySuspend { roomApiClientMock.getSummary(restrictedRoom1) } returns
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom1, any()) } returns
                     Result.success(
                         GetSummary.Response(
                             roomId = restrictedRoom1,
@@ -177,7 +259,7 @@ class JoinRoomActionViewModelTest {
                             canonicalAlias = RoomAliasId("NeedToJoinAlias1"),
                         )
                     )
-                everySuspend { roomApiClientMock.getSummary(restrictedRoom2) } returns
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom2, any()) } returns
                     Result.success(
                         GetSummary.Response(
                             roomId = restrictedRoom1,
@@ -196,6 +278,106 @@ class JoinRoomActionViewModelTest {
             }
         }
     }
+
+    @Test
+    fun `show join action when room is restricted and part of one required room and no invite exists`() = runTest {
+        val restrictedRoom1 = RoomId("needToJoin1")
+        val restrictedRoom2 = RoomId("needToJoin2")
+        verifyJoinAction(
+            JoinRule.Restricted,
+            getJoinRuleViaSummary = true,
+            allowRooms = setOf(restrictedRoom1, restrictedRoom2),
+            additionalMocks = {
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom1, any()) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            joinedMembersCount = 1,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias1"),
+                        )
+                    )
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom2, any()) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            membership = Membership.JOIN,
+                            joinedMembersCount = 1,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias2"),
+                        )
+                    )
+            },
+        ) {
+            eventually(2.seconds) {
+                val value = it.actionNecessary.value
+                value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Join>()
+            }
+        }
+    }
+
+    @Test
+    fun `show join action when room is restricted and part of all required room and no invite exists`() = runTest {
+        val restrictedRoom1 = RoomId("needToJoin1")
+        val restrictedRoom2 = RoomId("needToJoin2")
+        verifyJoinAction(
+            JoinRule.Restricted,
+            getJoinRuleViaSummary = true,
+            allowRooms = setOf(restrictedRoom1, restrictedRoom2),
+            additionalMocks = {
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom1, any()) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            joinedMembersCount = 1,
+                            membership = Membership.JOIN,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias1"),
+                        )
+                    )
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom2, any()) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            membership = Membership.JOIN,
+                            joinedMembersCount = 2,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias2"),
+                        )
+                    )
+            },
+        ) {
+            eventually(2.seconds) {
+                val value = it.actionNecessary.value
+                value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Join>()
+            }
+        }
+    }
+
+    @Test
+    fun `show restrict action when room is restricted and there is private required room and no invite exists`() =
+        runTest {
+            val restrictedRoom1 = RoomId("needToJoin1")
+            verifyJoinAction(
+                JoinRule.Restricted,
+                getJoinRuleViaSummary = true,
+                allowRooms = setOf(restrictedRoom1),
+                additionalMocks = {
+                    everySuspend { roomApiClientMock.getSummary(restrictedRoom1, any()) } returns
+                        Result.failure(IllegalStateException())
+                },
+            ) {
+                eventually(2.seconds) {
+                    val value = it.actionNecessary.value
+                    value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Restricted>()
+                    value.requiredUnknownRooms shouldBe 1
+                }
+            }
+        }
 
     @Test
     fun `show private action when room is restricted and no allow condition rooms or invite exists`() = runTest {
@@ -371,10 +553,9 @@ class JoinRoomActionViewModelTest {
         return JoinRoomActionViewModelImpl(
             MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycle = lifecycle, backHandler = backPressedHandler),
-                di =
-                    koinApplication {
-                            modules(createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)))
-                        }
+                di = koinApplication {
+                        modules(createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)))
+                    }
                         .koin,
                 userId = user,
                 coroutineContext = backgroundScope.coroutineContext,

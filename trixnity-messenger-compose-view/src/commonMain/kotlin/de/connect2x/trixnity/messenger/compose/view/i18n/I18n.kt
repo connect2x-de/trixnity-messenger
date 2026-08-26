@@ -3711,28 +3711,38 @@ open class I18nView(
     }
 
     open fun joinRoomActionKnock() = translate {
-        EN - "Without an invitation you need to knock on the room and be let in. Please confirm you want to knock."
+        EN -
+            "Without an invitation, you need to request to join the room and be let in. Please confirm you want to send a join request."
         DE -
-            "Um ohne eine Einladung beizutreten, müssen Sie eine Beitrittsanfrage stellen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
+            "Um ohne Einladung beizutreten, müssen Sie eine Beitrittsanfrage stellen und eingelassen werden. Bitte bestätigen Sie, dass Sie eine Beitrittsanfrage stellen möchten."
     }
 
     open fun joinRoomActionKnockSuccess() = translate {
         EN -
-            "Successfully knocked, you will be redirected to the room once the request is accepted. Alternatively you can check back later."
+            "Join request sent. You will be redirected to the room once it is accepted. Alternatively, you can check back later."
         DE -
-            "Die Beitrittsanfrage war erfolgreich. Der Raum wird geöffnet, sobald die Anfrage akzeptiert wurde. Andernfalls können Sie das Öffnen später erneut versuchen. "
+            "Die Beitrittsanfrage wurde gesendet. Sie werden zum Raum weitergeleitet, sobald sie angenommen wurde. Alternativ können Sie später erneut nachsehen."
     }
 
     open fun joinRoomActionRestricted(requiredRooms: Set<RoomAliasId>) = translate {
         EN -
-            "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}."
+            "Join this room to access its content. Without an invitation, you must be a member of at least one of these rooms: ${requiredRooms.joinToString()} to do so."
         DE -
-            "Um ohne eine Einladung beizutreten, müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()}."
+            "Treten Sie diesem Raum bei, um seinen Inhalt zu sehen. Ohne Einladung müssen Sie hierzu Mitglied in mindestens einem dieser Räume sein: ${requiredRooms.joinToString()}."
     }
 
-    open fun joinRoomActionRestrictedNoRoomInfoAvailable() = translate {
-        EN - "Without an invitation you need to be a member of another room."
-        DE - "Um ohne eine Einladung beizutreten, müssen Sie bereits Mitglied eines anderen Raumes sein."
+    open fun joinRoomActionRestricted(requiredUnknownRooms: Int) = translate {
+        EN -
+            "Join this room to access its content. Without an invitation, you must be a member of at least one of ${requiredUnknownRooms} private rooms to do so."
+        DE -
+            "Treten Sie diesem Raum bei, um seinen Inhalt zu sehen. Ohne Einladung müssen Sie hierzu Mitglied in mindestens einem von ${requiredUnknownRooms} privaten Räumen sein."
+    }
+
+    open fun joinRoomActionRestricted(requiredRooms: Set<RoomAliasId>, requiredUnknownRooms: Int) = translate {
+        EN -
+            "Join this room to access its content. Without an invitation, you must be a member of ${requiredRooms.joinToString()} or one of ${requiredUnknownRooms} other private rooms to do so."
+        DE -
+            "Treten Sie diesem Raum bei, um seinen Inhalt zu sehen. Ohne Einladung müssen Sie hierzu Mitglied von ${requiredRooms.joinToString()} oder einem von ${requiredUnknownRooms} weiteren privaten Räumen sein."
     }
 
     open fun joinRoomActionAcceptInvite() = translate {

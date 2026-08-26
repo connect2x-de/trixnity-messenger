@@ -33,8 +33,8 @@ interface JoinRoomActionViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         via: Set<String>?,
-        onOpenRoom: (roomId: RoomId) -> Unit,
-        onDismiss: () -> Unit,
+        onOpenRoom: ((roomId: RoomId) -> Unit)?,
+        onDismiss: (() -> Unit)?,
     ) = JoinRoomActionViewModelImpl(viewModelContext, roomId, via, onOpenRoom, onDismiss)
 
     companion object : JoinRoomActionViewModelFactory
@@ -43,7 +43,7 @@ interface JoinRoomActionViewModelFactory {
 interface JoinRoomActionViewModel {
     val actionNecessary: StateFlow<JoinRoomAction?>
     val error: StateFlow<String?>
-    val onDismiss: () -> Unit
+    val onDismiss: (() -> Unit)?
     val isLoading: StateFlow<Boolean>
 
     sealed interface JoinRoomAction {
@@ -51,7 +51,7 @@ interface JoinRoomActionViewModel {
 
         data class Knock(val onKnock: () -> Unit, val hasKnocked: StateFlow<Boolean?>) : JoinRoomAction
 
-        data class Restricted(val requiredRooms: Set<RoomAliasId>) : JoinRoomAction
+        data class Restricted(val requiredRooms: Set<RoomAliasId>, val requiredUnknownRooms: Int) : JoinRoomAction
 
         data class AcceptInvitation(val onAcceptInvite: () -> Unit) : JoinRoomAction
 
@@ -65,13 +65,15 @@ class JoinRoomActionViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val via: Set<String>?,
-    private val onOpenRoom: (roomId: RoomId) -> Unit,
-    override val onDismiss: () -> Unit,
+    private val onOpenRoom: ((roomId: RoomId) -> Unit)?,
+    override val onDismiss: (() -> Unit)?,
 ) : JoinRoomActionViewModel, MatrixClientViewModelContext by viewModelContext {
 
     init {
-        val backCallback = BackCallback(onBack = onDismiss)
-        trixnityMessengerBackHandler.registerBackCallback(backCallback)
+        if (onDismiss != null) {
+            val backCallback = BackCallback(onBack = onDismiss)
+            trixnityMessengerBackHandler.registerBackCallback(backCallback)
+        }
     }
 
     private val _isLoading = MutableStateFlow(false)
@@ -105,10 +107,14 @@ class JoinRoomActionViewModelImpl(
             ) { membership, joinRule ->
                 return@combine when (membership) {
                     Membership.JOIN -> {
-                        log.warn {
-                            "Already joined room $roomId, no confirmation necessary, returning null and opening room"
+                        if (onOpenRoom == null) {
+                            log.warn { "Already joined room $roomId, no confirmation necessary and returning null" }
+                        } else {
+                            log.warn {
+                                "Already joined room $roomId, no confirmation necessary, returning null and opening room"
+                            }
+                            onOpenRoom(roomId)
                         }
-                        onOpenRoom(roomId)
                         null
                     }
 
@@ -124,32 +130,68 @@ class JoinRoomActionViewModelImpl(
                                 Join(::onConfirmJoin)
                             }
 
-                            JoinRulesEventContent.JoinRule.Knock,
-                            JoinRulesEventContent.JoinRule.KnockRestricted -> {
+                            JoinRulesEventContent.JoinRule.Knock -> {
                                 log.debug { "Room $roomId is knock, showing option to knock" }
                                 Knock(::onConfirmKnock, hasKnocked)
                             }
 
-                            // Only show restricted action when there are room join conditions
+                            JoinRulesEventContent.JoinRule.KnockRestricted -> {
+                                val allowConditionsRooms = joinRule.second
+                                val allowConditionRoomsSummary = allowConditionsRooms?.map {
+                                    matrixClient.api.room.getSummary(it, via).getOrNull()
+                                }
+
+                                // Only show restricted action when there are room join conditions
+                                if (allowConditionRoomsSummary.isNullOrEmpty()) {
+                                    log.debug {
+                                        "Room $roomId is knock restricted, but there are no rooms as conditions, showing knock action"
+                                    }
+                                    return@combine Knock(::onConfirmKnock, hasKnocked)
+                                }
+
+                                // Only show restricted action when not member of all join conditions
+                                if (allowConditionRoomsSummary.any { it?.membership == Membership.JOIN }) {
+                                    log.debug {
+                                        "Room $roomId is knock restricted and user is part of all room conditions, showing join action"
+                                    }
+                                    return@combine Knock(::onConfirmKnock, hasKnocked)
+                                }
+
+                                val allowConditionRoomsAliases =
+                                    allowConditionRoomsSummary.mapNotNull { it?.canonicalAlias }.toSet()
+                                log.debug {
+                                    "Room $roomId is knock restricted, showing rooms $allowConditionRoomsAliases as precondition"
+                                }
+                                Restricted(allowConditionRoomsAliases, allowConditionRoomsSummary.count { it == null })
+                            }
+
                             JoinRulesEventContent.JoinRule.Restricted -> {
                                 val allowConditionsRooms = joinRule.second
-                                if (allowConditionsRooms?.isNotEmpty() ?: false) {
-                                    val allowConditionRoomsAliases =
-                                        allowConditionsRooms
-                                            .mapNotNull {
-                                                matrixClient.api.room.getSummary(it).getOrNull()?.canonicalAlias
-                                            }
-                                            .toSet()
-                                    log.debug {
-                                        "Room $roomId is restricted, showing rooms $allowConditionRoomsAliases as precondition"
-                                    }
-                                    Restricted(allowConditionRoomsAliases)
-                                } else {
+                                val allowConditionRoomsSummary = allowConditionsRooms?.map {
+                                    matrixClient.api.room.getSummary(it, via).getOrNull()
+                                }
+                                // Only show restricted action when there are room join conditions
+                                if (allowConditionRoomsSummary.isNullOrEmpty()) {
                                     log.debug {
                                         "Room $roomId is restricted, but there are no rooms as conditions, showing private action"
                                     }
-                                    Private
+                                    return@combine Private
                                 }
+
+                                // Only show restricted action when not member of all join conditions
+                                if (allowConditionRoomsSummary.any { it?.membership == Membership.JOIN }) {
+                                    log.debug {
+                                        "Room $roomId is restricted and user is part of all room conditions, showing join action"
+                                    }
+                                    return@combine Join(::onConfirmJoin)
+                                }
+
+                                val allowConditionRoomsAliases =
+                                    allowConditionRoomsSummary.mapNotNull { it?.canonicalAlias }.toSet()
+                                log.debug {
+                                    "Room $roomId is restricted, showing rooms $allowConditionRoomsAliases as precondition"
+                                }
+                                Restricted(allowConditionRoomsAliases, allowConditionRoomsSummary.count { it == null })
                             }
 
                             JoinRulesEventContent.JoinRule.Private,
