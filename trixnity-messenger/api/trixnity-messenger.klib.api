@@ -434,10 +434,10 @@ abstract interface de.connect2x.trixnity.messenger.multi/ProfileManager { // de.
     abstract val profiles // de.connect2x.trixnity.messenger.multi/ProfileManager.profiles|{}profiles[0]
         abstract fun <get-profiles>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings>> // de.connect2x.trixnity.messenger.multi/ProfileManager.profiles.<get-profiles>|<get-profiles>(){}[0]
 
-    abstract suspend fun closeProfile() // de.connect2x.trixnity.messenger.multi/ProfileManager.closeProfile|closeProfile(){}[0]
+    abstract fun closeProfile() // de.connect2x.trixnity.messenger.multi/ProfileManager.closeProfile|closeProfile(){}[0]
+    abstract fun deleteProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManager.deleteProfile|deleteProfile(kotlin.String){}[0]
+    abstract fun selectProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManager.selectProfile|selectProfile(kotlin.String){}[0]
     abstract suspend fun createProfile(de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettingsBase = ...): kotlin/String // de.connect2x.trixnity.messenger.multi/ProfileManager.createProfile|createProfile(de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase){}[0]
-    abstract suspend fun deleteProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManager.deleteProfile|deleteProfile(kotlin.String){}[0]
-    abstract suspend fun selectProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManager.selectProfile|selectProfile(kotlin.String){}[0]
     abstract suspend fun setMultiProfileEnabled(kotlin/Boolean) // de.connect2x.trixnity.messenger.multi/ProfileManager.setMultiProfileEnabled|setMultiProfileEnabled(kotlin.Boolean){}[0]
     abstract suspend fun updateProfile(kotlin/String, kotlin/Function2<de.connect2x.trixnity.messenger.settings/MutableSettings<de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings>, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings, kotlin/Unit>) // de.connect2x.trixnity.messenger.multi/ProfileManager.updateProfile|updateProfile(kotlin.String;kotlin.Function2<de.connect2x.trixnity.messenger.settings.MutableSettings<de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings>,de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings,kotlin.Unit>){}[0]
 }
@@ -6723,11 +6723,11 @@ final class de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl : de.
         final fun <get-profiles>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings>> // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.profiles.<get-profiles>|<get-profiles>(){}[0]
 
     final fun close() // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.close|close(){}[0]
-    final suspend fun closeProfile() // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.closeProfile|closeProfile(){}[0]
+    final fun closeProfile() // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.closeProfile|closeProfile(){}[0]
+    final fun deleteProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.deleteProfile|deleteProfile(kotlin.String){}[0]
+    final fun selectProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.selectProfile|selectProfile(kotlin.String){}[0]
     final suspend fun closeSuspending() // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.closeSuspending|closeSuspending(){}[0]
     final suspend fun createProfile(de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettingsBase): kotlin/String // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.createProfile|createProfile(de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase){}[0]
-    final suspend fun deleteProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.deleteProfile|deleteProfile(kotlin.String){}[0]
-    final suspend fun selectProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.selectProfile|selectProfile(kotlin.String){}[0]
     final suspend fun setMultiProfileEnabled(kotlin/Boolean) // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.setMultiProfileEnabled|setMultiProfileEnabled(kotlin.Boolean){}[0]
     final suspend fun updateProfile(kotlin/String, kotlin/Function2<de.connect2x.trixnity.messenger.settings/MutableSettings<de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings>, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings, kotlin/Unit>) // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerImpl.updateProfile|updateProfile(kotlin.String;kotlin.Function2<de.connect2x.trixnity.messenger.settings.MutableSettings<de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings>,de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings,kotlin.Unit>){}[0]
 
@@ -6867,10 +6867,10 @@ final class de.connect2x.trixnity.messenger.multi/ProfileManagerImpl : de.connec
     final val profiles // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.profiles|{}profiles[0]
         final fun <get-profiles>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings>> // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.profiles.<get-profiles>|<get-profiles>(){}[0]
 
-    final suspend fun closeProfile() // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.closeProfile|closeProfile(){}[0]
+    final fun closeProfile() // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.closeProfile|closeProfile(){}[0]
+    final fun deleteProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.deleteProfile|deleteProfile(kotlin.String){}[0]
+    final fun selectProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.selectProfile|selectProfile(kotlin.String){}[0]
     final suspend fun createProfile(de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettingsBase): kotlin/String // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.createProfile|createProfile(de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase){}[0]
-    final suspend fun deleteProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.deleteProfile|deleteProfile(kotlin.String){}[0]
-    final suspend fun selectProfile(kotlin/String) // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.selectProfile|selectProfile(kotlin.String){}[0]
     final suspend fun setMultiProfileEnabled(kotlin/Boolean) // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.setMultiProfileEnabled|setMultiProfileEnabled(kotlin.Boolean){}[0]
     final suspend fun updateProfile(kotlin/String, kotlin/Function2<de.connect2x.trixnity.messenger.settings/MutableSettings<de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings>, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerProfileSettings, kotlin/Unit>) // de.connect2x.trixnity.messenger.multi/ProfileManagerImpl.updateProfile|updateProfile(kotlin.String;kotlin.Function2<de.connect2x.trixnity.messenger.settings.MutableSettings<de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings>,de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings,kotlin.Unit>){}[0]
 }

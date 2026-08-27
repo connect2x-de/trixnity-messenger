@@ -30,6 +30,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: i18n change "Add new account" instead of "Create new account"
 - SDK: More resilient MatrixClients when create is called concurrently
 - CI: include create-mr-discussions in CI
+- SDK: Remove suspend from some ProfileManager functions to prevent misusage with deadlocks
 
 ### Deprecated
 

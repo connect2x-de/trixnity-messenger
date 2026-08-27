@@ -30,7 +30,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.multi.ProfileManager
-import kotlinx.coroutines.launch
 
 // a poor man's way of navigation
 val ShowProfileCreation =
@@ -71,7 +70,7 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
                             ),
                         leadingContent = { Icon(Icons.Default.AccountCircle, null) },
                         headlineContent = { Text(entry.value.base.displayName ?: i18n.commonUnknown()) },
-                        onClick = { coroutineScope.launch { profileManager.selectProfile(entry.key) } },
+                        onClick = { profileManager.selectProfile(entry.key) },
                     )
                     ThemedHorizontalDivider()
                 }

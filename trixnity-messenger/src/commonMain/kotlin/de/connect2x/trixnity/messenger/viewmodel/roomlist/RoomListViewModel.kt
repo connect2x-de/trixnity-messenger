@@ -488,7 +488,7 @@ class RoomListViewModelImpl(
 
     override fun closeProfile() {
         log.debug { "close profile" }
-        coroutineScope.launch { profileManager?.closeProfile() }
+        profileManager?.closeProfile()
     }
 
     override fun errorDismiss() {
