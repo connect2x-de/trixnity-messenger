@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
-import kotlinx.coroutines.launch
 import org.koin.core.parameter.ParametersHolder
 
 internal class AddMatrixAccountViewModelFactoryAdapter(
@@ -58,7 +57,7 @@ internal class AddMatrixAccountViewModelFactoryAdapter(
                         }
 
                         isMultiProfile == true -> {
-                            viewModelContext.coroutineScope.launch { profileManager.closeProfile() }
+                            profileManager.closeProfile()
                         }
 
                         else -> {

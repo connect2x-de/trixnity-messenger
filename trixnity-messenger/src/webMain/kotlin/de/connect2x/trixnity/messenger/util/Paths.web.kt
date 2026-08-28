@@ -7,20 +7,14 @@ import de.connect2x.lognity.api.logger.warn
 import js.objects.Object
 import js.objects.unsafeJso
 import js.string.JsStrings.toKotlinString
-import kotlin.OptIn
-import kotlin.Throwable
-import kotlin.collections.dropLast
-import kotlin.collections.forEach
-import kotlin.collections.last
-import kotlin.collections.map
-import kotlin.collections.mapNotNull
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.toList
-import kotlin.text.startsWith
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import web.events.EventHandler
 import web.fs.getDirectoryHandle
 import web.fs.removeEntry
 import web.idb.databases
@@ -45,7 +39,15 @@ suspend fun Path.deleteVirtualFileSystemData() {
     val databaseNames = indexedDB.databases().toList().mapNotNull { it.name }
     databaseNames.forEach { databaseName ->
         if (databaseName.startsWith(path)) {
-            indexedDB.deleteDatabase(databaseName)
+            suspendCancellableCoroutine { continuation ->
+                val request = indexedDB.deleteDatabase(databaseName)
+
+                request.onsuccess = EventHandler { continuation.resume(Unit) }
+
+                request.onerror = EventHandler { event ->
+                    continuation.resumeWithException(IllegalStateException("Delete database failed"))
+                }
+            }
         }
     }
 

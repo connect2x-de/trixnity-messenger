@@ -259,7 +259,7 @@ class RoomListViewModelTest {
             MutableStateFlow(DirectEventContent(mappings = mapOf(user2 to setOf(roomId1))))
 
         every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
-        everySuspend { profileManagerMock.closeProfile() } returns Unit
+        every { profileManagerMock.closeProfile() } returns Unit
         every { notificationService.getCount(any()) } returns flowOf(0)
         every { notificationService.isUnread(any()) } returns flowOf(false)
     }
