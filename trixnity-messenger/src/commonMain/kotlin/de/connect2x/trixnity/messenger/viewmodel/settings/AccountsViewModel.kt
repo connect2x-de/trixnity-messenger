@@ -4,6 +4,8 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
+import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.multi.ProfileManager
@@ -148,7 +150,13 @@ class AccountsViewModelImpl(
     override fun createNewAccount() = onCreateNewAccount()
 
     override fun openAvatarCutter(userId: UserId, file: FileDescriptor) {
-        if (getMatrixClient(userId).serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
+        val serverData = getMatrixClient(userId).serverData.value ?: return
+        val capabilities = serverData.capabilities?.capabilities ?: return
+        if (
+            capabilities.profileFields(serverData.versions).isChangeAllowed(ProfileField.AvatarUrl) ||
+                serverData.versions.versions.contains("v1.16").not() &&
+                    @Suppress("DEPRECATION") capabilities.setAvatarUrl.enabled
+        ) {
             onOpenAvatarCutter(userId, file)
         } else {
             log.warn { "Missing server capability to change the user avatar." }
