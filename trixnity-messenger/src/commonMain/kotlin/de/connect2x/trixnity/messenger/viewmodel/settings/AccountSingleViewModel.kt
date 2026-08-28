@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
+import de.connect2x.trixnity.clientserverapi.model.server.setDisplayName
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.ErrorResponse
@@ -20,6 +21,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -95,7 +97,13 @@ class AccountSingleViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
     override val canChangeDisplayName: StateFlow<Boolean> =
         matrixClient.serverData
-            .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
+            .filterNotNull()
+            .map { serverData ->
+                val capabilities = serverData.capabilities?.capabilities ?: return@map true
+                capabilities.profileFields(serverData.versions).isChangeAllowed(ProfileField.DisplayName) ||
+                    serverData.versions.versions.contains("v1.16").not() &&
+                        @Suppress("DEPRECATION") capabilities.setDisplayName.enabled
+            }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
@@ -123,23 +131,16 @@ class AccountSingleViewModelImpl(
 
     override val canChangeAvatar =
         matrixClient.serverData
-            .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
+            .filterNotNull()
+            .map { serverData ->
+                val capabilities = serverData.capabilities?.capabilities ?: return@map true
+                capabilities.profileFields(serverData.versions).isChangeAllowed(ProfileField.AvatarUrl) ||
+                    serverData.versions.versions.contains("v1.16").not() &&
+                        @Suppress("DEPRECATION") capabilities.setAvatarUrl.enabled
+            }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val canDeleteAvatar =
-        matrixClient.serverData
-            .map { serverData ->
-                val hasProfileFieldSupport =
-                    serverData?.versions?.versions?.any { it == MIN_MATRIX_VERSION_FOR_PROFILE_FIELDS } == true
-                val capabilities = serverData?.capabilities?.capabilities
-                val hasProfileFieldCapability =
-                    capabilities?.profileFields?.isChangeAllowed(ProfileField.AvatarUrl) ?: true
-                val hasSetAvatarUrlCapability = @Suppress("DEPRECATION") capabilities?.setAvatarUrl?.enabled ?: true
-
-                (hasProfileFieldSupport && hasProfileFieldCapability) ||
-                    (!hasProfileFieldSupport && hasSetAvatarUrlCapability)
-            }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canDeleteAvatar = canChangeAvatar
 
     override val hasAvatar =
         matrixClient.profile
@@ -164,19 +165,14 @@ class AccountSingleViewModelImpl(
         val newDisplayName = editDisplayName.value.text
         if (newDisplayName != displayName.value) {
             coroutineScope.launch {
-                val matrixClient = getMatrixClient(userId)
-                if (matrixClient.serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
-                    log.debug { "set new display name in account $userId: $newDisplayName" }
-                    matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName)).onFailure {
-                        log.error(it) { "Cannot set display name." }
-                        if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
-                            error.value = i18n.profileNameForbidden()
-                        } else {
-                            error.value = i18n.profileNameError()
-                        }
+                log.debug { "set new display name in account $userId: $newDisplayName" }
+                matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName)).onFailure {
+                    log.error(it) { "Cannot set display name." }
+                    if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
+                        error.value = i18n.profileNameForbidden()
+                    } else {
+                        error.value = i18n.profileNameError()
                     }
-                } else {
-                    log.warn { "Missing server capability to set the display name." }
                 }
             }
         }
