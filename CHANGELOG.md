@@ -9,6 +9,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.10.0
+
+### Added
+
 - SDK: new setup account view model (`AccountSetupViewModel`) and new setup self verification view model
   (`v2.SelfVerificationViewModel`); disable by setting `features.enableNewAccountWizard = false`
 - UI: Account setup wizard and self verification wizard in more concise form; disable by setting
@@ -32,8 +46,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - CI: include create-mr-discussions in CI
 - SDK: Remove suspend from some ProfileManager functions to prevent misusage with deadlocks
 
-### Deprecated
-
 ### Removed
 
 - SDK: remove unnecessary `load()` function from `PlatformAudioRecorder`
@@ -44,8 +56,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: DI injection in compose was not remembered correctly
 - SDK,UI: `v2.SelfVerificationViewModel` now correctly waits for initial sync to show available self verification
   methods
-
-### Security
 
 ## 4.9.1
 
