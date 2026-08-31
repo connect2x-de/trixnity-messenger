@@ -14,7 +14,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
-import io.ktor.util.reflect.*
+import io.ktor.util.reflect.instanceOf
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -99,7 +99,7 @@ interface SearchViewModel<SR : SearchResult, SC : SearchContext> {
     /** A list of errors that occurred during the search. The key is the provider display name, the value the error. */
     val errors: StateFlow<Map<String, String>>
 
-    /** (Dis-)able a [SearchProvider] by its [SearchProvider.Key]. */
+    /** Enables or disables a [SearchProvider] by its [SearchProvider.Key]. */
     fun setProvider(providerId: SearchProvider.Key<*>, enabled: Boolean)
 
     /**
@@ -158,11 +158,12 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), searchProviders.associate { it.key to true })
 
+    // This needs to share eagerly for the search to work properly if this is not collected
     override val searchProviderEnabled =
         combine(_searchProviderEnabled, searchProviderCanBeEnabled) { enabledMap, canBeEnabledMap ->
                 enabledMap.mapValues { (key, value) -> value && canBeEnabledMap[key] == true }
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _searchProviderEnabled.value)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, _searchProviderEnabled.value)
 
     override val availableFilters: StateFlow<List<GroupedSearchFilter>> =
         searchProviderEnabled
@@ -327,6 +328,7 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
                             }
                         } else {
                             log.debug { "searchProvider ${searchProvider.key} is not enabled -> no search" }
+                            searchProvidersLoading[index].value = false
                         }
                     } else {
                         log.trace { "user search blank -> empty list" }
