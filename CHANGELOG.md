@@ -17,6 +17,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI: Reintroduced accidentally removed "reset encryption"-button
+
 ### Security
 
 ## 4.10.0

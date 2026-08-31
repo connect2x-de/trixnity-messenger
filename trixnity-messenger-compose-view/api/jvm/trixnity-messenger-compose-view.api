@@ -1613,6 +1613,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun roomSettingsEnableEncryptionWarningTitleGroup ()Ljava/lang/String;
 	public fun roomSettingsMembers ()Ljava/lang/String;
 	public fun roomSettingsMentions ()Ljava/lang/String;
+	public fun roomSettingsResetEncryption ()Ljava/lang/String;
 	public fun roomSettingsRoomId ()Ljava/lang/String;
 	public fun roomSettingsRoomName ()Ljava/lang/String;
 	public fun roomSettingsRoomNameCannotChange ()Ljava/lang/String;
@@ -2053,6 +2054,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ex
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomDevInfoKt {
 	public static final fun DevInfo (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ResetEncryptionButton (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RoomDevInfoContainer (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomDevInfoViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
