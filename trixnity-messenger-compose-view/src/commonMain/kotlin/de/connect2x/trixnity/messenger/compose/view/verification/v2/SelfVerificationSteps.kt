@@ -17,7 +17,6 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,6 +51,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.isWeb
 import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTextFieldWithToolbar
 import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSwitch
@@ -141,7 +141,7 @@ fun RecoveryKey(viewModel: SelfVerificationViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
             ) {
-                OutlinedTextField(
+                OutlinedTextFieldWithToolbar(
                     recoveryKey,
                     onValueChange = { recoveryKey = it },
                     label = { Text(i18n.commonRecoveryKey()) },
@@ -208,7 +208,7 @@ fun PasswordPhrase(viewModel: SelfVerificationViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
             ) {
-                OutlinedTextField(
+                OutlinedTextFieldWithToolbar(
                     passphrase,
                     onValueChange = { passphrase = it },
                     label = { Text(i18n.commonRecoveryPassphrase()) },

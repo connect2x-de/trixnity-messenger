@@ -17,6 +17,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI: recovery key and password text field in new wizard now allow paste on Android
+
 ### Security
 
 ## 4.10.0
