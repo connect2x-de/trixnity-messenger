@@ -11,9 +11,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- DEPENDENCY: Update Trixnity to 5.8.0
+
 ### Deprecated
 
 ### Removed
+
 - INTERNAL: Remove `doc/known-issues.md`. Instead, we use `Won't do` in our usual issue tracker
 
 ### Fixed
