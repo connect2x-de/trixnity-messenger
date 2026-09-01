@@ -11,9 +11,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
-- DEPENDENCY: Update Trixnity to 5.8.0
-
 ### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.10.1
+
+### Changed
+
+- DEPENDENCY: Update Trixnity to 5.8.0
 
 ### Removed
 
@@ -23,8 +33,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - UI: Reintroduced accidentally removed "reset encryption"-button
 - UI: recovery key and password text field in new wizard now allow paste on Android
-
-### Security
 
 ## 4.10.0
 
