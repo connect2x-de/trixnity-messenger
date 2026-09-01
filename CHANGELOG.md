@@ -14,6 +14,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Deprecated
 
 ### Removed
+- INTERNAL: Remove `doc/known-issues.md`. Instead, we use `Won't do` in our usual issue tracker
 
 ### Fixed
 
