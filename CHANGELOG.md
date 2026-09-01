@@ -18,6 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 
 - UI: Reintroduced accidentally removed "reset encryption"-button
+- UI: recovery key and password text field in new wizard now allow paste on Android
 
 ### Security
 

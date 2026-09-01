@@ -7012,7 +7012,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/
 	public final fun getLambda$-1980866655$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-708029081$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$121304626$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1295698875$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$43328694$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationStepsKt {
