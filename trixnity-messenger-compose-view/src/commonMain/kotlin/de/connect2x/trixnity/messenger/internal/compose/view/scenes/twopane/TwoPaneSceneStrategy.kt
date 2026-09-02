@@ -13,12 +13,17 @@ interface TwoPaneSceneStrategy<T : Any> : SceneStrategy<T> {
     override fun SceneStrategyScope<T>.calculateScene(entries: List<NavEntry<T>>): TwoPaneScene<T>?
 }
 
-internal fun <T : Any> TwoPaneSceneStrategy(windowSizeClass: WindowSizeClass): TwoPaneSceneStrategy<T> {
-    return TwoPaneSceneStrategyImpl(windowSizeClass = windowSizeClass)
+internal fun <T : Any> TwoPaneSceneStrategy(
+    windowSizeClass: WindowSizeClass,
+    emptyPlaceholder: TwoPaneScenePlaceholder?,
+): TwoPaneSceneStrategy<T> {
+    return TwoPaneSceneStrategyImpl(windowSizeClass = windowSizeClass, emptyPlaceholder = emptyPlaceholder)
 }
 
-private class TwoPaneSceneStrategyImpl<T : Any>(private val windowSizeClass: WindowSizeClass) :
-    TwoPaneSceneStrategy<T> {
+private class TwoPaneSceneStrategyImpl<T : Any>(
+    private val windowSizeClass: WindowSizeClass,
+    private val emptyPlaceholder: TwoPaneScenePlaceholder?,
+) : TwoPaneSceneStrategy<T> {
 
     override fun SceneStrategyScope<T>.calculateScene(entries: List<NavEntry<T>>): TwoPaneScene<T>? {
         if (!windowSizeClass.isWidthAtLeastBreakpoint(SINGLE_PANE_THRESHOLD)) return null
@@ -36,6 +41,11 @@ private class TwoPaneSceneStrategyImpl<T : Any>(private val windowSizeClass: Win
                 leftEntry to lastEntry
             } else return null
 
-        return TwoPaneScene(leftEntry = leftEntry, rightEntry = rightEntry, previousEntries = entries.dropLast(1))
+        return TwoPaneScene(
+            leftEntry = leftEntry,
+            rightEntry = rightEntry,
+            previousEntries = entries.dropLast(1),
+            emptyPlaceholder = emptyPlaceholder,
+        )
     }
 }
