@@ -194,27 +194,20 @@ class InputAreaViewImpl : InputAreaView {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (canSendMessages) {
-                        when (audioRecorderState) {
-                            AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
-                            null -> TextInput(canRecordAudio = false)
-                            is AudioRecorder.State.Recording,
-                            is AudioRecorder.State.Completed,
-                            is AudioRecorder.State.Failed ->
-                                if (isEdit) {
-                                    TextInput(canRecordAudio = true)
-                                } else {
-                                    AudioRecordingArea(inputAreaViewModel.audio)
-                                }
-                        }
-                    } else {
-                        Box(Modifier.fillMaxWidth()) {
-                            Text(
-                                i18n.inputAreaCannotSendMessages(),
-                                modifier = Modifier.padding(10.dp).align(Alignment.Center),
-                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.75f),
-                            )
-                        }
+                    if (!canSendMessages) {
+                        return@Row
+                    }
+                    when (audioRecorderState) {
+                        AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
+                        null -> TextInput(canRecordAudio = false)
+                        is AudioRecorder.State.Recording,
+                        is AudioRecorder.State.Completed,
+                        is AudioRecorder.State.Failed ->
+                            if (isEdit) {
+                                TextInput(canRecordAudio = true)
+                            } else {
+                                AudioRecordingArea(inputAreaViewModel.audio)
+                            }
                     }
                 }
             }

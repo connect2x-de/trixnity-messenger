@@ -146,9 +146,11 @@ class RoomHeaderViewImpl : RoomHeaderView {
 
                                 Column(modifier = Modifier.padding(end = 14.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        RoomName(roomHeaderElement)
-                                        Spacer(Modifier.size(7.dp))
+                                        Box(modifier = Modifier.weight(1f, fill = false)) {
+                                            RoomName(roomHeaderElement)
+                                        }
                                         if (roomHeaderElement.isLeave) {
+                                            Spacer(Modifier.size(7.dp))
                                             ThemedLabel(i18n.commonArchived())
                                         }
                                     }

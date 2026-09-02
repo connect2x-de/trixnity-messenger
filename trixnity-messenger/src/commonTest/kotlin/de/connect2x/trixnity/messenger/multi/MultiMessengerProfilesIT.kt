@@ -15,14 +15,12 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class MultiMessengerProfilesIT {
     @BeforeTest
     fun setup() {
@@ -35,14 +33,14 @@ class MultiMessengerProfilesIT {
         val profile1 = multiMessenger.createProfile()
         val profile2 = multiMessenger.createProfile()
 
-        advanceTimeBy(1.seconds)
+        delay(1.seconds)
         multiMessenger.profiles.value shouldHaveSize 2
         multiMessenger.selectProfile(profile1)
-        advanceTimeBy(1.seconds)
+        delay(1.seconds)
         val matrixMessenger1 = multiMessenger.activeMatrixMessenger.value shouldNotBe null
 
         multiMessenger.selectProfile(profile2)
-        advanceTimeBy(1.seconds)
+        delay(1.seconds)
         val matrixMessenger2 = multiMessenger.activeMatrixMessenger.value shouldNotBe null
 
         matrixMessenger1 shouldNotBe matrixMessenger2

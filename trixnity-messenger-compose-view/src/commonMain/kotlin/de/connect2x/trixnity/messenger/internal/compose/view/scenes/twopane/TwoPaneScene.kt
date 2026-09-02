@@ -39,14 +39,21 @@ internal fun <T : Any> TwoPaneScene(
     leftEntry: NavEntry<T>,
     rightEntry: NavEntry<T>?,
     previousEntries: List<NavEntry<T>>,
+    emptyPlaceholder: TwoPaneScenePlaceholder?,
 ): TwoPaneScene<T> {
-    return TwoPaneSceneImpl(leftEntry = leftEntry, rightEntry = rightEntry, previousEntries = previousEntries)
+    return TwoPaneSceneImpl(
+        leftEntry = leftEntry,
+        rightEntry = rightEntry,
+        previousEntries = previousEntries,
+        emptyPlaceholder = emptyPlaceholder,
+    )
 }
 
 private class TwoPaneSceneImpl<T : Any>(
     val leftEntry: NavEntry<T>,
     val rightEntry: NavEntry<T>?,
     override val previousEntries: List<NavEntry<T>>,
+    private val emptyPlaceholder: TwoPaneScenePlaceholder?,
 ) : TwoPaneScene<T> {
 
     override val key: Any = Pair(leftEntry.contentKey, rightEntry?.contentKey)
@@ -69,6 +76,8 @@ private class TwoPaneSceneImpl<T : Any>(
                 Box(modifier = Modifier.weight(ROOM_WEIGHT).fillMaxHeight()) {
                     if (rightEntry != null) {
                         key(rightEntry.contentKey) { rightEntry.Content() }
+                    } else {
+                        emptyPlaceholder?.Content()
                     }
                 }
             }

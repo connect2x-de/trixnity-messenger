@@ -82,11 +82,11 @@ class ProfilesSettingsSingleViewModelImpl(viewModelContext: ViewModelContext, ov
 
     override fun selectProfile() {
         log.debug { "select profile" }
-        coroutineScope.launch { profileManager.selectProfile(profileId) }
+        profileManager.selectProfile(profileId)
     }
 
     override fun deleteProfile() {
         log.debug { "delete profile" }
-        coroutineScope.launch { profileManager.deleteProfile(profileId) }
+        profileManager.deleteProfile(profileId)
     }
 }

@@ -103,11 +103,9 @@ open class MatrixClientInitializationFailureViewModelImpl(
     }
 
     private fun deleteProfile() {
-        coroutineScope.launch {
-            profileManager.activeProfile.value?.let { profile ->
-                log.warn { "Deleting profile: $profile" }
-                profileManager.deleteProfile(profile)
-            } ?: log.warn { "Tried to delete profile, but no active profile found." }
-        }
+        profileManager.activeProfile.value?.let { profile ->
+            log.warn { "Deleting profile: $profile" }
+            profileManager.deleteProfile(profile)
+        } ?: log.warn { "Tried to delete profile, but no active profile found." }
     }
 }

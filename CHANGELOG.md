@@ -9,6 +9,35 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.10.1
+
+### Changed
+
+- DEPENDENCY: Update Trixnity to 5.8.0
+
+### Removed
+
+- INTERNAL: Remove `doc/known-issues.md`. Instead, we use `Won't do` in our usual issue tracker
+
+### Fixed
+
+- UI: Reintroduced accidentally removed "reset encryption"-button
+- UI: recovery key and password text field in new wizard now allow paste on Android
+
+## 4.10.0
+
+### Added
+
 - SDK: new setup account view model (`AccountSetupViewModel`) and new setup self verification view model
   (`v2.SelfVerificationViewModel`); disable by setting `features.enableNewAccountWizard = false`
 - UI: Account setup wizard and self verification wizard in more concise form; disable by setting
@@ -16,25 +45,27 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: `detailsExpandedByDefault` determining the default expansion state of the error details in the error dialog
 - SDK: platform specific pdfReaderFactory
 - UI: Ability to reset encryption keys for a room in room developer settings
+- UI: Ability to rejoin rooms
+- SDK: Fields for rejoin room information to member state timeline elements
 - CI, INTERNAL: Enabled more detekt linting rules
 - SDK,UI: Add better error handling with UI feedback to the `AudioRecorder` API
 - SDK,UI: Experimental androidx.navigation3 support
 - SDK: Add `GetAccountProfileDisplayName` and `rememberAccountProfileDisplayName` to acquire the username from a logged-in `MatrixClient`
 - SDK,UI: Add `CopyableUserId` providing a selectable text especially for user MXIDs over the DI
 - SDK,UI: Add `UserIdText` providing text components especially for user MXIDs over the DI
+- SDK,UI: Add `TwoPaneScenePlaceholder` displayed in the second pane when no room is opened
 
 ### Changed
 
 - UI: improved redaction warning
 - INTERNAL: Use new runner infrastructure
 - INTERNAL: Use resource_group for publish CI jobs
-- DEPENDENCY: Update Trixnity to 5.8.0-SNAPSHOT.CI-20260821.120157
+- DEPENDENCY: Update Trixnity to 5.8.0
 - UI: added interface for `ReferencedMessagePill`
 - UI: i18n change "Add new account" instead of "Create new account"
 - SDK: More resilient MatrixClients when create is called concurrently
 - CI: include create-mr-discussions in CI
-
-### Deprecated
+- SDK: Remove suspend from some ProfileManager functions to prevent misusage with deadlocks
 
 ### Removed
 
@@ -46,8 +77,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: DI injection in compose was not remembered correctly
 - SDK,UI: `v2.SelfVerificationViewModel` now correctly waits for initial sync to show available self verification
   methods
-
-### Security
 
 ## 4.9.1
 

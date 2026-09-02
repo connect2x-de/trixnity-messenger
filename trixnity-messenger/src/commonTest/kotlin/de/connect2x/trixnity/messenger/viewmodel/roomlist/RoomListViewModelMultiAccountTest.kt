@@ -42,7 +42,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
-import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.Matcher as KoMatcher
@@ -392,7 +391,7 @@ class RoomListViewModelMultiAccountTest {
             )
 
         every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
-        everySuspend { profileManagerMock.closeProfile() } returns Unit
+        every { profileManagerMock.closeProfile() } returns Unit
         every { notificationService.getCount(any()) } returns flowOf(0)
         every { notificationService.isUnread(any()) } returns flowOf(false)
     }
