@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.settings.MutableSettings
 import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
@@ -137,11 +138,35 @@ class ProfileManagerImpl(
             it.copy(profiles = oldProfiles + (profile to MatrixMultiMessengerProfileSettings(newProfileSettings)))
         }
 
+    private suspend fun logoutAllClients(clients: MatrixClients) {
+        clients.logoutAll().forEach { result ->
+            result.value.fold(
+                {
+                    log.debug { "Successfully logged out account ${result.key}" }
+                },
+                {
+                    log.warn {
+                        "Couldn't log out of client with id ${result.key} during profile deletion due to ${result.value.exceptionOrNull()}"
+                    }
+                },
+            )
+        }
+    }
+
     override fun deleteProfile(profile: String) {
         coroutineScope
             .launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
                 log.debug { "delete profile $profile" }
-                if (activeProfile.value == profile) closeProfileSuspending()
+                if (activeProfile.value == profile) {
+                    activeMatrixMessenger.value?.di?.get<MatrixClients>()?.let { logoutAllClients(it) }
+                    closeProfileSuspending()
+                } else {
+                    matrixMessengerFactory(profile).apply {
+                        di.get<MatrixClients>()
+                        logoutAllClients(this.di.get<MatrixClients>())
+                        closeSuspending()
+                    }
+                }
                 withContext(NonCancellable) {
                     settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                         oldSettings.copy(
