@@ -176,7 +176,7 @@ interface InputAreaViewModel {
     val useMarkdown: StateFlow<Boolean>
     val audio: AudioRecordingAreaViewModel
 
-    @Deprecated("use selectionMention with id instead") fun selectMention(userId: UserId) {}
+    @Deprecated("use selectMention with id instead") fun selectMention(userId: UserId) {}
 
     fun selectMention(id: String)
 

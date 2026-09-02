@@ -53,7 +53,7 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                             i18n.joinRoomActionImpossible(),
                             error,
                             isLoading,
-                            onDismiss = viewModel.onDismiss,
+                            onDismiss = viewModel.onDismiss ?: {},
                         )
                     }
 
@@ -63,7 +63,7 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                             error,
                             isLoading,
                             onConfirm = action.onJoinRoom,
-                            onDismiss = viewModel.onDismiss,
+                            onDismiss = viewModel.onDismiss ?: {},
                         )
 
                     is JoinRoomActionViewModel.JoinRoomAction.Knock -> {
@@ -73,19 +73,30 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                             error,
                             isLoading,
                             onConfirm = action.onKnock,
-                            onDismiss = viewModel.onDismiss,
+                            onDismiss = viewModel.onDismiss ?: {},
                             additionalInfo = if (hasKnocked == true) i18n.joinRoomActionKnockSuccess() else null,
                         )
                     }
 
-                    is JoinRoomActionViewModel.JoinRoomAction.Restricted ->
+                    is JoinRoomActionViewModel.JoinRoomAction.Restricted -> {
+                        val nullCount = action.requiredUnknownRooms
+                        val nonNullRooms = action.requiredRooms
+
                         JoinRoomActionOverview(
-                            if (action.requiredRooms.isNotEmpty()) i18n.joinRoomActionRestricted(action.requiredRooms)
-                            else i18n.joinRoomActionRestrictedNoRoomInfoAvailable(),
+                            if (nullCount == 0) {
+                                i18n.joinRoomActionRestricted(nonNullRooms)
+                            } else {
+                                if (nonNullRooms.isEmpty()) {
+                                    i18n.joinRoomActionRestricted(nullCount)
+                                } else {
+                                    i18n.joinRoomActionRestricted(nonNullRooms, nullCount)
+                                }
+                            },
                             error,
                             isLoading,
-                            onDismiss = viewModel.onDismiss,
+                            onDismiss = viewModel.onDismiss ?: {},
                         )
+                    }
 
                     is JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation -> {
                         JoinRoomActionOverview(
@@ -93,7 +104,7 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                             error,
                             isLoading,
                             onConfirm = action.onAcceptInvite,
-                            onDismiss = viewModel.onDismiss,
+                            onDismiss = viewModel.onDismiss ?: {},
                         )
                     }
 
@@ -102,7 +113,7 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                             i18n.joinRoomActionNotFound(),
                             error,
                             isLoading,
-                            onDismiss = viewModel.onDismiss,
+                            onDismiss = viewModel.onDismiss ?: {},
                         )
 
                     null -> {}

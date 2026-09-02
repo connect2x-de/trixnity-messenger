@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.previousRoomId
 import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -12,8 +13,11 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.State
@@ -23,6 +27,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.MembershipChange
 import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -32,6 +37,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
+import org.koin.core.component.get
 
 interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<MemberEventContent> {
     override fun create(
@@ -54,6 +60,9 @@ interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelF
 interface MemberStateTimelineElementViewModel : State<MemberEventContent> {
     val changeMessage: StateFlow<String?>
     val undecryptableHistoryInfo: StateFlow<String?>
+    val showRejoinRoomInfo: StateFlow<Boolean?>
+    val rejoinRoomInfoError: StateFlow<String?>
+    val rejoinRoomInfoType: StateFlow<JoinRoomActionViewModel.JoinRoomAction?>
 }
 
 private enum class UserInfoChangeEvent {
@@ -83,36 +92,77 @@ class MemberStateTimelineElementViewModelImpl(
     eventId: EventId,
 ) : MemberStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
 
+    private val timelineEvent = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().map { it.event }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val changeEvent: Flow<ChangeEvent?> =
-        matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().map { timelineEvent ->
-            val event = timelineEvent.event
-            require(event is StateEvent)
+    private val changeEvent: Flow<ChangeEvent?> = timelineEvent.map { event ->
+        require(event is StateEvent)
 
-            val previousContent = event.unsigned?.previousContent
-            if (previousContent is MemberEventContent) {
-                val membershipEvent =
-                    ChangeEvent.Membership(membershipChangedEvent(event, content, previousContent), event)
-                when {
-                    content.membership != previousContent.membership -> membershipEvent
+        val previousContent = event.unsigned?.previousContent
+        if (previousContent is MemberEventContent) {
+            val membershipEvent = ChangeEvent.Membership(membershipChangedEvent(event, content, previousContent), event)
+            when {
+                content.membership != previousContent.membership -> membershipEvent
 
-                    content.avatarUrl != previousContent.avatarUrl ->
-                        ChangeEvent.UserInfo(UserInfoChangeEvent.CHANGE_AVATAR, event, previousContent)
+                content.avatarUrl != previousContent.avatarUrl ->
+                    ChangeEvent.UserInfo(UserInfoChangeEvent.CHANGE_AVATAR, event, previousContent)
 
-                    content.displayName != previousContent.displayName -> {
-                        if (content.displayName == null)
-                            ChangeEvent.UserInfo(UserInfoChangeEvent.REMOVE_DISPLAY_NAME, event, previousContent)
-                        else ChangeEvent.UserInfo(UserInfoChangeEvent.CHANGE_DISPLAY_NAME, event, previousContent)
-                    }
-
-                    else -> {
-                        ChangeEvent.NoChange(event)
-                    }
+                content.displayName != previousContent.displayName -> {
+                    if (content.displayName == null)
+                        ChangeEvent.UserInfo(UserInfoChangeEvent.REMOVE_DISPLAY_NAME, event, previousContent)
+                    else ChangeEvent.UserInfo(UserInfoChangeEvent.CHANGE_DISPLAY_NAME, event, previousContent)
                 }
-            } else {
-                ChangeEvent.NoPreviousContent(membershipChangedEvent(event, content), event)
+
+                else -> {
+                    ChangeEvent.NoChange(event)
+                }
             }
+        } else {
+            ChangeEvent.NoPreviousContent(membershipChangedEvent(event, content), event)
         }
+    }
+
+    private val isAllowedToSendMessages = matrixClient.user.canSendEvent<RoomMessageEventContent>(roomId)
+
+    private val lastEventId = matrixClient.room.getById(roomId).mapNotNull { it?.lastEventId }
+
+    override val showRejoinRoomInfo: StateFlow<Boolean?> =
+        combine(isAllowedToSendMessages, timelineEvent, lastEventId) { canSend, event, lastEventId ->
+                require(event is StateEvent)
+                lastEventId == eventId &&
+                    !canSend &&
+                    content.membership == Membership.LEAVE &&
+                    UserId(event.stateKey) == matrixClient.userId
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
+
+    private val _joinRoomActionViewModel: JoinRoomActionViewModel by lazy {
+        get<JoinRoomActionViewModelFactory>().create(viewModelContext, roomId, null, null, null)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val rejoinRoomInfoType =
+        showRejoinRoomInfo
+            .flatMapLatest {
+                if (it == true) {
+                    _joinRoomActionViewModel.actionNecessary
+                } else {
+                    flowOf(null)
+                }
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val rejoinRoomInfoError =
+        showRejoinRoomInfo
+            .flatMapLatest {
+                if (it == true) {
+                    _joinRoomActionViewModel.error
+                } else {
+                    flowOf(null)
+                }
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val changeMessage =
