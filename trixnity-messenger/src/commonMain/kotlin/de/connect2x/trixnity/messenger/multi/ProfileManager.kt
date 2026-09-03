@@ -141,9 +141,7 @@ class ProfileManagerImpl(
     private suspend fun logoutAllClients(clients: MatrixClients) {
         clients.logoutAll().forEach { result ->
             result.value.fold(
-                {
-                    log.debug { "Successfully logged out account ${result.key}" }
-                },
+                { log.debug { "Successfully logged out account ${result.key}" } },
                 {
                     log.warn {
                         "Couldn't log out of client with id ${result.key} during profile deletion due to ${result.value.exceptionOrNull()}"

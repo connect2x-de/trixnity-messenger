@@ -126,16 +126,17 @@ class MatrixClientsTest {
                 Result.success(matrixClient)
             }
 
-        val state = koinApplication {
-            modules(
-                module {
-                    single<CoroutineScope> {
-                        CoroutineScope(EmptyCoroutineContext).also { it.coroutineContext.job.cancel() }
-                    }
+        val state =
+            koinApplication {
+                    modules(
+                        module {
+                            single<CoroutineScope> {
+                                CoroutineScope(EmptyCoroutineContext).also { it.coroutineContext.job.cancel() }
+                            }
+                        }
+                    )
                 }
-            )
-        }
-            .koin
+                .koin
         every { matrixClientMock1.di } returns state
 
         every { matrixClientMock1.userId } returns userId1
