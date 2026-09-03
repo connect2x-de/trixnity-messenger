@@ -143,8 +143,8 @@ class ProfileManagerImpl(
             result.value.fold(
                 { log.debug { "Successfully logged out account ${result.key}" } },
                 {
-                    log.warn {
-                        "Couldn't log out of client with id ${result.key} during profile deletion due to ${result.value.exceptionOrNull()}"
+                    log.warn(it) {
+                        "Couldn't log out of client with id ${result.key} during profile deletion"
                     }
                 },
             )
@@ -160,7 +160,6 @@ class ProfileManagerImpl(
                     closeProfileSuspending()
                 } else {
                     matrixMessengerFactory(profile).apply {
-                        di.get<MatrixClients>()
                         logoutAllClients(this.di.get<MatrixClients>())
                         closeSuspending()
                     }
