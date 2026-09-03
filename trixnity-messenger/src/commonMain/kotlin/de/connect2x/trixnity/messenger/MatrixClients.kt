@@ -269,7 +269,7 @@ class MatrixClientsImpl(
     }
 
     override suspend fun logoutAll(): Map<UserId, Result<Unit>> {
-        return matrixClients.value.mapValues { it.value.logout() }
+        return matrixClients.value.mapValues { logout(it.key) }
     }
 
     override suspend fun remove(userId: UserId): Result<Unit> = mutex.withLock { unsafeRemove(userId) }
