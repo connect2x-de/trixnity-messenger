@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.settings.MutableSettings
@@ -139,12 +140,12 @@ class ProfileManagerImpl(
         }
 
     private suspend fun logoutAllClients(clients: MatrixClients) {
-        clients.logoutAll().forEach { result ->
-            result.value.fold(
-                { log.debug { "Successfully logged out account ${result.key}" } },
+        clients.logoutAll().forEach { (userId, logoutResult) ->
+            logoutResult.fold(
+                { log.debug { "Successfully logged out account $userId" } },
                 {
                     log.warn(it) {
-                        "Couldn't log out of client with id ${result.key} during profile deletion"
+                        "Couldn't log out of client with id $userId during profile deletion"
                     }
                 },
             )
