@@ -4912,6 +4912,7 @@ abstract interface de.connect2x.trixnity.messenger/MatrixClients : de.connect2x.
 
     abstract suspend fun create(de.connect2x.trixnity.clientserverapi.client/MatrixClientAuthProviderData): de.connect2x.trixnity.messenger/MatrixClients.CreateResult // de.connect2x.trixnity.messenger/MatrixClients.create|create(de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData){}[0]
     abstract suspend fun logout(de.connect2x.trixnity.core.model/UserId): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger/MatrixClients.logout|logout(de.connect2x.trixnity.core.model.UserId){}[0]
+    abstract suspend fun logoutAll(): kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin/Result<kotlin/Unit>> // de.connect2x.trixnity.messenger/MatrixClients.logoutAll|logoutAll(){}[0]
     abstract suspend fun remove(de.connect2x.trixnity.core.model/UserId): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger/MatrixClients.remove|remove(de.connect2x.trixnity.core.model.UserId){}[0]
 
     sealed interface CreateResult { // de.connect2x.trixnity.messenger/MatrixClients.CreateResult|null[0]
@@ -14072,6 +14073,7 @@ final class de.connect2x.trixnity.messenger/MatrixClientsImpl : de.connect2x.tri
     final suspend fun create(de.connect2x.trixnity.clientserverapi.client/MatrixClientAuthProviderData): de.connect2x.trixnity.messenger/MatrixClients.CreateResult // de.connect2x.trixnity.messenger/MatrixClientsImpl.create|create(de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData){}[0]
     final suspend fun doWork() // de.connect2x.trixnity.messenger/MatrixClientsImpl.doWork|doWork(){}[0]
     final suspend fun logout(de.connect2x.trixnity.core.model/UserId): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger/MatrixClientsImpl.logout|logout(de.connect2x.trixnity.core.model.UserId){}[0]
+    final suspend fun logoutAll(): kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin/Result<kotlin/Unit>> // de.connect2x.trixnity.messenger/MatrixClientsImpl.logoutAll|logoutAll(){}[0]
     final suspend fun remove(de.connect2x.trixnity.core.model/UserId): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger/MatrixClientsImpl.remove|remove(de.connect2x.trixnity.core.model.UserId){}[0]
 
     final object Companion // de.connect2x.trixnity.messenger/MatrixClientsImpl.Companion|null[0]
