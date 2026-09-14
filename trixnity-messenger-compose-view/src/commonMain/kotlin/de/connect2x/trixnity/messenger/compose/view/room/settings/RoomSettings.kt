@@ -11,11 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -24,12 +20,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
-import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.util.DevInfoButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 @Composable
@@ -62,13 +57,7 @@ class RoomSettingsViewImpl : RoomSettingsView {
             error,
             { roomSettingsViewModel.close() },
             if (isSinglePane) BACK else CLOSE,
-            {
-                Tooltip(i18n.devInfoButtonTooltip()) {
-                    IconButton({ roomSettingsViewModel.openDevInfoView() }, Modifier.buttonPointerModifier()) {
-                        Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
-                    }
-                }
-            },
+            { DevInfoButton(roomSettingsViewModel::openDevInfoView) },
         ) {
             Box(Modifier.fillMaxSize()) {
                 Column(

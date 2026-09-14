@@ -60,6 +60,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK,UI: Add `CopyableUserId` providing a selectable text especially for user MXIDs over the DI
 - SDK,UI: Add `UserIdText` providing text components especially for user MXIDs over the DI
 - SDK,UI: Add `TwoPaneScenePlaceholder` displayed in the second pane when no room is opened
+- SDK,UI: Add `DevInfoButton` component into the DI
 
 ### Changed
 
