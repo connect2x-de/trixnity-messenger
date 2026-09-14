@@ -362,6 +362,8 @@ import de.connect2x.trixnity.messenger.compose.view.uia.UiaRegistrationTokenView
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaRegistrationTokenViewImpl
 import de.connect2x.trixnity.messenger.compose.view.util.CopyableUserId
 import de.connect2x.trixnity.messenger.compose.view.util.CopyableUserIdImpl
+import de.connect2x.trixnity.messenger.compose.view.util.DevInfoButton
+import de.connect2x.trixnity.messenger.compose.view.util.DevInfoButtonImpl
 import de.connect2x.trixnity.messenger.compose.view.util.UserIdText
 import de.connect2x.trixnity.messenger.compose.view.util.UserIdTextImpl
 import de.connect2x.trixnity.messenger.compose.view.verification.DeviceVerificationWizardView
@@ -704,4 +706,5 @@ fun uiaViewModule() = module {
 fun utilViewModule() = module {
     single<CopyableUserId> { CopyableUserIdImpl() }
     single<UserIdText> { UserIdTextImpl() }
+    single<DevInfoButton> { DevInfoButtonImpl() }
 }

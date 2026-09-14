@@ -18,11 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -59,12 +54,12 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.util.DevInfoButton
 import de.connect2x.trixnity.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
@@ -93,8 +88,6 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         var elementHistory by remember { mutableStateOf(listOf<TimelineElementHolderViewModel>()) }
         val firstElement = elementHistory.firstOrNull()
         var lastElement by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
-        val messageElement =
-            lastElement?.element?.collectAsState()?.value as? RoomMessageTimelineElementViewModel.TextBased<*>
         val sender = lastElement?.sender?.collectAsState()?.value
         val reactions = firstElement?.reactions?.collectAsState()?.value
         val readers = firstElement?.readers?.collectAsState()?.value
@@ -122,13 +115,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             error = null,
             onBack = { viewModel.back() },
             backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
-            {
-                Tooltip(i18n.devInfoButtonTooltip()) {
-                    IconButton({ viewModel.openDevInfo() }, Modifier.buttonPointerModifier()) {
-                        Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
-                    }
-                }
-            },
+            { DevInfoButton(viewModel::openDevInfo) },
         ) {
             if (
                 reactions == null ||
