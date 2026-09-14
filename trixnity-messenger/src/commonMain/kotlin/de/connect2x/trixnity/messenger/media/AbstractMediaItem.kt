@@ -3,8 +3,11 @@ package de.connect2x.trixnity.messenger.media
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.AtomicReference
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -14,12 +17,13 @@ import kotlinx.coroutines.sync.withLock
  * This class is the implementation of the part of the media item which handles and helps to commonise the state
  * transitioning and reduces code duplication amongst multiple item implementations.
  */
-abstract class AbstractMediaItem(
+abstract class AbstractMediaItem<T : AbstractMediaItem<T>>(
     private val coroutineScope: CoroutineScope,
     private val operationMutex: Mutex,
-    private val currentItemPlaying: MutableStateFlow<AbstractMediaItem?>,
+    private val currentItemPlaying: MutableStateFlow<T?>,
 ) : MediaItemLifecycleImpl(coroutineScope), MediaPlayer.Item {
     private val isClosed: AtomicBoolean = AtomicBoolean(false)
+    private val closeJob: AtomicReference<Job?> = AtomicReference(null)
 
     override val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaPlayer.Item")
     override val state: MutableStateFlow<MediaPlayer.Item.State> = MutableStateFlow(MediaPlayer.Item.State.Ready)
@@ -34,8 +38,8 @@ abstract class AbstractMediaItem(
     protected abstract suspend fun onPlay(duration: Duration): Result<Unit>
 
     /**
-     * This function seeks the currently-running playback of the media item and is only called when the item is in the
-     * playing state. In order to get a full-featured media player, you MUST implement this.
+     * This function seeks the playback of the media item. In order to get a full-featured media player, you MUST
+     * implement this.
      */
     protected abstract suspend fun onSeekTo(position: Duration)
 
@@ -50,6 +54,10 @@ abstract class AbstractMediaItem(
      * implemented.
      */
     protected open suspend fun onClose() {}
+
+    protected open fun onClosing() {}
+
+    protected open val clearCurrentItemOnClose: Boolean = true
 
     override suspend fun play(): Unit = operationMutex.withLock {
         if (state.value !is MediaPlayer.Item.State.Ready) {
@@ -72,7 +80,8 @@ abstract class AbstractMediaItem(
                 },
                 onSuccess = {
                     log.debug { "Successfully started playback of media item" }
-                    currentItemPlaying.value = this
+                    @Suppress("UNCHECKED_CAST")
+                    currentItemPlaying.value = this as? T
                     state.value = MediaPlayer.Item.State.Playing
                 },
             )
@@ -83,7 +92,7 @@ abstract class AbstractMediaItem(
     override suspend fun seekTo(position: Duration): Unit = operationMutex.withLock {
         if (state.value !is MediaPlayer.Item.State.Playing) {
             elapsedTime.value = position
-            return
+            if (state.value !is MediaPlayer.Item.State.Ready) return
         }
 
         onSeekTo(position)
@@ -95,15 +104,29 @@ abstract class AbstractMediaItem(
         }
 
         log.debug { "Closing media item" }
-        coroutineScope.launch {
-            pause()
-            onClose()
-        }
+        onClosing()
+        val job =
+            coroutineScope.launch(start = CoroutineStart.LAZY) {
+                operationMutex.withLock {
+                    pauseWithoutLock()
+                    if (clearCurrentItemOnClose && currentItemPlaying.value === this@AbstractMediaItem) {
+                        currentItemPlaying.value = null
+                    }
+                }
+                onClose()
+            }
+        closeJob.store(job)
+        job.start()
+    }
+
+    protected suspend fun reopenAfterClose() {
+        closeJob.load()?.join()
+        isClosed.store(false)
     }
 
     protected suspend fun pauseWithoutLock() {
         val itemState = state.value
-        val isInPausableErrorState = (currentItemPlaying.value == this && itemState is MediaPlayer.Item.State.Failed)
+        val isInPausableErrorState = (currentItemPlaying.value === this && itemState is MediaPlayer.Item.State.Failed)
         if (itemState !is MediaPlayer.Item.State.Playing && !isInPausableErrorState) {
             log.error { "Unable to stop playback: Media file is not in the state to be stopped" }
             return
@@ -111,7 +134,6 @@ abstract class AbstractMediaItem(
 
         log.debug { "Pausing playback of media file" }
         onPause()
-        currentItemPlaying.value = null
         if (itemState !is MediaPlayer.Item.State.Failed) state.value = MediaPlayer.Item.State.Ready
     }
 
@@ -119,6 +141,7 @@ abstract class AbstractMediaItem(
         state.value = MediaPlayer.Item.State.Failed(error)
         coroutineScope.launch {
             pause()
+            currentItemPlaying.value = null
             elapsedTime.value = Duration.ZERO
         }
     }

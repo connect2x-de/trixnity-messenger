@@ -19,7 +19,7 @@ import kotlinx.coroutines.sync.Mutex
 
 @OptIn(InternalCoroutinesApi::class)
 internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) : MediaPlayer {
-    override val playingItem: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
+    override val playingItem: MutableStateFlow<MediaItemMock?> = MutableStateFlow(null)
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerMock")
     private val operationMutex: Mutex = Mutex()
 
@@ -61,8 +61,8 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         override val id: String,
         coroutineScope: CoroutineScope,
         operationMutex: Mutex,
-        currentItemPlaying: MutableStateFlow<AbstractMediaItem?>,
-    ) : AbstractMediaItem(coroutineScope, operationMutex, currentItemPlaying) {
+        currentItemPlaying: MutableStateFlow<MediaItemMock?>,
+    ) : AbstractMediaItem<MediaItemMock>(coroutineScope, operationMutex, currentItemPlaying) {
         internal val isClosed: AtomicBoolean = AtomicBoolean(false)
         override val duration: Duration = 10.seconds
 

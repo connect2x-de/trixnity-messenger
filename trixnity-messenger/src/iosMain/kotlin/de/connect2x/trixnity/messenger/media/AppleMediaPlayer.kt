@@ -23,7 +23,7 @@ import platform.CoreMedia.CMTimeGetSeconds
 internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaPlayer")
     private var player: AVPlayer? = null
-    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
+    internal val currentItemPlaying: MutableStateFlow<ApplePlayerItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
@@ -80,7 +80,8 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
 
     override fun close() {}
 
-    @OptIn(ExperimentalForeignApi::class)
+    internal fun isCurrentItem(item: ApplePlayerItem): Boolean = currentItemPlaying.value === item
+
     internal fun <R> withPlayer(item: AVPlayerItem?, closure: (AVPlayer) -> R): R? {
         if (item != null) {
             try {

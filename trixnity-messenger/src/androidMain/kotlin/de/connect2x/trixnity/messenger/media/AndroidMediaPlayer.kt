@@ -15,23 +15,30 @@ import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.concurrent.atomics.AtomicReference
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+
+internal val Player.currentElapsedTime: Duration
+    get() = currentPosition.coerceAtLeast(0).milliseconds
 
 internal class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidMediaPlayer")
     private val controller: ListenableFuture<MediaController>
+    private val retainedItem: AtomicReference<AndroidPlayerItem?> = AtomicReference(null)
 
-    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
+    internal val currentItemPlaying: MutableStateFlow<AndroidPlayerItem?> = MutableStateFlow(null)
     internal val playingItemMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
@@ -41,34 +48,7 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, private val corouti
         val sessionToken = SessionToken(context, ComponentName(context, MediaPlayerService::class.java))
         controller = MediaController.Builder(context, sessionToken).buildAsync()
         controller.addListener(
-            {
-                val mediaController = controller.get()
-                mediaController.addListener(
-                    object : Player.Listener {
-                        override fun onIsPlayingChanged(isPlaying: Boolean) {
-                            val item = currentItemPlaying.value ?: return
-                            try {
-                                val controller = controller.get(10, TimeUnit.SECONDS)
-                                if (controller.playbackState != Player.STATE_ENDED || isPlaying) return
-
-                                coroutineScope.launch {
-                                    item.pause()
-                                    item.elapsedTime.value = Duration.ZERO
-                                }
-                            } catch (ex: TimeoutException) {
-                                log.error(ex) {
-                                    "Failed to acquire media controller: Unable to init player in 10 seconds"
-                                }
-                            }
-                        }
-
-                        override fun onPlayerError(error: PlaybackException) {
-                            val item = currentItemPlaying.value ?: return
-                            item.setError(error.message ?: "Unknown error while playing")
-                        }
-                    }
-                )
-            },
+            { controller.get().let { it.addListener(ControllerEventListener(it)) } },
             ContextCompat.getMainExecutor(context),
         )
     }
@@ -80,63 +60,147 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, private val corouti
         lifecycleScope: CoroutineScope?,
     ): Result<MediaPlayer.Item> {
         check(media is OkioPlatformMedia) { "PlatformMedia is required to be a OkioPlatformMedia" }
-        val playingItem = playingItem.value
-        if (playingItem != null && playingItem.id == id) {
-            playingItem.updateLifecycle(lifecycleScope)
-            return Result.success(playingItem)
-        }
 
-        media
-            .getTemporaryFile()
-            .fold(
-                onFailure = {
-                    log.error(it) { "Unable to open media as temporary file" }
-                    return Result.failure(it)
-                },
-                onSuccess = { tempFile ->
-                    log.debug { "Successfully opened media as temporary file" }
+        retainedItem
+            .load()
+            ?.takeIf { it.id == id }
+            ?.let { item ->
+                if (item.restore(lifecycleScope)) return Result.success(item)
+                release(item)
+            }
 
-                    val retriever = MediaMetadataRetriever()
-                    try {
-                        retriever.setDataSource(tempFile.path.toString())
-                        val duration =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0
-                        if (duration <= 0) {
-                            return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
-                        }
+        currentItemPlaying.value
+            ?.takeIf { it.id == id }
+            ?.let { playingItem ->
+                playingItem.updateLifecycle(lifecycleScope)
+                return Result.success(playingItem)
+            }
 
-                        val playerItem =
-                            AndroidPlayerItem(
-                                id = id,
-                                mimeType = mimeType,
-                                tempFile = tempFile,
-                                coroutineScope = coroutineScope,
-                                player = this@AndroidMediaPlayer,
-                                duration = duration.milliseconds,
-                            )
-
-                        playerItem.updateLifecycle(lifecycleScope)
-                        return Result.success(playerItem)
-                    } catch (ex: Exception) {
-                        return Result.failure(IllegalArgumentException("Illegal media specified", ex))
-                    } finally {
-                        retriever.release()
-                    }
-                },
-            )
+        val tempFile =
+            media.getTemporaryFile().getOrElse {
+                log.error(it) { "Unable to open media as temporary file" }
+                return Result.failure(it)
+            }
+        log.debug { "Successfully opened media as temporary file" }
+        return createPlayerItem(id, mimeType, tempFile, lifecycleScope)
     }
 
     override fun close() {
-        coroutineScope.launch { withMediaController { controller -> controller.clearMediaItems() } }
-        coroutineScope.cancel()
+        currentItemPlaying.value = null
+        coroutineScope.launch {
+            try {
+                withMediaController { controller -> controller.clearMediaItems() }
+            } finally {
+                try {
+                    withContext(NonCancellable) { retainedItem.load()?.let { release(it, forceDelete = true) } }
+                } finally {
+                    coroutineScope.cancel()
+                }
+            }
+        }
+    }
+
+    internal fun isRetained(item: AndroidPlayerItem): Boolean = retainedItem.load() === item
+
+    internal suspend fun retain(item: AndroidPlayerItem) {
+        val previousItem = retainedItem.exchange(item) ?: return
+        if (isRetained(previousItem)) return
+        previousItem.clearRetainedSeekPosition()
+        previousItem.releaseFromController()
     }
 
     internal suspend fun withMediaController(closure: suspend (MediaController) -> Unit): Unit =
         try {
             val controller = withContext(Dispatchers.IO) { controller.get(10, TimeUnit.SECONDS) }
-
             withContext(Dispatchers.Main) { closure(controller) }
         } catch (ex: TimeoutException) {
             log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
         }
+
+    private fun createPlayerItem(
+        id: String,
+        mimeType: String,
+        tempFile: OkioPlatformMedia.TemporaryFile,
+        lifecycleScope: CoroutineScope?,
+    ): Result<MediaPlayer.Item> {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(tempFile.path.toString())
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0
+            if (duration <= 0) {
+                return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
+            }
+
+            val playerItem =
+                AndroidPlayerItem(
+                    id = id,
+                    mimeType = mimeType,
+                    tempFile = tempFile,
+                    coroutineScope = coroutineScope,
+                    player = this,
+                    duration = duration.milliseconds,
+                )
+
+            playerItem.updateLifecycle(lifecycleScope)
+            Result.success(playerItem)
+        } catch (error: Exception) {
+            Result.failure(IllegalArgumentException("Illegal media specified", error))
+        } finally {
+            retriever.release()
+        }
+    }
+
+    private suspend fun release(item: AndroidPlayerItem, forceDelete: Boolean = false) = playingItemMutex.withLock {
+        if (!retainedItem.compareAndSet(item, null)) return@withLock
+        currentItemPlaying.compareAndSet(item, null)
+        item.releaseFromController(forceDelete)
+    }
+
+    private inner class ControllerEventListener(private val mediaController: MediaController) : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            val item = retainedItem.load() ?: return
+            if (isPlaying) {
+                coroutineScope.launch {
+                    if (!isRetained(item)) return@launch
+                    item.synchronizePlayingFromController()
+                }
+                return
+            }
+
+            val playbackEnded = mediaController.playbackState == Player.STATE_ENDED
+            val playbackStopped = mediaController.playbackState == Player.STATE_IDLE
+            if (!playbackEnded && !playbackStopped && mediaController.playWhenReady) return
+
+            coroutineScope.launch {
+                if (!isRetained(item)) return@launch
+                item.synchronizePausedFromController()
+                if (playbackEnded) {
+                    item.elapsedTime.value = Duration.ZERO
+                    release(item)
+                    withMediaController { it.clearMediaItems() }
+                }
+            }
+        }
+
+        override fun onEvents(player: Player, events: Player.Events) {
+            if (events.contains(Player.EVENT_TIMELINE_CHANGED) && player.mediaItemCount == 0) {
+                retainedItem.load()?.let { item ->
+                    coroutineScope.launch {
+                        item.synchronizePausedFromController()
+                        release(item)
+                    }
+                }
+            }
+
+            if (!events.contains(Player.EVENT_POSITION_DISCONTINUITY)) return
+
+            val item = retainedItem.load()?.takeIf { it.mediaId == player.currentMediaItem?.mediaId } ?: return
+            val position = player.currentElapsedTime
+            if (item.confirmControllerPosition(position)) item.elapsedTime.value = position
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            currentItemPlaying.value?.setError(error.message ?: "Unknown error while playing")
+        }
+    }
 }

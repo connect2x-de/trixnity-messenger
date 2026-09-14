@@ -6049,6 +6049,31 @@ abstract class <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessageEv
     open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
 }
 
+abstract class <#A: de.connect2x.trixnity.messenger.media/AbstractMediaItem<#A>> de.connect2x.trixnity.messenger.media/AbstractMediaItem : de.connect2x.trixnity.messenger.media/MediaItemLifecycleImpl, de.connect2x.trixnity.messenger.media/MediaPlayer.Item { // de.connect2x.trixnity.messenger.media/AbstractMediaItem|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineScope, kotlinx.coroutines.sync/Mutex, kotlinx.coroutines.flow/MutableStateFlow<#A?>) // de.connect2x.trixnity.messenger.media/AbstractMediaItem.<init>|<init>(kotlinx.coroutines.CoroutineScope;kotlinx.coroutines.sync.Mutex;kotlinx.coroutines.flow.MutableStateFlow<1:0?>){}[0]
+
+    open val clearCurrentItemOnClose // de.connect2x.trixnity.messenger.media/AbstractMediaItem.clearCurrentItemOnClose|{}clearCurrentItemOnClose[0]
+        open fun <get-clearCurrentItemOnClose>(): kotlin/Boolean // de.connect2x.trixnity.messenger.media/AbstractMediaItem.clearCurrentItemOnClose.<get-clearCurrentItemOnClose>|<get-clearCurrentItemOnClose>(){}[0]
+    open val elapsedTime // de.connect2x.trixnity.messenger.media/AbstractMediaItem.elapsedTime|{}elapsedTime[0]
+        open fun <get-elapsedTime>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.time/Duration?> // de.connect2x.trixnity.messenger.media/AbstractMediaItem.elapsedTime.<get-elapsedTime>|<get-elapsedTime>(){}[0]
+    open val log // de.connect2x.trixnity.messenger.media/AbstractMediaItem.log|{}log[0]
+        open fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.media/AbstractMediaItem.log.<get-log>|<get-log>(){}[0]
+    open val state // de.connect2x.trixnity.messenger.media/AbstractMediaItem.state|{}state[0]
+        open fun <get-state>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.messenger.media/MediaPlayer.Item.State> // de.connect2x.trixnity.messenger.media/AbstractMediaItem.state.<get-state>|<get-state>(){}[0]
+
+    abstract suspend fun onPause() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onPause|onPause(){}[0]
+    abstract suspend fun onPlay(kotlin.time/Duration): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onPlay|onPlay(kotlin.time.Duration){}[0]
+    abstract suspend fun onSeekTo(kotlin.time/Duration) // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onSeekTo|onSeekTo(kotlin.time.Duration){}[0]
+    final suspend fun pauseWithoutLock() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.pauseWithoutLock|pauseWithoutLock(){}[0]
+    final suspend fun reopenAfterClose() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.reopenAfterClose|reopenAfterClose(){}[0]
+    open fun close() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.close|close(){}[0]
+    open fun onClosing() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onClosing|onClosing(){}[0]
+    open suspend fun onClose() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onClose|onClose(){}[0]
+    open suspend fun pause() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.pause|pause(){}[0]
+    open suspend fun play() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.play|play(){}[0]
+    open suspend fun seekTo(kotlin.time/Duration) // de.connect2x.trixnity.messenger.media/AbstractMediaItem.seekTo|seekTo(kotlin.time.Duration){}[0]
+}
+
 abstract class <#A: de.connect2x.trixnity.messenger.settings/Settings<#A>> de.connect2x.trixnity.messenger.settings/SettingsHolderImpl : de.connect2x.trixnity.messenger.settings/SettingsHolder<#A>, kotlinx.coroutines.flow/StateFlow<#A> { // de.connect2x.trixnity.messenger.settings/SettingsHolderImpl|null[0]
     constructor <init>(de.connect2x.trixnity.messenger.settings/SettingsStorage, kotlin/Function1<kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement>, #A>, kotlinx.coroutines.flow/MutableStateFlow<#A?> = ...) // de.connect2x.trixnity.messenger.settings/SettingsHolderImpl.<init>|<init>(de.connect2x.trixnity.messenger.settings.SettingsStorage;kotlin.Function1<kotlin.collections.Map<kotlin.String,kotlinx.serialization.json.JsonElement>,1:0>;kotlinx.coroutines.flow.MutableStateFlow<1:0?>){}[0]
 
@@ -6105,27 +6130,6 @@ abstract class de.connect2x.trixnity.messenger.i18n/I18nBase { // de.connect2x.t
 
         final fun (de.connect2x.trixnity.messenger.i18n/Language).minus(kotlin/String) // de.connect2x.trixnity.messenger.i18n/I18nBase.TranslateBuilder.minus|minus@de.connect2x.trixnity.messenger.i18n.Language(kotlin.String){}[0]
     }
-}
-
-abstract class de.connect2x.trixnity.messenger.media/AbstractMediaItem : de.connect2x.trixnity.messenger.media/MediaItemLifecycleImpl, de.connect2x.trixnity.messenger.media/MediaPlayer.Item { // de.connect2x.trixnity.messenger.media/AbstractMediaItem|null[0]
-    constructor <init>(kotlinx.coroutines/CoroutineScope, kotlinx.coroutines.sync/Mutex, kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.messenger.media/AbstractMediaItem?>) // de.connect2x.trixnity.messenger.media/AbstractMediaItem.<init>|<init>(kotlinx.coroutines.CoroutineScope;kotlinx.coroutines.sync.Mutex;kotlinx.coroutines.flow.MutableStateFlow<de.connect2x.trixnity.messenger.media.AbstractMediaItem?>){}[0]
-
-    open val elapsedTime // de.connect2x.trixnity.messenger.media/AbstractMediaItem.elapsedTime|{}elapsedTime[0]
-        open fun <get-elapsedTime>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.time/Duration?> // de.connect2x.trixnity.messenger.media/AbstractMediaItem.elapsedTime.<get-elapsedTime>|<get-elapsedTime>(){}[0]
-    open val log // de.connect2x.trixnity.messenger.media/AbstractMediaItem.log|{}log[0]
-        open fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.media/AbstractMediaItem.log.<get-log>|<get-log>(){}[0]
-    open val state // de.connect2x.trixnity.messenger.media/AbstractMediaItem.state|{}state[0]
-        open fun <get-state>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.messenger.media/MediaPlayer.Item.State> // de.connect2x.trixnity.messenger.media/AbstractMediaItem.state.<get-state>|<get-state>(){}[0]
-
-    abstract suspend fun onPause() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onPause|onPause(){}[0]
-    abstract suspend fun onPlay(kotlin.time/Duration): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onPlay|onPlay(kotlin.time.Duration){}[0]
-    abstract suspend fun onSeekTo(kotlin.time/Duration) // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onSeekTo|onSeekTo(kotlin.time.Duration){}[0]
-    final suspend fun pauseWithoutLock() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.pauseWithoutLock|pauseWithoutLock(){}[0]
-    open fun close() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.close|close(){}[0]
-    open suspend fun onClose() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.onClose|onClose(){}[0]
-    open suspend fun pause() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.pause|pause(){}[0]
-    open suspend fun play() // de.connect2x.trixnity.messenger.media/AbstractMediaItem.play|play(){}[0]
-    open suspend fun seekTo(kotlin.time/Duration) // de.connect2x.trixnity.messenger.media/AbstractMediaItem.seekTo|seekTo(kotlin.time.Duration){}[0]
 }
 
 abstract class de.connect2x.trixnity.messenger.media/MediaItemLifecycleImpl : de.connect2x.trixnity.messenger.media/MediaItemLifecycle { // de.connect2x.trixnity.messenger.media/MediaItemLifecycleImpl|null[0]
@@ -17735,7 +17739,7 @@ final class de.connect2x.trixnity.messenger.media/WebMediaPlayer : de.connect2x.
 }
 
 // Targets: [js, wasmJs]
-final class de.connect2x.trixnity.messenger.media/WebPlayerItem : de.connect2x.trixnity.messenger.media/AbstractMediaItem { // de.connect2x.trixnity.messenger.media/WebPlayerItem|null[0]
+final class de.connect2x.trixnity.messenger.media/WebPlayerItem : de.connect2x.trixnity.messenger.media/AbstractMediaItem<de.connect2x.trixnity.messenger.media/WebPlayerItem> { // de.connect2x.trixnity.messenger.media/WebPlayerItem|null[0]
     constructor <init>(kotlin/String, de.connect2x.trixnity.client.media/PlatformMedia.TemporaryFile, kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.media/WebMediaPlayer, web.html/Audio) // de.connect2x.trixnity.messenger.media/WebPlayerItem.<init>|<init>(kotlin.String;de.connect2x.trixnity.client.media.PlatformMedia.TemporaryFile;kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.media.WebMediaPlayer;web.html.Audio){}[0]
 
     final val duration // de.connect2x.trixnity.messenger.media/WebPlayerItem.duration|{}duration[0]

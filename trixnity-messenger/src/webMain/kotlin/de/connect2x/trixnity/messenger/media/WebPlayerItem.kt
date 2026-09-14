@@ -30,7 +30,7 @@ class WebPlayerItem(
     private val coroutineScope: CoroutineScope,
     private val player: WebMediaPlayer,
     private val audio: Audio,
-) : AbstractMediaItem(coroutineScope, player.playerMutex, player.currentItemPlaying) {
+) : AbstractMediaItem<WebPlayerItem>(coroutineScope, player.playerMutex, player.currentItemPlaying) {
     override val duration: Duration = audio.duration.seconds
     private var updateJob: Job? = null
 
