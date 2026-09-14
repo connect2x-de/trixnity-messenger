@@ -81,6 +81,10 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
                             TODO("Not yet implemented")
                         }
 
+                        override suspend fun logoutAll(): Map<UserId, Result<Unit>> {
+                            TODO("Not yet implemented")
+                        }
+
                         override suspend fun remove(userId: UserId): Result<Unit> {
                             TODO("Not yet implemented")
                         }

@@ -49,6 +49,8 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable, W
 
     suspend fun logout(userId: UserId): Result<Unit>
 
+    suspend fun logoutAll(): Map<UserId, Result<Unit>>
+
     suspend fun remove(userId: UserId): Result<Unit>
 
     sealed interface CreateResult {
@@ -263,6 +265,10 @@ class MatrixClientsImpl(
                 matrixClient.logout().fold(onSuccess = { remove(userId) }, onFailure = { remove(userId) })
             }
         } ?: Result.success(Unit)
+    }
+
+    override suspend fun logoutAll(): Map<UserId, Result<Unit>> {
+        return matrixClients.value.mapValues { logout(it.key) }
     }
 
     override suspend fun remove(userId: UserId): Result<Unit> = mutex.withLock { unsafeRemove(userId) }

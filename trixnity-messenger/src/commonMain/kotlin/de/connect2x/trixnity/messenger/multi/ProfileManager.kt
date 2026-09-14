@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.debug
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.settings.MutableSettings
 import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
@@ -137,11 +139,31 @@ class ProfileManagerImpl(
             it.copy(profiles = oldProfiles + (profile to MatrixMultiMessengerProfileSettings(newProfileSettings)))
         }
 
+    private suspend fun logoutAllClients(clients: MatrixClients) {
+        clients.logoutAll().forEach { (userId, logoutResult) ->
+            logoutResult.fold(
+                { log.debug { "Successfully logged out account $userId" } },
+                {
+                    log.debug(it) {
+                        "Couldn't log out of client with id $userId during profile deletion. This is expected when the profile can't be accessed without providing additional verification e.g. a PIN"
+                    }
+                },
+            )
+        }
+    }
+
     override fun deleteProfile(profile: String) {
         coroutineScope
             .launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
                 log.debug { "delete profile $profile" }
-                if (activeProfile.value == profile) closeProfileSuspending()
+                // Only logout on active profile
+                if (activeProfile.value == profile) {
+                    log.debug { "Profile $profile is the active profile, logging out" }
+                    activeMatrixMessenger.value?.di?.get<MatrixClients>()?.let { logoutAllClients(it) }
+                    closeProfileSuspending()
+                } else {
+                    log.debug { "Profile $profile is not the active profile, so no logout will be initiated" }
+                }
                 withContext(NonCancellable) {
                     settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                         oldSettings.copy(
@@ -151,6 +173,7 @@ class ProfileManagerImpl(
                         )
                     }
                     deleteProfileData(profile)
+                    log.debug { "finished deletion of profile $profile" }
                 }
             }
     }

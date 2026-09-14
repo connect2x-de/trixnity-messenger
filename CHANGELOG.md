@@ -11,6 +11,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- SDK: Logout clients on active profile deletion
+
 ### Deprecated
 
 ### Removed

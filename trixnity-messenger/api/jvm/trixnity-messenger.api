@@ -267,6 +267,7 @@ public abstract interface class de/connect2x/trixnity/messenger/MatrixClients : 
 	public abstract fun getInitFromStoreResult ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isInitialized ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun logout-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun logoutAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun remove-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -377,6 +378,7 @@ public final class de/connect2x/trixnity/messenger/MatrixClientsImpl : de/connec
 	public fun getValue ()Ljava/util/Map;
 	public fun isInitialized ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun logout-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun logoutAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun remove-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

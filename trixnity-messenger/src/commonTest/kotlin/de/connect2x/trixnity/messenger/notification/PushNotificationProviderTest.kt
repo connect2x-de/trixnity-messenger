@@ -106,6 +106,10 @@ class PushNotificationProviderTest {
                     TODO("Not yet implemented")
                 }
 
+                override suspend fun logoutAll(): Map<UserId, Result<Unit>> {
+                    TODO("Not yet implemented")
+                }
+
                 override fun close() {
                     TODO("Not yet implemented")
                 }

@@ -336,6 +336,71 @@ class MatrixClientsTest {
     }
 
     @Test
+    fun `logoutAll » logout all matrix clients`() = runTest {
+        val cut = createCut()
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
+        settings.create(userId2, MatrixMessengerAccountSettingsBase())
+        mutableMatrixClients.value = mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
+        var logoutCalled2 = false
+
+        everySuspend { matrixClientMock2.logout() } calls
+            {
+                logoutCalled2 = true
+                Result.success(Unit)
+            }
+
+        cut.logoutAll() shouldBe mapOf(userId1 to Result.success(Unit), userId2 to Result.success(Unit))
+        cut.value shouldBe emptyMap()
+        logoutCalled shouldBe true
+        logoutCalled2 shouldBe true
+
+        settings.value.base.accounts.keys shouldBe setOf()
+        verifySuspend {
+            matrixClientMock1.closeSuspending()
+            deleteAccountData.invoke(userId1)
+        }
+        verifySuspend {
+            matrixClientMock2.closeSuspending()
+            deleteAccountData.invoke(userId2)
+        }
+    }
+
+    @Test
+    fun `logoutAll » logout all matrix clients even when one fails`() = runTest {
+        val cut = createCut()
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
+        settings.create(userId2, MatrixMessengerAccountSettingsBase())
+        mutableMatrixClients.value = mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
+        var logoutCalled2 = false
+
+        everySuspend { matrixClientMock1.logout() } calls
+            {
+                logoutCalled = true
+                Result.failure(Exception())
+            }
+        everySuspend { matrixClientMock2.logout() } calls
+            {
+                logoutCalled2 = true
+                Result.success(Unit)
+            }
+
+        cut.logoutAll() shouldBe mapOf(userId1 to Result.success(Unit), userId2 to Result.success(Unit))
+        cut.value shouldBe emptyMap()
+        logoutCalled shouldBe true
+        logoutCalled2 shouldBe true
+
+        settings.value.base.accounts.keys shouldBe setOf()
+        verifySuspend {
+            matrixClientMock1.closeSuspending()
+            deleteAccountData.invoke(userId1)
+        }
+        verifySuspend {
+            matrixClientMock2.closeSuspending()
+            deleteAccountData.invoke(userId2)
+        }
+    }
+
+    @Test
     fun `external logout » remove matrix client`() = runTest {
         val cut = createCut()
         backgroundScope.launch { cut.doWork() }
