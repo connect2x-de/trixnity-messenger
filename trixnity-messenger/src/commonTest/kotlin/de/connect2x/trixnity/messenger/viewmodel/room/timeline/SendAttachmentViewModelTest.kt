@@ -11,6 +11,7 @@ import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.store.ServerData
 import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
 import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -59,6 +60,7 @@ class SendAttachmentViewModelTest {
     private val matrixClientMock: MatrixClient = mock()
     private val roomServiceMock: RoomService = mock()
     private val mediaServiceMock: MediaService = mock()
+    @OptIn(MSC4143::class)
     private val serverData: MutableStateFlow<ServerData> =
         MutableStateFlow(
             ServerData(

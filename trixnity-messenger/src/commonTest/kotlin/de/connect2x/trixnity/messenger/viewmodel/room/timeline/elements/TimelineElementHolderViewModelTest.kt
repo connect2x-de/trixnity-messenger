@@ -18,6 +18,7 @@ import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
 import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
 import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -94,6 +95,7 @@ import kotlinx.serialization.json.buildJsonObject
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
+@OptIn(MSC4143::class)
 @Suppress("NonAsciiCharacters")
 class TimelineElementHolderViewModelTest {
     private val roomId = RoomId("!room1")
