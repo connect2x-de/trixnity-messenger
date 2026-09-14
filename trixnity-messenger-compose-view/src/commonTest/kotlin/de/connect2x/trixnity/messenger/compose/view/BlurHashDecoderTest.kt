@@ -95,6 +95,11 @@ class BlurHashDecoderTest {
     }
 
     @Test
+    fun shouldRejectAnInvalidBase83Character() {
+        testInvalidFixture("00000!")
+    }
+
+    @Test
     fun shouldDecodeToAWiderAspectRatioThanTheComponentGrid() {
         testFixture(wideFixture)
     }

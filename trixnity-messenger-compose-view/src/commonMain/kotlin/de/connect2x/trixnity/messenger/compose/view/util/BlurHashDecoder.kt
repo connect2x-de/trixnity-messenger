@@ -33,7 +33,7 @@ import kotlin.math.withSign
 object BlurHashDecoder {
     /** Decode a blur hash into a new bitmap. */
     fun decode(blurHash: String?, intrinsicSize: IntSize?, punch: Float = 1f): ImageBitmap? {
-        if (blurHash == null || blurHash.length < 6) {
+        if (blurHash == null || blurHash.length < 6 || !Base83.isValid(blurHash)) {
             return null
         }
         val numCompEnc = Base83.decode(blurHash, 0, 1)
@@ -118,6 +118,11 @@ object BlurHashDecoder {
                 }
             }
             return result
+        }
+
+        @Suppress("PropertyUsedBeforeDeclaration")
+        fun isValid(str: String): Boolean {
+            return str.all { it in charMap }
         }
 
         private val charMap =
