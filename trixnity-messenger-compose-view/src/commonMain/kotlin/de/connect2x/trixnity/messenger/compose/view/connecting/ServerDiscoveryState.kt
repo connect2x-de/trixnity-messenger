@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
-import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -182,7 +182,7 @@ private fun ClassicLoginItems(
                     onClick = { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) },
                     isPrimary = false,
                 ) {
-                    val icon = type.icon?.toImageBitmap()
+                    val icon = rememberImageBitmapOrNull(type.icon)
                     if (icon != null) Image(icon, i18n.loginWithSSO(providerName), Modifier.fillMaxHeight())
                     else Icon(Icons.Default.Web, i18n.loginWithSSO(providerName), Modifier.fillMaxHeight())
                     Text(i18n.loginWithSSO(providerName))

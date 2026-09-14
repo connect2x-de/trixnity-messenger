@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.DownloadProgress
-import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
@@ -87,13 +87,7 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(Modifier.zIndex(0.0f)) {
                 with(LocalDensity.current) {
-                    val bitmap =
-                        remember(media) {
-                            media?.toImageBitmap(
-                                width = this@BoxWithConstraints.maxWidth.roundToPx(),
-                                height = this@BoxWithConstraints.maxHeight.roundToPx(),
-                            )
-                        }
+                    val bitmap = rememberImageBitmapOrNull(media)
                     Box(
                         Modifier.fillMaxSize()
                             .focusRequester(focusRequester)

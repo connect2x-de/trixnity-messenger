@@ -16,16 +16,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
@@ -34,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
-import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
@@ -62,7 +56,6 @@ class SendAttachmentViewImpl : SendAttachmentView {
         val isImage = sendAttachmentViewModel.isImage
         val isVideo = sendAttachmentViewModel.isVideo
         val isAudio = sendAttachmentViewModel.isAudio
-        var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
         val fileContent = sendAttachmentViewModel.previewFileContent.collectAsState().value
         val messengerConfiguration = DI.get<MatrixMessengerConfiguration>()
 
@@ -82,7 +75,12 @@ class SendAttachmentViewImpl : SendAttachmentView {
                     when {
                         isImage ?: false -> {
                             if (fileContent != null) {
-                                LaunchedEffect(isImage) { imageBitmap = fileContent.toImageBitmap() }
+                                val imageBitmap =
+                                    if (isImage) {
+                                        rememberImageBitmapOrNull(fileContent)
+                                    } else {
+                                        null
+                                    }
                                 imageBitmap?.let {
                                     Image(
                                         it,

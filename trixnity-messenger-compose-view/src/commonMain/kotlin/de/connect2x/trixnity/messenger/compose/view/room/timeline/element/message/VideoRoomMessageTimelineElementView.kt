@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.FileName
-import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -136,21 +136,11 @@ internal fun ColumnScope.VideoMessageContent(
 ) {
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
+    val bitmap = rememberImageBitmapOrNull(thumbnail)
 
     Box {
-        thumbnail?.toImageBitmap()?.let {
-            Image(
-                it,
-                "",
-                Modifier.heightIn(50.dp, with(LocalDensity.current) { 300.dp })
-                    .padding(3.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .openVideoOnTouch(element, onSave, showMenuAction)
-                    .buttonPointerModifier(),
-                contentScale = ContentScale.Fit,
-            )
-        }
-            ?: Column(
+        if (bitmap == null) {
+            Column(
                 Modifier.width(IntrinsicSize.Max).padding(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -161,6 +151,18 @@ internal fun ColumnScope.VideoMessageContent(
                 )
                 FileName(element.name)
             }
+        } else {
+            Image(
+                bitmap,
+                "",
+                Modifier.heightIn(50.dp, with(LocalDensity.current) { 300.dp })
+                    .padding(3.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .openVideoOnTouch(element, onSave, showMenuAction)
+                    .buttonPointerModifier(),
+                contentScale = ContentScale.Fit,
+            )
+        }
     }
 }
 
@@ -186,10 +188,21 @@ internal fun VideoReplyElement(
         interactionSource = interactionSource,
         content = {
             Column {
-                videoImage?.toImageBitmap()?.let { videoImage ->
+                val bitmap = rememberImageBitmapOrNull(videoImage)
+
+                if (bitmap == null) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            MaterialTheme.messengerIcons.typeVideo,
+                            i18n.commonVideo(),
+                            modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
+                        )
+                        FileName(element.name)
+                    }
+                } else {
                     Box {
                         Image(
-                            videoImage,
+                            bitmap,
                             "",
                             Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.Fit,
@@ -202,16 +215,7 @@ internal fun VideoReplyElement(
                         )
                     }
                 }
-                    ?: run {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                MaterialTheme.messengerIcons.typeVideo,
-                                i18n.commonVideo(),
-                                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
-                            )
-                            FileName(element.name)
-                        }
-                    }
+
                 if (element.hasCaption) {
                     TextReply(element, maxLines = 2)
                 }

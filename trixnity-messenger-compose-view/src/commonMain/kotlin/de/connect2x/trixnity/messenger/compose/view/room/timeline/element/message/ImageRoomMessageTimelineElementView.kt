@@ -25,9 +25,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -40,7 +43,7 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.FileName
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.customClickable
-import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -55,12 +58,13 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.trixnity.messenger.compose.view.util.animateImage
 import de.connect2x.trixnity.messenger.compose.view.util.ifNotNull
-import de.connect2x.trixnity.messenger.compose.view.util.rememberComputation
 import de.connect2x.trixnity.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
 import kotlin.reflect.KClass
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 interface ImageRoomMessageTimelineElementView : TimelineElementView<Image>
@@ -262,14 +266,20 @@ private fun rememberFallbackPainter(element: Image): Painter? {
         element.thumbnailWidth?.let { width -> element.thumbnailHeight?.let { height -> IntSize(width, height) } }
             ?: element.width?.let { width -> element.height?.let { height -> IntSize(width, height) } }
 
-    return rememberComputation(element.blurhash, thumbnailSize) {
-        BlurHashDecoder.decode(element.blurhash, thumbnailSize)?.let { BitmapPainter(it) }
-    }
+    val bitmap =
+        produceState<ImageBitmap?>(initialValue = null, element.blurhash, thumbnailSize) {
+                value = withContext(Dispatchers.Default) { BlurHashDecoder.decode(element.blurhash, thumbnailSize) }
+            }
+            .value ?: return null
+
+    return remember(bitmap) { BitmapPainter(bitmap) }
 }
 
 @OptIn(MSC2448::class)
 @Composable
 private fun rememberImagePainter(element: Image): Painter? {
     val thumbnail = element.thumbnail.collectAsState().value
-    return rememberComputation(thumbnail) { thumbnail?.toImageBitmap()?.let { BitmapPainter(it) } }
+    val bitmap = rememberImageBitmapOrNull(thumbnail) ?: return null
+
+    return remember(bitmap) { BitmapPainter(bitmap) }
 }

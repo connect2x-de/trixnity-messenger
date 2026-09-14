@@ -61,7 +61,7 @@ internal constructor(
         val buffer = canvas.toBlob()?.arrayBufferAsync()?.await() ?: return null
         document.getElementById(ElementId("pdf-canvas-page-$pageIndex"))?.remove()
 
-        return Uint8Array(buffer).toByteArray().toImageBitmap()
+        return Uint8Array(buffer).toByteArray().decodeToImageBitmapOrNull()
     }
 
     private fun getOrCreatePageCanvas(pageId: Int): HTMLCanvasElement {

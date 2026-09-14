@@ -30,18 +30,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementContainer
@@ -54,10 +51,13 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.utils.toByteArray
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 interface ShareDataView {
     @Composable fun create(viewModel: ShareDataViewModel)
@@ -158,9 +158,11 @@ private fun ShareTextRow(text: String) {
 
 @Composable
 private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long) {
-    var image by remember { mutableStateOf<ImageBitmap?>(null) }
-
-    LaunchedEffect(icon) { icon?.content?.toByteArray(maxMediaSize)?.also { image = it.toImageBitmap() } }
+    val bytes by
+        produceState<ByteArray?>(initialValue = null, icon, maxMediaSize) {
+            value = withContext(Dispatchers.IOOrDefault) { icon?.content?.toByteArray(maxMediaSize) }
+        }
+    val bitmap = rememberImageBitmapOrNull(bytes)
 
     Row(
         horizontalArrangement = Arrangement.Start,
@@ -172,22 +174,21 @@ private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long)
                     modifier =
                         Modifier.aspectRatio(1.0f).fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer)
                 ) {
-                    image?.let {
+                    if (bitmap == null) {
+                        Icon(
+                            Icons.Default.Public,
+                            contentDescription = null,
+                            modifier = Modifier.align(Alignment.Center),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        )
+                    } else {
                         Image(
-                            it,
+                            bitmap,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.align(Alignment.Center),
                         )
                     }
-                        ?: run {
-                            Icon(
-                                Icons.Default.Public,
-                                contentDescription = null,
-                                modifier = Modifier.align(Alignment.Center),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                            )
-                        }
                 }
                 Column(
                     verticalArrangement = Arrangement.Center,
