@@ -9,10 +9,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- SDK: Add Test fixtures for BlurHash decoding
+
 ### Changed
 
 - DEPENDENCY: Update Trixnity to 5.9.1
 - SDK: Logout clients on active profile deletion
+- SDK: Commonize ImageBitmap creation
 
 ### Deprecated
 
@@ -22,6 +25,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - UI: Seeking an audio message before playing is not possible
 - UI: Closing a room causes the external media controls to disappear on Android
+- SDK: Validate BlurHash encoding
 
 ### Security
 

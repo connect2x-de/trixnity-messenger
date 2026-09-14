@@ -1039,10 +1039,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/files/CameraDial
 	public static fun values ()[Lde/connect2x/trixnity/messenger/compose/view/files/CameraDialogCapturingMode;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/files/CreateImageBitmapKt {
-	public static final fun createImageBitmap (IILkotlin/jvm/functions/Function2;)Landroidx/compose/ui/graphics/ImageBitmap;
-}
-
 public final class de/connect2x/trixnity/messenger/compose/view/files/Dialogs_androidKt {
 	public static final fun CameraDialog (Lde/connect2x/trixnity/messenger/compose/view/files/CameraDialogCapturingMode;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun LoadFileDialog (Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
@@ -1057,14 +1053,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/files/EmptyFileL
 
 public final class de/connect2x/trixnity/messenger/compose/view/files/GetClipboardFile_androidKt {
 	public static final fun getClipboardFile (Lokio/FileSystem;J)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/files/ImageBitmapFromBytesKt {
-	public static final fun toImageBitmap ([B)Landroidx/compose/ui/graphics/ImageBitmap;
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/files/ImageBitmapFromBytes_androidKt {
-	public static final fun toImageBitmap ([BII)Landroidx/compose/ui/graphics/ImageBitmap;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/files/NotPasteableException : java/lang/IllegalArgumentException {

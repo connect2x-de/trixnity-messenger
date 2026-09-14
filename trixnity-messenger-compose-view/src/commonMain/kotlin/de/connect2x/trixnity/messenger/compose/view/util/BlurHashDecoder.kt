@@ -18,11 +18,13 @@
  */
 package de.connect2x.trixnity.messenger.compose.view.util
 
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.unit.IntSize
-import de.connect2x.trixnity.messenger.compose.view.files.createImageBitmap
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.pow
@@ -31,7 +33,7 @@ import kotlin.math.withSign
 object BlurHashDecoder {
     /** Decode a blur hash into a new bitmap. */
     fun decode(blurHash: String?, intrinsicSize: IntSize?, punch: Float = 1f): ImageBitmap? {
-        if (blurHash == null || blurHash.length < 6) {
+        if (blurHash == null || blurHash.length < 6 || !Base83.isValid(blurHash)) {
             return null
         }
         val numCompEnc = Base83.decode(blurHash, 0, 1)
@@ -116,6 +118,11 @@ object BlurHashDecoder {
                 }
             }
             return result
+        }
+
+        @Suppress("PropertyUsedBeforeDeclaration")
+        fun isValid(str: String): Boolean {
+            return str.all { it in charMap }
         }
 
         private val charMap =
@@ -207,4 +214,37 @@ object BlurHashDecoder {
                 .mapIndexed { i, c -> c to i }
                 .toMap()
     }
+}
+
+/**
+ * Creates an image by evaluating [drawPixel] once per pixel.
+ *
+ * Throws IllegalArgumentException for invalid or oversized dimensions.
+ */
+private inline fun createImageBitmap(width: Int, height: Int, drawPixel: (Int, Int) -> Color): ImageBitmap {
+    require(width > 0 && height > 0) { "Image dimensions must be positive: ${width}x${height}" }
+    require(width.toLong() * height <= Int.MAX_VALUE / 4L) { "Image is too large: ${width}x${height}" }
+
+    val bitmap = ImageBitmap(width, height)
+    val canvas = Canvas(bitmap)
+    val paint =
+        Paint().apply {
+            isAntiAlias = false
+            blendMode = BlendMode.Src
+        }
+
+    for (y in 0 until height) {
+        for (x in 0 until width) {
+            paint.color = drawPixel(x, y)
+            canvas.drawRect(
+                left = x.toFloat(),
+                top = y.toFloat(),
+                right = (x + 1).toFloat(),
+                bottom = (y + 1).toFloat(),
+                paint = paint,
+            )
+        }
+    }
+
+    return bitmap
 }

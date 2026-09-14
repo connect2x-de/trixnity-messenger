@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +37,7 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.MoonShape
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.pieSlice
-import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.SystemDensity
@@ -102,7 +101,7 @@ fun ThemedUserAvatar(
     modifier: Modifier = Modifier,
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
-    val bitmap = remember(image) { image?.toImageBitmap() }
+    val bitmap = rememberImageBitmapOrNull(image)
     ThemedUserAvatarBase(presence, size, style, modifier, overlay) {
         if (bitmap != null) {
             AvatarContentImage(bitmap, size)
@@ -122,7 +121,7 @@ fun ThemedUserAvatarStack(
     modifier: Modifier = Modifier,
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
-    val bitmaps = remember(images) { images.mapNotNull { image -> image?.toImageBitmap() } }
+    val bitmaps = images.mapNotNull { rememberImageBitmapOrNull(it) }
     ThemedUserAvatarBase(presence, size, style, modifier, overlay) {
         if (bitmaps.isNotEmpty()) {
             AvatarContentImageStack(bitmaps, size)
