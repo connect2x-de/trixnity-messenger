@@ -18,6 +18,7 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verify.VerifyMode.Companion.exactly
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.maps.shouldHaveSize
@@ -66,7 +67,7 @@ class MultiMessengerProfilesIT {
     }
 
     @Test
-    fun `should initiate logout of all accounts associated with a profile on deletion`() = runTest {
+    fun `should initiate logout of all accounts associated with the active profile on deletion`() = runTest {
         everySuspend { matrixClientsMock.logoutAll() } returns emptyMap()
         every { matrixClientsMock.isInitialized } returns MutableStateFlow(true)
         everySuspend { matrixClientsMock.collect(any()) } calls
@@ -86,11 +87,12 @@ class MultiMessengerProfilesIT {
         multiMessenger.profiles.value shouldHaveSize 2
         multiMessenger.selectProfile(profile1)
 
-        // Delete non active profile
+        // Delete non active profile with no logout expected
         delay(1.seconds)
         multiMessenger.activeMatrixMessenger.value shouldNotBe null
         multiMessenger.deleteProfile(profile2)
         delay(1.seconds)
+        verifySuspend(VerifyMode.not) { matrixClientsMock.logoutAll() }
 
         // Delete active profile
         multiMessenger.deleteProfile(profile1)
@@ -99,7 +101,7 @@ class MultiMessengerProfilesIT {
         multiMessenger.activeMatrixMessenger.value.shouldBeNull()
         multiMessenger.activeProfile.value.shouldBeNull()
 
-        verifySuspend(exactly(2)) { matrixClientsMock.logoutAll() }
+        verifySuspend(exactly(1)) { matrixClientsMock.logoutAll() }
     }
 
     suspend fun TestScope.createTestMatrixMultiMessenger(

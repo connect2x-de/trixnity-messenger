@@ -156,14 +156,13 @@ class ProfileManagerImpl(
         coroutineScope
             .launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
                 log.debug { "delete profile $profile" }
+                // Only logout on active profile
                 if (activeProfile.value == profile) {
+                    log.debug { "Profile $profile is the active profile, logging out" }
                     activeMatrixMessenger.value?.di?.get<MatrixClients>()?.let { logoutAllClients(it) }
                     closeProfileSuspending()
                 } else {
-                    matrixMessengerFactory(profile).apply {
-                        logoutAllClients(this.di.get<MatrixClients>())
-                        closeSuspending()
-                    }
+                    log.debug { "Profile $profile is not the active profile, so no logout will be initiated" }
                 }
                 withContext(NonCancellable) {
                     settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
