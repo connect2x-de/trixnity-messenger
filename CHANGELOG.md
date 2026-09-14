@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- DEPENDENCY: Update Trixnity to 5.9.0
 - SDK: Logout clients on active profile deletion
 
 ### Deprecated
@@ -28,7 +29,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
-- DEPENDENCY: Update Trixnity to 5.8.0
+- DEPENDENCY: Update Trixnity to 5.8.1
 
 ### Removed
 
