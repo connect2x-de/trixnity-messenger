@@ -11,7 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
-- DEPENDENCY: Update Trixnity to 5.9.0
+- DEPENDENCY: Update Trixnity to 5.9.1
 - SDK: Logout clients on active profile deletion
 
 ### Deprecated
@@ -56,7 +56,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - CI, INTERNAL: Enabled more detekt linting rules
 - SDK,UI: Add better error handling with UI feedback to the `AudioRecorder` API
 - SDK,UI: Experimental androidx.navigation3 support
-- SDK: Add `GetAccountProfileDisplayName` and `rememberAccountProfileDisplayName` to acquire the username from a logged-in `MatrixClient`
+- SDK: Add `GetAccountProfileDisplayName` and `rememberAccountProfileDisplayName` to acquire the username from a
+  logged-in `MatrixClient`
 - SDK,UI: Add `CopyableUserId` providing a selectable text especially for user MXIDs over the DI
 - SDK,UI: Add `UserIdText` providing text components especially for user MXIDs over the DI
 - SDK,UI: Add `TwoPaneScenePlaceholder` displayed in the second pane when no room is opened
