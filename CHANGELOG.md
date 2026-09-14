@@ -9,6 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- SDK: Add Test fixtures for BlurHash decoding
+
 ### Changed
 
 - DEPENDENCY: Update Trixnity to 5.9.0
