@@ -33,7 +33,7 @@ internal class ApplePlayerItem(
     private val tempFile: OkioPlatformMedia.TemporaryFile,
     private val coroutineScope: CoroutineScope,
     private val player: AppleMediaPlayer,
-) : AbstractMediaItem(coroutineScope, player.playerMutex, player.currentItemPlaying) {
+) : AbstractMediaItem<ApplePlayerItem>(coroutineScope, player.playerMutex, player.currentItemPlaying) {
     private var playerItem: AVPlayerItem = AVPlayerItem.playerItemWithAsset(asset)
     private var playFailedObserver: NSObjectProtocol? = null
     private var playEndObserver: NSObjectProtocol? = null
@@ -124,9 +124,11 @@ internal class ApplePlayerItem(
     }
 
     private fun onSeekToNotBlocking(position: Duration) {
-        player.withPlayer(null) { player ->
+        if (!player.isCurrentItem(this)) return
+
+        player.withPlayer(null) { applePlayer ->
             val time = CMTimeMake(position.inWholeMilliseconds, 1000)
-            player.seekToTime(time)
+            applePlayer.seekToTime(time)
         }
     }
 }

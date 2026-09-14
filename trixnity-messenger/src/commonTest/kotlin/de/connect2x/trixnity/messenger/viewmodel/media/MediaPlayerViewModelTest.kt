@@ -57,7 +57,7 @@ class MediaPlayerViewModelTest {
         cut.pause()
         delay(100.milliseconds)
         cut.state.value shouldBe MediaPlayerViewModel.State.Ready
-        mediaPlayer.playingItem.value shouldBe null
+        mediaPlayer.playingItem.value shouldNotBe null
     }
 
     @Test
@@ -160,7 +160,7 @@ class MediaPlayerViewModelTest {
         // Pause the playback and validate (with close test)
         cut2.pause()
         delay(100.milliseconds)
-        mediaPlayer.playingItem.value shouldNotBe playingItem
+        mediaPlayer.playingItem.value shouldBe playingItem
         cut2.state.value shouldBe MediaPlayerViewModel.State.Ready
 
         secondLifecycle.destroy()

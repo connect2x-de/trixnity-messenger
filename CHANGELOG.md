@@ -17,6 +17,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI: Seeking an audio message before playing is not possible
+- UI: Closing a room causes the external media controls to disappear on Android
+
 ### Security
 
 ## 4.10.1

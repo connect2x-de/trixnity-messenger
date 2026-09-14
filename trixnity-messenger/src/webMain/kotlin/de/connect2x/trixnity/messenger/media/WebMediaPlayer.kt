@@ -57,7 +57,7 @@ class WebMediaPlayer(private val audioContext: AudioContext, private val corouti
             type = Event.ERROR,
             handler = EventHandler { log.error { "Unexpected media player error" } },
         )
-    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
+    internal val currentItemPlaying: MutableStateFlow<WebPlayerItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
@@ -163,7 +163,7 @@ class WebMediaPlayer(private val audioContext: AudioContext, private val corouti
         }
     }
 
-    private suspend fun seekByOffset(item: AbstractMediaItem, offset: Double?) {
+    private suspend fun seekByOffset(item: WebPlayerItem, offset: Double?) {
         val elapsedTime = item.elapsedTime.value
         if (offset != null && elapsedTime != null) {
             item.seekTo(elapsedTime + offset.seconds)

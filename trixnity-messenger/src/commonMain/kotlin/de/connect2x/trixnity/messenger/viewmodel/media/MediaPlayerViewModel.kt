@@ -93,56 +93,20 @@ class MediaPlayerViewModelImpl(
     init {
         coroutineScope.launch {
             mutex.withLock {
-                player?.playingItem?.let { item ->
-                    val itemValue = item.value
-
-                    // In this case, we acquire the media only when the currently played media's id is equal to the id
-                    // of the viewmodel. So this only calls open, which in this case returns the media being currently
-                    // played.
-                    if (itemValue != null && id == itemValue.id) {
-                        acquireMedia()
-                            .fold(
-                                onFailure = {
-                                    log.error(it) { "Unable to download media" }
-                                    val message = it.message ?: "Unable to download media"
-                                    state.value = MediaPlayerViewModel.State.Failure(message)
-                                },
-                                onSuccess = { this@MediaPlayerViewModelImpl.item.value = it },
-                            )
-                    }
+                if (player?.playingItem?.value?.id == id) {
+                    acquireMedia().fold(onFailure = ::handleAcquireFailure, onSuccess = { item.value = it })
                 }
             }
         }
     }
 
     override fun play() {
-        coroutineScope.launch {
-            mutex.withLock {
-                if (item.value == null) {
-                    log.debug { "Media item is not present, downloading item" }
-                    acquireMedia()
-                        .fold(
-                            onFailure = {
-                                log.error(it) { "Unable to download media" }
-                                val message = it.message ?: "Unable to download media"
-                                state.value = MediaPlayerViewModel.State.Failure(message)
-                                return@launch
-                            },
-                            onSuccess = {
-                                log.debug { "Successfully downloaded media" }
-                                item.value = it
-                            },
-                        )
-                }
-
-                item.value?.play()
-            }
-        }
+        coroutineScope.launch { mutex.withLock { acquireMediaItemIfAbsent()?.play() } }
     }
 
     override fun pause() {
         if (item.value == null) {
-            log.error { "Unable to start playback of media file because the media player is not present" }
+            log.error { "Unable to pause playback of media file because the media item is not present" }
             return
         }
 
@@ -150,26 +114,42 @@ class MediaPlayerViewModelImpl(
     }
 
     override fun seekTo(position: Duration) {
-        coroutineScope.launch { mutex.withLock { item.value?.seekTo(position) } }
+        coroutineScope.launch { mutex.withLock { acquireMediaItemIfAbsent()?.seekTo(position) } }
     }
 
     override fun close() {
         coroutineScope.launch { mutex.withLock { item.value?.close() } }
     }
 
-    private suspend fun acquireMedia(): Result<MediaPlayer.Item?> =
-        acquireFile()
-            .fold(
-                onFailure = { Result.failure(it) },
-                onSuccess = {
-                    val item = player?.open(id, it, mimeType, coroutineScope) ?: Result.success(null)
-                    if (item.isSuccess) {
-                        item.getOrNull()?.let { item -> listenForItemState(item) }
-                    }
+    private suspend fun acquireMediaItemIfAbsent(): MediaPlayer.Item? {
+        item.value?.let {
+            return it
+        }
 
-                    return item
+        log.debug { "Media item is not present, downloading item" }
+        return acquireMedia()
+            .fold(
+                onFailure = {
+                    handleAcquireFailure(it)
+                    null
+                },
+                onSuccess = {
+                    log.debug { "Successfully downloaded media" }
+                    item.value = it
+                    it
                 },
             )
+    }
+
+    private suspend fun acquireMedia(): Result<MediaPlayer.Item?> =
+        acquireFile().mapCatching { media ->
+            player?.open(id, media, mimeType, coroutineScope)?.getOrThrow()?.also(::listenForItemState)
+        }
+
+    private fun handleAcquireFailure(cause: Throwable) {
+        log.error(cause) { "Unable to download media" }
+        state.value = MediaPlayerViewModel.State.Failure(cause.message ?: "Unable to download media")
+    }
 
     private fun listenForItemState(item: MediaPlayer.Item) {
         duration.value = item.duration

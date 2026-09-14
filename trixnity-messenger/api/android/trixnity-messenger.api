@@ -1702,18 +1702,21 @@ public abstract interface class de/connect2x/trixnity/messenger/i18n/Languages {
 public abstract class de/connect2x/trixnity/messenger/media/AbstractMediaItem : de/connect2x/trixnity/messenger/media/MediaItemLifecycleImpl, de/connect2x/trixnity/messenger/media/MediaPlayer$Item {
 	public fun <init> (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/sync/Mutex;Lkotlinx/coroutines/flow/MutableStateFlow;)V
 	public fun close ()V
+	protected fun getClearCurrentItemOnClose ()Z
 	public fun getElapsedTime ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getElapsedTime ()Lkotlinx/coroutines/flow/StateFlow;
 	protected fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public fun getState ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	protected fun onClose (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun onClosing ()V
 	protected abstract fun onPause (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun onPlay-XOUi-xU (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun onSeekTo-VtjQ1oo (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun pause (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun pauseWithoutLock (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun play (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun reopenAfterClose (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun seekTo-VtjQ1oo (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -1953,7 +1956,7 @@ public final class de/connect2x/trixnity/messenger/media/MediaPlayerService : an
 	public fun onCreate ()V
 	public fun onDestroy ()V
 	public fun onGetSession (Landroidx/media3/session/MediaSession$ControllerInfo;)Landroidx/media3/session/MediaSession;
-	public fun onTaskRemoved (Landroid/content/Intent;)V
+	public fun onSetMediaItems (Landroidx/media3/session/MediaSession;Landroidx/media3/session/MediaSession$ControllerInfo;Ljava/util/List;IJ)Lcom/google/common/util/concurrent/ListenableFuture;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/media/PlatformAudioRecorder$StartResult {
