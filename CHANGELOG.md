@@ -17,6 +17,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- SDK: Blurhash now differentiates between intrinsicSize and decodeSize
+
 ### Security
 
 ## 4.10.2

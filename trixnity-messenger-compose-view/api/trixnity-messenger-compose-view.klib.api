@@ -4858,7 +4858,7 @@ final object de.connect2x.trixnity.messenger.compose.view.theme/MessengerFocusIn
 }
 
 final object de.connect2x.trixnity.messenger.compose.view.util/BlurHashDecoder { // de.connect2x.trixnity.messenger.compose.view.util/BlurHashDecoder|null[0]
-    final fun decode(kotlin/String?, androidx.compose.ui.unit/IntSize?, kotlin/Float = ...): androidx.compose.ui.graphics/ImageBitmap? // de.connect2x.trixnity.messenger.compose.view.util/BlurHashDecoder.decode|decode(kotlin.String?;androidx.compose.ui.unit.IntSize?;kotlin.Float){}[0]
+    final fun decode(kotlin/String?, androidx.compose.ui.unit/IntSize?, androidx.compose.ui.unit/IntSize = ..., kotlin/Float = ...): androidx.compose.ui.graphics/ImageBitmap? // de.connect2x.trixnity.messenger.compose.view.util/BlurHashDecoder.decode|decode(kotlin.String?;androidx.compose.ui.unit.IntSize?;androidx.compose.ui.unit.IntSize;kotlin.Float){}[0]
 }
 
 final object de.connect2x.trixnity.messenger.compose.view/GetByteArrayResourceAppIconPainter : de.connect2x.trixnity.messenger.compose.view/GetAppIconPainter<de.connect2x.trixnity.messenger/ByteArrayAppIcon> { // de.connect2x.trixnity.messenger.compose.view/GetByteArrayResourceAppIconPainter|null[0]
