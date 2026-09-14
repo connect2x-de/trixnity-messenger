@@ -11,6 +11,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- UI: BlurHashes now load synchronously and thus appear earlier when rendering the timeline
+
 ### Deprecated
 
 ### Removed

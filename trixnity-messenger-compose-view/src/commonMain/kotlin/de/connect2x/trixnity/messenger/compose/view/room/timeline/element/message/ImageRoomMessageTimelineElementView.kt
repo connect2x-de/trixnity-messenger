@@ -25,12 +25,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -63,8 +61,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
 import kotlin.reflect.KClass
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 interface ImageRoomMessageTimelineElementView : TimelineElementView<Image>
@@ -262,17 +258,10 @@ internal fun ImageReplyElement(
 @OptIn(MSC2448::class)
 @Composable
 private fun rememberFallbackPainter(element: Image): Painter? {
-    val thumbnailSize =
-        element.thumbnailWidth?.let { width -> element.thumbnailHeight?.let { height -> IntSize(width, height) } }
-            ?: element.width?.let { width -> element.height?.let { height -> IntSize(width, height) } }
+    val blurHash = element.blurhash ?: return null
+    val thumbnailSize = thumbnailSize(element) ?: return null
 
-    val bitmap =
-        produceState<ImageBitmap?>(initialValue = null, element.blurhash, thumbnailSize) {
-                value = withContext(Dispatchers.Default) { BlurHashDecoder.decode(element.blurhash, thumbnailSize) }
-            }
-            .value ?: return null
-
-    return remember(bitmap) { BitmapPainter(bitmap) }
+    return remember(blurHash, thumbnailSize) { BlurHashDecoder.decode(blurHash, thumbnailSize)?.let(::BitmapPainter) }
 }
 
 @OptIn(MSC2448::class)
@@ -282,4 +271,17 @@ private fun rememberImagePainter(element: Image): Painter? {
     val bitmap = rememberImageBitmapOrNull(thumbnail) ?: return null
 
     return remember(bitmap) { BitmapPainter(bitmap) }
+}
+
+private fun thumbnailSize(element: Image): IntSize? {
+    val thumbnailWidth = element.thumbnailWidth
+    val thumbnailHeight = element.thumbnailHeight
+    val width = element.width
+    val height = element.height
+
+    return when {
+        thumbnailWidth != null && thumbnailHeight != null -> IntSize(thumbnailWidth, thumbnailHeight)
+        width != null && height != null -> IntSize(width, height)
+        else -> null
+    }
 }
