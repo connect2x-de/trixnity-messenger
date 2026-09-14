@@ -11,6 +11,7 @@ import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.GetAccountProfileDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -18,6 +19,7 @@ import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import kotlin.getValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
+import org.koin.core.component.inject
 
 @Deprecated("Use AccountSingleViewModelFactory")
 interface ProfileSingleViewModelFactory {
@@ -90,10 +93,11 @@ class AccountSingleViewModelImpl(
 ) : AccountSingleViewModel, ViewModelContext by viewModelContext {
     private val matrixClient = getMatrixClient(userId)
     private val initialsComputation = get<Initials>()
+    private val getAccountProfileDisplayName: GetAccountProfileDisplayName by inject()
 
     override val displayName =
-        matrixClient.profile
-            .map { it?.get(ProfileField.DisplayName)?.value ?: "" }
+        getAccountProfileDisplayName
+            .fromMatrixClient(matrixClient)
             .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
     override val canChangeDisplayName: StateFlow<Boolean> =
         matrixClient.serverData
@@ -148,8 +152,8 @@ class AccountSingleViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val initials =
-        matrixClient.profile
-            .map { it?.get(ProfileField.DisplayName)?.value?.let { initialsComputation.compute(it) } ?: "" }
+        displayName
+            .map { displayName -> initialsComputation.compute(displayName) }
             .stateIn(coroutineScope, SharingStarted.Eagerly, "")
 
     override val editDisplayName =

@@ -2,12 +2,14 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.util.GetAccountProfileDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import org.koin.core.component.inject
 
 interface VerificationStepRequestViewModelFactory {
     fun create(
@@ -39,12 +41,13 @@ open class VerificationStepRequestViewModelImpl(
     override val theirUserId: UserId?,
     theirDeviceId: String,
 ) : MatrixClientViewModelContext by viewModelContext, VerificationStepRequestViewModel {
+    private val getAccountProfileDisplayName: GetAccountProfileDisplayName by inject()
 
     override val ourUserId: UserId = userId
 
     override val ourDisplayName: StateFlow<String> =
-        matrixClient.profile
-            .map { it?.get(ProfileField.DisplayName)?.value ?: userId.full }
+        getAccountProfileDisplayName
+            .fromMatrixClient(matrixClient)
             .stateIn(coroutineScope, WhileSubscribed(), userId.full)
 
     override val theirDisplayName: StateFlow<String?> =

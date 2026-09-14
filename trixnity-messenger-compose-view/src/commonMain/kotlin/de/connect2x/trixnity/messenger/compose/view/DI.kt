@@ -314,6 +314,8 @@ import de.connect2x.trixnity.messenger.compose.view.settings.PrivacySettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.PrivacySettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.ProfilesSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.ProfilesSettingsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.settings.SettingsAccountCard
+import de.connect2x.trixnity.messenger.compose.view.settings.SettingsAccountCardImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.sharing.ShareDataView
@@ -358,6 +360,10 @@ import de.connect2x.trixnity.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaRegistrationTokenView
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaRegistrationTokenViewImpl
+import de.connect2x.trixnity.messenger.compose.view.util.CopyableUserId
+import de.connect2x.trixnity.messenger.compose.view.util.CopyableUserIdImpl
+import de.connect2x.trixnity.messenger.compose.view.util.UserIdText
+import de.connect2x.trixnity.messenger.compose.view.util.UserIdTextImpl
 import de.connect2x.trixnity.messenger.compose.view.verification.DeviceVerificationWizardView
 import de.connect2x.trixnity.messenger.compose.view.verification.DeviceVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.compose.view.verification.RedoSelfVerificationWizardView
@@ -402,6 +408,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         uiaViewModule(),
         getPlatformNotificationIconModule(),
         mediaViewModule(),
+        utilViewModule(),
     )
 }
 
@@ -676,6 +683,7 @@ fun settingsViewModule() = module {
         de.connect2x.trixnity.messenger.compose.view.verification.v2.SelfVerificationWizardViewImpl()
     }
     single<DeviceVerificationWizardView> { DeviceVerificationWizardViewImpl() }
+    single<SettingsAccountCard> { SettingsAccountCardImpl() }
 }
 
 fun verificationViewModule() = module {
@@ -691,4 +699,9 @@ fun uiaViewModule() = module {
     single<UiaActionConfirmationView> { UiaActionConfirmationViewImpl() }
     single<UiaEmailIdentityStepView> { UiaEmailIdentityStepViewImpl() }
     single<UiaMsisdnStepView> { UiaMsisdnStepViewImpl() }
+}
+
+fun utilViewModule() = module {
+    single<CopyableUserId> { CopyableUserIdImpl() }
+    single<UserIdText> { UserIdTextImpl() }
 }

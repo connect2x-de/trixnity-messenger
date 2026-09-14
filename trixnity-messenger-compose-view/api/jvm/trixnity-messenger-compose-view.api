@@ -84,6 +84,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/DIKt {
 	public static final fun timelineViewModule (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)Lorg/koin/core/module/Module;
 	public static final fun uiaViewModule ()Lorg/koin/core/module/Module;
 	public static final fun userSearchViewModule ()Lorg/koin/core/module/Module;
+	public static final fun utilViewModule ()Lorg/koin/core/module/Module;
 	public static final fun verificationViewModule ()Lorg/koin/core/module/Module;
 }
 
@@ -2307,7 +2308,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ti
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/UserProfileKt {
 	public static final fun BanUserWarning (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun ChangingPowerLevel (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun CopyableUserId-EhsxV3A (Ljava/lang/String;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;I)V
 	public static final fun KickUserWarning (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun UnbanUserWarning (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun UserProfile (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
@@ -5072,6 +5072,16 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Profile
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ProfilesSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/SettingsAccountCard {
+	public abstract fun create-C0UcEBQ (Ljava/lang/String;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/SettingsAccountCardImpl : de/connect2x/trixnity/messenger/compose/view/settings/SettingsAccountCard {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create-C0UcEBQ (Ljava/lang/String;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/settings/SettingsAccountCardKt {
 	public static final fun SettingsAccountCard-4Ne9s4o (Ljava/lang/String;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun SettingsAccountCardWithAdditionalButtons-C0UcEBQ (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
@@ -6599,6 +6609,24 @@ public final class de/connect2x/trixnity/messenger/compose/view/util/BlurHashDec
 	public static synthetic fun decode-s_kHBtI$default (Lde/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder;Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;FILjava/lang/Object;)Landroidx/compose/ui/graphics/ImageBitmap;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/util/CopyableUserId {
+	public abstract fun create-EhsxV3A (Ljava/lang/String;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/util/CopyableUserIdImpl : de/connect2x/trixnity/messenger/compose/view/util/CopyableUserId {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create-EhsxV3A (Ljava/lang/String;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/util/CopyableUserIdKt {
+	public static final fun CopyableUserId-EhsxV3A (Ljava/lang/String;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/util/GetMatrixClientDisplayNameKt {
+	public static final fun rememberAccountProfileDisplayName-pFTbHVM (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/State;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/util/IfNotNullKt {
 	public static final fun ifNotNull (Ljava/lang/Object;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
 	public static synthetic fun ifNotNull$default (Ljava/lang/Object;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/String;
@@ -6618,6 +6646,21 @@ public final class de/connect2x/trixnity/messenger/compose/view/util/RoomMessage
 
 public final class de/connect2x/trixnity/messenger/compose/view/util/RoomMessageTimelineElementViewModel_desktopKt {
 	public static final fun toClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/util/UserIdText {
+	public abstract fun create-7EuWcH8 (Ljava/lang/String;ZLandroidx/compose/ui/Modifier;JLandroidx/compose/foundation/text/TextAutoSize;JLandroidx/compose/ui/text/font/FontStyle;Landroidx/compose/ui/text/font/FontWeight;Landroidx/compose/ui/text/font/FontFamily;JLandroidx/compose/ui/text/style/TextDecoration;Landroidx/compose/ui/text/style/TextAlign;JIZIILkotlin/jvm/functions/Function1;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/util/UserIdTextImpl : de/connect2x/trixnity/messenger/compose/view/util/UserIdText {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create-7EuWcH8 (Ljava/lang/String;ZLandroidx/compose/ui/Modifier;JLandroidx/compose/foundation/text/TextAutoSize;JLandroidx/compose/ui/text/font/FontStyle;Landroidx/compose/ui/text/font/FontWeight;Landroidx/compose/ui/text/font/FontFamily;JLandroidx/compose/ui/text/style/TextDecoration;Landroidx/compose/ui/text/style/TextAlign;JIZIILkotlin/jvm/functions/Function1;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/util/UserIdTextKt {
+	public static final fun ThemedSelectableUserIdText-g1aXJSM (Ljava/lang/String;ZLde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Landroidx/compose/ui/Modifier;Landroidx/compose/ui/Modifier;JLandroidx/compose/foundation/text/TextAutoSize;JLandroidx/compose/ui/text/font/FontStyle;Landroidx/compose/ui/text/font/FontWeight;Landroidx/compose/ui/text/font/FontFamily;JLandroidx/compose/ui/text/style/TextDecoration;Landroidx/compose/ui/text/style/TextAlign;JIZIILkotlin/jvm/functions/Function1;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;IIII)V
+	public static final fun UserIdText-fIcJ6CI (Ljava/lang/String;ZLandroidx/compose/ui/Modifier;JLandroidx/compose/foundation/text/TextAutoSize;JLandroidx/compose/ui/text/font/FontStyle;Landroidx/compose/ui/text/font/FontWeight;Landroidx/compose/ui/text/font/FontFamily;JLandroidx/compose/ui/text/style/TextDecoration;Landroidx/compose/ui/text/style/TextAlign;JIZIILkotlin/jvm/functions/Function1;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;III)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$SelfVerificationWizardKt {
