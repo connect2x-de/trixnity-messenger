@@ -29,6 +29,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -149,7 +150,7 @@ internal fun MessageReactionButton(
         if (myReaction) {
             ThemedButton(
                 onClick = { onRemoveReaction() },
-                style = MaterialTheme.components.selectedReactionButton,
+                style = MaterialTheme.components.selectedReactionButton.getReactionStyle(true),
                 modifier = buttonModifier,
             ) {
                 MessageReactionDisplay(reaction)
@@ -159,7 +160,7 @@ internal fun MessageReactionButton(
         } else {
             ThemedButton(
                 onClick = { onAddReaction(reaction) },
-                style = MaterialTheme.components.reactionButton,
+                style = MaterialTheme.components.reactionButton.getReactionStyle(false),
                 modifier = buttonModifier,
             ) {
                 MessageReactionDisplay(reaction)
@@ -179,4 +180,16 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
             modifier = Modifier.size(MaterialTheme.components.reactionButton.iconSize),
         )
     }
+}
+
+@Composable
+private fun ButtonStyle.getReactionStyle(isMyReaction: Boolean): ButtonStyle {
+    return this.copy(
+        colors =
+            this.colors.copy(
+                containerColor =
+                    if (isMyReaction) MaterialTheme.components.messageBubbleOwn.color
+                    else MaterialTheme.components.messageBubbleOther.color
+            )
+    )
 }
