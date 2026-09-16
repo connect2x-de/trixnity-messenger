@@ -703,6 +703,7 @@ class TimelineElementHolderViewModelImpl(
     }
 
     override fun removeReaction(reaction: String) {
+        log.debug { "removing reaction $reaction" }
         coroutineScope.launch {
             when (
                 val eventOrTransactionId = reactions.value?.byUser?.get(matrixClient.userId)?.reactions?.get(reaction)
@@ -711,9 +712,13 @@ class TimelineElementHolderViewModelImpl(
                     log.warn { "could not remove reaction, because not present in loaded reactions" }
                 }
                 is TransactionId -> {
+                    log.debug {
+                        "reaction $reaction with id $eventOrTransactionId isn't sent yet, removing from outbox"
+                    }
                     matrixClient.room.cancelSendMessage(roomId, eventOrTransactionId.transactionId)
                 }
                 is EventIdOrTransactionId.EventId -> {
+                    log.debug { "sending redaction for reaction $reaction with id $eventOrTransactionId" }
                     if (matrixClient.serverData.value?.versions?.versions?.contains("v1.18") == true) {
                         matrixClient.room.sendMessage(roomId) { redact(eventOrTransactionId.eventId) }
                     } else {
