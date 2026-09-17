@@ -155,7 +155,7 @@ class InputAreaViewImpl : InputAreaView {
                 }
             }
 
-            Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+            Box(Modifier.height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
                 if (canRecordAudio) {
                     StartAudioRecordingButton()
                 } else {
@@ -190,7 +190,7 @@ class InputAreaViewImpl : InputAreaView {
 
                 MentionSelector(inputAreaViewModel, focusRequester)
                 Row(
-                    Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(8.dp),
+                    Modifier.fillMaxWidth().wrapContentHeight().padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
