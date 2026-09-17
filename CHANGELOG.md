@@ -11,6 +11,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- DEPENDENCY: Update Trixnity to 5.9.2
+
 ### Deprecated
 
 ### Removed
