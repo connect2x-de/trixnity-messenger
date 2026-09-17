@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +24,10 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.maxLength
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -59,15 +62,13 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
-import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldState
 import de.connect2x.trixnity.messenger.compose.view.common.EmojiSelector
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -96,14 +97,15 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
-import kotlin.math.abs
 import okio.FileSystem
 
-private fun TextFieldValue.insert(insertion: String): TextFieldValue =
-    TextFieldValue(
-        this.text.substring(0, this.selection.start) + insertion + this.text.substring(this.selection.end),
-        TextRange(this.selection.start + insertion.length - abs(this.selection.end - this.selection.start)),
-    )
+private fun TextFieldState.insert(insertion: String) {
+    edit {
+        val nextCursorPosition = selection.min + insertion.length
+        replace(selection.min, selection.max, insertion)
+        selection = TextRange(nextCursorPosition)
+    }
+}
 
 interface InputAreaView {
     @Composable fun create(inputAreaViewModel: InputAreaViewModel)
@@ -123,7 +125,7 @@ class InputAreaViewImpl : InputAreaView {
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
-        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState()
+        val textFieldState = inputAreaViewModel.textField.collectAsTextFieldState()
         val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
         val audioRecorderState = inputAreaViewModel.audio.recorder?.state?.collectAsState()?.value
 
@@ -131,7 +133,7 @@ class InputAreaViewImpl : InputAreaView {
         fun RowScope.TextInput(canRecordAudio: Boolean) {
             EmojiButton(emojisOpen)
 
-            InputAreaTextField(inputAreaViewModel, textField, focusRequester, canRecordAudio = canRecordAudio)
+            InputAreaTextField(inputAreaViewModel, textFieldState, focusRequester, canRecordAudio = canRecordAudio)
 
             if (isEdit) {
                 EditButton(inputAreaViewModel)
@@ -177,7 +179,7 @@ class InputAreaViewImpl : InputAreaView {
                         EmojiSelector(
                             modifier = Modifier.fillMaxSize(),
                             onTextAdded = {
-                                textField.value = textField.value.insert(it)
+                                textFieldState.insert(it)
                                 focusRequester.requestFocus()
                             },
                             onDismiss = {
@@ -281,7 +283,7 @@ fun RoomSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onCli
 @Composable
 fun RowScope.InputAreaTextField(
     inputAreaViewModel: InputAreaViewModel,
-    textField: MutableState<TextFieldValue>,
+    textFieldState: TextFieldState,
     focusRequester: FocusRequester,
     style: InputAreaStyle = MaterialTheme.components.inputArea,
     canRecordAudio: Boolean,
@@ -327,7 +329,7 @@ fun RowScope.InputAreaTextField(
                     if (it.type == KeyEventType.KeyDown) {
                         when {
                             (it.isShiftPressed && it.key == Key.Enter) -> {
-                                textField.value = textField.value.insert("\n")
+                                textFieldState.insert("\n")
                                 true
                             }
 
@@ -354,35 +356,33 @@ fun RowScope.InputAreaTextField(
                         false
                     }
                 },
-            value = textField.value,
-            onValueChange = { textFieldValue -> textField.value = textFieldValue },
+            state = textFieldState,
+            inputTransformation = InputTransformation.maxLength(inputAreaViewModel.textField.maxLength),
             interactionSource = interactionSource,
-            maxLines = 6,
+            lineLimits = TextFieldLineLimits.MultiLine(maxHeightInLines = 6),
             textStyle =
                 style.textStyle.copy(color = style.textColor(enabled = true, isError = false, focused = hasFocus)),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-        ) { innerTextField ->
-            @OptIn(ExperimentalMaterial3Api::class)
-            OutlinedTextFieldDefaults.DecorationBox(
-                value = textField.value.text,
-                innerTextField = innerTextField,
-                enabled = true,
-                singleLine = false,
-                visualTransformation = VisualTransformation.None,
-                interactionSource = interactionSource,
-                placeholder = {
-                    Text(
-                        i18n.inputAreaPrompt(),
-                        style =
-                            style.textStyle.copy(
-                                color = style.placeholderColor(enabled = true, isError = false, focused = hasFocus)
-                            ),
-                    )
-                },
-                colors = style.colors,
-                contentPadding = style.contentPadding,
-            )
-        }
+            decorator =
+                OutlinedTextFieldDefaults.decorator(
+                    state = textFieldState,
+                    enabled = true,
+                    lineLimits = TextFieldLineLimits.MultiLine(maxHeightInLines = 6),
+                    outputTransformation = null,
+                    interactionSource = interactionSource,
+                    placeholder = {
+                        Text(
+                            i18n.inputAreaPrompt(),
+                            style =
+                                style.textStyle.copy(
+                                    color = style.placeholderColor(enabled = true, isError = false, focused = hasFocus)
+                                ),
+                        )
+                    },
+                    colors = style.colors,
+                    contentPadding = style.contentPadding,
+                ),
+        )
         if (canRecordAudio) {
             Box(
                 modifier =
