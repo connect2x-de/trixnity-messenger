@@ -65,13 +65,13 @@ class GetEventReactionsTest {
 
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }
                 .koin
 
         every { matrixClientMock.userId } returns user1
@@ -199,6 +199,7 @@ class GetEventReactionsTest {
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
                             isByMe = true,
+                            isPending = true,
                         )
                     )
             )
@@ -257,12 +258,14 @@ class GetEventReactionsTest {
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("2"),
                             isByMe = true,
+                            isPending = true,
                         ),
                         EventReaction(
                             value = "👺",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("3"),
                             isByMe = true,
+                            isPending = true,
                         ),
                     )
             )
@@ -335,6 +338,7 @@ class GetEventReactionsTest {
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
                             isByMe = true,
+                            isPending = true,
                         )
                     )
             )
@@ -374,6 +378,39 @@ class GetEventReactionsTest {
             )
 
         getEventReactions() shouldBe EventReactions(all = setOf())
+    }
+
+    @Test
+    fun `should not return reactions from outbox if they have been redacted`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getOutbox(any()) } returns
+            MutableStateFlow(
+                listOf(
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "123",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                            createdAt = Instant.fromEpochSeconds(123, 0),
+                            sentAt = Instant.fromEpochSeconds(123, 0),
+                            eventId = reaction1,
+                            sendError = null,
+                        )
+                    )
+                )
+            )
+        every { roomServiceMock.getTimelineEvent(roomId, reaction1) } returns
+            MutableStateFlow(
+                timelineEvent(
+                    content = RedactedEventContent("m.annotation"),
+                    sender = user1,
+                    eventId = reaction1,
+                )
+            )
+
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
+        getEventReactions() shouldBe EventReactions(all = emptySet())
     }
 
     private suspend fun getEventReactions(): EventReactions =
