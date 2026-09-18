@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.outlined.AddReaction
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -147,13 +148,9 @@ internal fun MessageReactionButton(
 ) {
     val highestStatus = reactionEvents.highestStatus
     val count = reactionEvents.reactions.size
+    val i18n = DI.get<I18nView>()
     Tooltip({
-        Text(
-            reactionEvents.reactions.joinToString {
-                val status = it.status
-                if (status is ReactionStatus.SentError) status.error as CharSequence else it.sender.name
-            }
-        )
+        Text(reactionEvents.reactions.joinToString { it.sender.name })
     }) {
         ThemedButton(
             onClick = {
@@ -176,6 +173,12 @@ internal fun MessageReactionButton(
             MessageReactionDisplay(reaction)
             Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
             Text(count.toString())
+            if (highestStatus is ReactionStatus.SentError) {
+                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
+                Tooltip(highestStatus.error ?: i18n.anErrorHasOccurred()) {
+                    Icon(Icons.Default.Error, contentDescription = i18n.anErrorHasOccurred())
+                }
+            }
         }
     }
 }
