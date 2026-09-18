@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getTimelineEventReactionAggregation
 import de.connect2x.trixnity.client.store.eventId
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 interface GetEventReactions {
     operator fun invoke(
@@ -52,6 +54,7 @@ class GetEventReactionsImpl : GetEventReactions {
                     val timelineReactions =
                         matrixClient.room.getTimelineEventReactionAggregation(roomId, eventId).scopedFlatMapLatest {
                             reactions ->
+                            println("Reactions are $reactions")
                             if (
                                 reactions.reactions.isEmpty()
                             ) { // we have to return early here as otherwise we will not get a value of the combine()
@@ -81,6 +84,7 @@ class GetEventReactionsImpl : GetEventReactions {
                                                                 maxMediaSizeInMemory,
                                                             ),
                                                         isByMe = event.sender == matrixClient.userId,
+                                                        isPending = false,
                                                     )
                                                 }
                                             }
@@ -110,61 +114,104 @@ class GetEventReactionsImpl : GetEventReactions {
                         }
 
                     val outboxReactions =
-                        matrixClient.user.getById(roomId, matrixClient.userId).filterNotNull().flatMapLatest { user ->
-                            matrixClient.room.getOutbox(roomId).scopedFlatMapLatest {
-                                if (it.isEmpty()) {
-                                    (flowOf(emptySet()))
-                                } else {
-                                    combine(it) { outboxMessages ->
-                                        outboxMessages
-                                            .mapNotNull { outboxMessage ->
-                                                if (outboxMessage != null && outboxMessage.sendError == null) {
-                                                    val relatesTo = outboxMessage.content.relatesTo
-                                                    if (
-                                                        relatesTo is RelatesTo.Annotation &&
-                                                            relatesTo.eventId == eventId &&
-                                                            outboxMessage.content is ReactionEventContent
-                                                    ) {
-                                                        relatesTo.key?.let { it to outboxMessage }
+                        matrixClient.user
+                            .getById(roomId, matrixClient.userId)
+                            .filterNotNull()
+                            .flatMapLatest { user ->
+                                matrixClient.room.getOutbox(roomId).scopedFlatMapLatest {
+                                    if (it.isEmpty()) {
+                                        (flowOf(emptyList()))
+                                    } else {
+                                        combine(it) { outboxMessages ->
+                                            outboxMessages
+                                                .mapNotNull { outboxMessage ->
+                                                    if (outboxMessage != null && outboxMessage.sendError == null) {
+                                                        val relatesTo = outboxMessage.content.relatesTo
+                                                        if (
+                                                            relatesTo is RelatesTo.Annotation &&
+                                                                relatesTo.eventId == eventId &&
+                                                                outboxMessage.content is ReactionEventContent
+                                                        ) {
+                                                            relatesTo.key?.let { it to outboxMessage }
+                                                        } else {
+                                                            null
+                                                        }
                                                     } else {
                                                         null
                                                     }
-                                                } else {
-                                                    null
                                                 }
-                                            }
-                                            .groupBy { (reaction, _) -> reaction }
-                                            .mapValues { (_, keyToEvents) ->
-                                                keyToEvents.map { (_, event) -> event }.last()
-                                            }
-                                            .map {
-                                                EventReaction(
-                                                    value = it.key,
-                                                    eventOrTransactionId =
-                                                        it.value.eventId?.let { id -> EventIdOrTransactionId(id) }
-                                                            ?: EventIdOrTransactionId(it.value.transactionId),
-                                                    sender =
-                                                        user.toUserInfoElement(
-                                                            this,
-                                                            matrixClient,
-                                                            initials,
-                                                            maxMediaSizeInMemory,
-                                                        ),
-                                                    isByMe = true,
-                                                )
-                                            }
-                                            .toSet()
+                                                .groupBy { (reaction, _) -> reaction }
+                                                .mapValues { (_, keyToEvents) ->
+                                                    keyToEvents.map { (_, event) -> event }.last()
+                                                }
+                                                .map { outboxEvent ->
+                                                    // We need to check whether the event has been redacted while still
+                                                    // part of the outbox
+                                                    val eventId = outboxEvent.value.eventId
+                                                    if (eventId != null) {
+                                                        matrixClient.room.getTimelineEvent(roomId, eventId).map {
+                                                            if (it?.content?.getOrNull() is RedactedEventContent) {
+                                                                null
+                                                            } else
+                                                                EventReaction(
+                                                                    value = outboxEvent.key,
+                                                                    eventOrTransactionId =
+                                                                        outboxEvent.value.eventId?.let { id ->
+                                                                            EventIdOrTransactionId(id)
+                                                                        }
+                                                                            ?: EventIdOrTransactionId(
+                                                                                outboxEvent.value.transactionId
+                                                                            ),
+                                                                    sender =
+                                                                        user.toUserInfoElement(
+                                                                            this,
+                                                                            matrixClient,
+                                                                            initials,
+                                                                            maxMediaSizeInMemory,
+                                                                        ),
+                                                                    isByMe = true,
+                                                                    isPending = outboxEvent.value.eventId == null,
+                                                                )
+                                                        }
+                                                    } else
+                                                        flowOf(
+                                                            EventReaction(
+                                                                value = outboxEvent.key,
+                                                                eventOrTransactionId =
+                                                                    outboxEvent.value.eventId?.let { id ->
+                                                                        EventIdOrTransactionId(id)
+                                                                    }
+                                                                        ?: EventIdOrTransactionId(
+                                                                            outboxEvent.value.transactionId
+                                                                        ),
+                                                                sender =
+                                                                    user.toUserInfoElement(
+                                                                        this,
+                                                                        matrixClient,
+                                                                        initials,
+                                                                        maxMediaSizeInMemory,
+                                                                    ),
+                                                                isByMe = true,
+                                                                isPending = outboxEvent.value.eventId == null,
+                                                            )
+                                                        )
+                                                }
+                                                .toList()
+                                        }
                                     }
                                 }
                             }
-                        }
+                            .flatten()
 
                     combine(timelineReactions, outboxReactions, outboxRedactions) {
                         timelineEventReaction,
                         outboxEventReaction,
                         outboxRedactions ->
+                        println(
+                            "Combining timeline reactions: $timelineEventReaction, outbox $outboxEventReaction, redactions $outboxRedactions"
+                        )
                         EventReactions(
-                            outboxEventReaction +
+                            outboxEventReaction.toSet() +
                                 timelineEventReaction.filter { timelineMessage ->
                                     val hasNewerReactionInOutbox =
                                         timelineMessage.isByMe &&
@@ -187,6 +234,7 @@ data class EventReaction(
     val sender: UserInfoElement,
     val eventOrTransactionId: EventIdOrTransactionId,
     val isByMe: Boolean,
+    val isPending: Boolean = false,
 )
 
 data class EventReactions(val all: Set<EventReaction>) {
@@ -198,6 +246,7 @@ data class EventReactions(val all: Set<EventReaction>) {
                     reactions = value.associate { it.value to it.eventOrTransactionId },
                     sender = first.sender,
                     isMe = first.isByMe,
+                    isPending = first.isPending,
                 )
             }
     }
@@ -210,6 +259,7 @@ data class EventReactions(val all: Set<EventReaction>) {
                             eventOrTransactionId = it.eventOrTransactionId,
                             sender = it.sender,
                             isMe = it.isByMe,
+                            isPending = it.isPending,
                         )
                     }
                     .toSet()
@@ -220,12 +270,14 @@ data class EventReactions(val all: Set<EventReaction>) {
         val reactions: Map<String, EventIdOrTransactionId>,
         val sender: UserInfoElement,
         val isMe: Boolean,
+        val isPending: Boolean,
     )
 
     data class ByReactionInfo(
         val eventOrTransactionId: EventIdOrTransactionId,
         val sender: UserInfoElement,
         val isMe: Boolean,
+        val isPending: Boolean,
     )
 
     companion object {

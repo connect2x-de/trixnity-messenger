@@ -112,6 +112,7 @@ private fun MessageReactionList(
                     reactionEvents = reactionEvents,
                     count = reactionEvents.size,
                     myReaction = reactionEvents.any { it.isMe },
+                    isPending = reactionEvents.any { it.isPending },
                     onAddReaction = onAddReaction,
                     onRemoveReaction = { onRemoveReaction(reaction) },
                 )
@@ -143,29 +144,37 @@ internal fun MessageReactionButton(
     reactionEvents: Set<EventReactions.ByReactionInfo>,
     count: Int,
     myReaction: Boolean,
+    isPending: Boolean,
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: () -> Unit,
 ) {
     Tooltip({ Text(reactionEvents.joinToString { it.sender.name }) }) {
-        if (myReaction) {
-            ThemedButton(
-                onClick = { onRemoveReaction() },
-                style = MaterialTheme.components.selectedReactionButton.getReactionStyle(true),
-                modifier = buttonModifier,
-            ) {
-                MessageReactionDisplay(reaction)
-                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
-                Text(count.toString())
+        when {
+            myReaction -> {
+                ThemedButton(
+                    onClick = { onRemoveReaction() },
+                    style = MaterialTheme.components.selectedReactionButton.getReactionStyle(true, isPending),
+                    modifier = buttonModifier,
+                ) {
+                    MessageReactionDisplay(reaction)
+                    Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
+                    Text(count.toString())
+                }
             }
-        } else {
-            ThemedButton(
-                onClick = { onAddReaction(reaction) },
-                style = MaterialTheme.components.reactionButton.getReactionStyle(false),
-                modifier = buttonModifier,
-            ) {
-                MessageReactionDisplay(reaction)
-                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
-                Text(count.toString())
+            else -> {
+                ThemedButton(
+                    onClick = { onAddReaction(reaction) },
+                    style =
+                        MaterialTheme.components.reactionButton.getReactionStyle(
+                            isMyReaction = false,
+                            isPending = false,
+                        ),
+                    modifier = buttonModifier,
+                ) {
+                    MessageReactionDisplay(reaction)
+                    Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
+                    Text(count.toString())
+                }
             }
         }
     }
@@ -183,13 +192,16 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
 }
 
 @Composable
-private fun ButtonStyle.getReactionStyle(isMyReaction: Boolean): ButtonStyle {
+private fun ButtonStyle.getReactionStyle(isMyReaction: Boolean, isPending: Boolean): ButtonStyle {
     return this.copy(
         colors =
             this.colors.copy(
                 containerColor =
-                    if (isMyReaction) MaterialTheme.components.messageBubbleOwn.color
-                    else MaterialTheme.components.messageBubbleOther.color
+                    when {
+                        isPending -> MaterialTheme.components.messageBubbleError.color
+                        isMyReaction -> MaterialTheme.components.messageBubbleOwn.color
+                        else -> MaterialTheme.components.messageBubbleOther.color
+                    }
             )
     )
 }

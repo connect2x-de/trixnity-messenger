@@ -171,7 +171,7 @@ fun ColumnScope.ReadersAndReactions(
     val allReadersAndReactions =
         remember(readers, reactions) {
             readers
-                .associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) }
+                .associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, isMe = false, isPending = false) }
                 .plus(reactions.byUser)
                 .values
                 .sortedByDescending { it.reactions.size }
