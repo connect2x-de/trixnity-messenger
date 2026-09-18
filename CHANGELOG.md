@@ -9,6 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
+
 ### Changed
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 
