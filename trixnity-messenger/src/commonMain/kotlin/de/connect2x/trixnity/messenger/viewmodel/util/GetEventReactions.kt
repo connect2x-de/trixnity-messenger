@@ -4,6 +4,8 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getTimelineEventReactionAggregation
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user
@@ -14,10 +16,13 @@ import de.connect2x.trixnity.core.model.events.RedactedEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.i18n.getErrorMessage
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.NotByMe.isByMe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -37,7 +42,7 @@ interface GetEventReactions {
 }
 
 // TODO: should consider outbox (react and redact) to get immediate feedback
-class GetEventReactionsImpl : GetEventReactions {
+class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun invoke(
         matrixClient: MatrixClient,
@@ -54,7 +59,6 @@ class GetEventReactionsImpl : GetEventReactions {
                     val timelineReactions =
                         matrixClient.room.getTimelineEventReactionAggregation(roomId, eventId).scopedFlatMapLatest {
                             reactions ->
-                            println("Reactions are $reactions")
                             if (
                                 reactions.reactions.isEmpty()
                             ) { // we have to return early here as otherwise we will not get a value of the combine()
@@ -83,8 +87,7 @@ class GetEventReactionsImpl : GetEventReactions {
                                                                 initials,
                                                                 maxMediaSizeInMemory,
                                                             ),
-                                                        isByMe = event.sender == matrixClient.userId,
-                                                        isPending = false,
+                                                        status = event.getReactionStatus(matrixClient.userId),
                                                     )
                                                 }
                                             }
@@ -169,8 +172,7 @@ class GetEventReactionsImpl : GetEventReactions {
                                                                             initials,
                                                                             maxMediaSizeInMemory,
                                                                         ),
-                                                                    isByMe = true,
-                                                                    isPending = outboxEvent.value.eventId == null,
+                                                                    status = outboxEvent.value.getReactionStatus(),
                                                                 )
                                                         }
                                                     } else
@@ -191,8 +193,7 @@ class GetEventReactionsImpl : GetEventReactions {
                                                                         initials,
                                                                         maxMediaSizeInMemory,
                                                                     ),
-                                                                isByMe = true,
-                                                                isPending = outboxEvent.value.eventId == null,
+                                                                status = outboxEvent.value.getReactionStatus(),
                                                             )
                                                         )
                                                 }
@@ -207,14 +208,11 @@ class GetEventReactionsImpl : GetEventReactions {
                         timelineEventReaction,
                         outboxEventReaction,
                         outboxRedactions ->
-                        println(
-                            "Combining timeline reactions: $timelineEventReaction, outbox $outboxEventReaction, redactions $outboxRedactions"
-                        )
                         EventReactions(
                             outboxEventReaction.toSet() +
                                 timelineEventReaction.filter { timelineMessage ->
                                     val hasNewerReactionInOutbox =
-                                        timelineMessage.isByMe &&
+                                        timelineMessage.status.isByMe() &&
                                             outboxEventReaction.any { it.value == timelineMessage.value }
 
                                     val isPendingRedaction = outboxRedactions.any {
@@ -227,15 +225,42 @@ class GetEventReactionsImpl : GetEventReactions {
                 }
             }
         }
+
+    private fun RoomOutboxMessage<*>.getReactionStatus(): ReactionStatus {
+        return when {
+            sendError != null ->
+                ReactionStatus.SentError((sendError as RoomOutboxMessage.SendError).getErrorMessage(i18n))
+            sentAt == null -> ReactionStatus.Pending
+            else -> ReactionStatus.Sent
+        }
+    }
+
+    private fun TimelineEvent.getReactionStatus(selectedUser: UserId): ReactionStatus {
+        return when {
+            sender != selectedUser -> ReactionStatus.NotByMe
+            else -> ReactionStatus.Sent
+        }
+    }
 }
 
 data class EventReaction(
     val value: String,
     val sender: UserInfoElement,
     val eventOrTransactionId: EventIdOrTransactionId,
-    val isByMe: Boolean,
-    val isPending: Boolean = false,
+    val status: ReactionStatus,
 )
+
+sealed class ReactionStatus(val priority: Int) {
+    data object NotByMe : ReactionStatus(0)
+
+    data object Sent : ReactionStatus(1)
+
+    data object Pending : ReactionStatus(2)
+
+    data class SentError(val error: String?) : ReactionStatus(3)
+
+    fun ReactionStatus.isByMe() = this != NotByMe
+}
 
 data class EventReactions(val all: Set<EventReaction>) {
     val byUser: Map<UserId, ByUserInfo> by lazy {
@@ -245,39 +270,40 @@ data class EventReactions(val all: Set<EventReaction>) {
                 ByUserInfo(
                     reactions = value.associate { it.value to it.eventOrTransactionId },
                     sender = first.sender,
-                    isMe = first.isByMe,
-                    isPending = first.isPending,
+                    status = first.status,
                 )
             }
     }
-    val byReaction: Map<String, Set<ByReactionInfo>> by lazy {
+    val byReaction: Map<String, ByReactionsInfo> by lazy {
         all.groupBy { it.value }
             .mapValues { (_, value) ->
-                value
-                    .map {
-                        ByReactionInfo(
-                            eventOrTransactionId = it.eventOrTransactionId,
-                            sender = it.sender,
-                            isMe = it.isByMe,
-                            isPending = it.isPending,
-                        )
-                    }
-                    .toSet()
+                val reactions =
+                    value
+                        .map {
+                            ByReactionInfo(
+                                eventOrTransactionId = it.eventOrTransactionId,
+                                sender = it.sender,
+                                status = it.status,
+                            )
+                        }
+                        .toSet()
+                val highestStatus = reactions.map { it.status }.maxByOrNull { it.priority }
+                ByReactionsInfo(reactions, highestStatus)
             }
     }
 
     data class ByUserInfo(
         val reactions: Map<String, EventIdOrTransactionId>,
         val sender: UserInfoElement,
-        val isMe: Boolean,
-        val isPending: Boolean,
+        val status: ReactionStatus,
     )
+
+    data class ByReactionsInfo(val reactions: Set<ByReactionInfo>, val highestStatus: ReactionStatus?)
 
     data class ByReactionInfo(
         val eventOrTransactionId: EventIdOrTransactionId,
         val sender: UserInfoElement,
-        val isMe: Boolean,
-        val isPending: Boolean,
+        val status: ReactionStatus,
     )
 
     companion object {

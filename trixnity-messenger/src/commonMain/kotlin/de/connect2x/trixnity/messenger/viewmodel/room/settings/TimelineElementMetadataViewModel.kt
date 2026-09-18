@@ -24,6 +24,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -320,7 +321,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                                     image = MutableStateFlow(previewImageByteArray()),
                                 ),
                                 EventIdOrTransactionId(EventId("r1")),
-                                false,
+                                ReactionStatus.NotByMe,
                             ),
                             EventReaction(
                                 "😀",
@@ -331,7 +332,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                                     image = MutableStateFlow(previewImageByteArray()),
                                 ),
                                 EventIdOrTransactionId(EventId("r2")),
-                                false,
+                                ReactionStatus.NotByMe,
                             ),
                         )
                     )

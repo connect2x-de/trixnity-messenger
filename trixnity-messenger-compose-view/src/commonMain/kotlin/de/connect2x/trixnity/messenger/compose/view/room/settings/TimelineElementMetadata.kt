@@ -61,6 +61,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -171,7 +172,7 @@ fun ColumnScope.ReadersAndReactions(
     val allReadersAndReactions =
         remember(readers, reactions) {
             readers
-                .associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, isMe = false, isPending = false) }
+                .associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, ReactionStatus.NotByMe) }
                 .plus(reactions.byUser)
                 .values
                 .sortedByDescending { it.reactions.size }

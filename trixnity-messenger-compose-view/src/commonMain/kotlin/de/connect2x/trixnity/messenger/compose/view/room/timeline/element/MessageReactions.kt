@@ -29,11 +29,12 @@ import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.NotByMe.isByMe
 
 interface MessageReactionsView {
     @Composable
@@ -65,7 +66,8 @@ class MessageReactionsViewImpl : MessageReactionsView {
             return
         }
         val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
-        val reactionList = remember(reactions) { reactions.entries.sortedByDescending { it.value.size }.map { it.key } }
+        val reactionList =
+            remember(reactions) { reactions.entries.sortedByDescending { it.value.reactions.size }.map { it.key } }
 
         EmojiPopup(
             isOpen = reactionsOpen.value,
@@ -92,7 +94,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
 @Composable
 private fun MessageReactionList(
     reactionList: List<String>,
-    reactions: Map<String, Set<EventReactions.ByReactionInfo>>,
+    reactions: Map<String, EventReactions.ByReactionsInfo>,
     onAddReaction: (String) -> Unit,
     onRemoveReaction: (String) -> Unit,
     onOpenReactions: () -> Unit,
@@ -106,16 +108,14 @@ private fun MessageReactionList(
             verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
         ) {
             for (reaction in reactionList) {
-                val reactionEvents = reactions[reaction].orEmpty()
-                MessageReactionButton(
-                    reaction = reaction,
-                    reactionEvents = reactionEvents,
-                    count = reactionEvents.size,
-                    myReaction = reactionEvents.any { it.isMe },
-                    isPending = reactionEvents.any { it.isPending },
-                    onAddReaction = onAddReaction,
-                    onRemoveReaction = { onRemoveReaction(reaction) },
-                )
+                reactions[reaction]?.let {
+                    MessageReactionButton(
+                        reaction = reaction,
+                        reactionEvents = it,
+                        onAddReaction = onAddReaction,
+                        onRemoveReaction = { onRemoveReaction(reaction) },
+                    )
+                }
             }
             MessageAddReactionButton(onClick = onOpenReactions, i18n.reactMessage())
         }
@@ -141,41 +141,41 @@ private val buttonModifier = Modifier.sizeIn(minWidth = 54.dp, minHeight = 32.dp
 @Composable
 internal fun MessageReactionButton(
     reaction: String,
-    reactionEvents: Set<EventReactions.ByReactionInfo>,
-    count: Int,
-    myReaction: Boolean,
-    isPending: Boolean,
+    reactionEvents: EventReactions.ByReactionsInfo,
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: () -> Unit,
 ) {
-    Tooltip({ Text(reactionEvents.joinToString { it.sender.name }) }) {
-        when {
-            myReaction -> {
-                ThemedButton(
-                    onClick = { onRemoveReaction() },
-                    style = MaterialTheme.components.selectedReactionButton.getReactionStyle(true, isPending),
-                    modifier = buttonModifier,
-                ) {
-                    MessageReactionDisplay(reaction)
-                    Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
-                    Text(count.toString())
-                }
+    val highestStatus = reactionEvents.highestStatus
+    val count = reactionEvents.reactions.size
+    Tooltip({
+        Text(
+            reactionEvents.reactions.joinToString {
+                val status = it.status
+                if (status is ReactionStatus.SentError) status.error as CharSequence else it.sender.name
             }
-            else -> {
-                ThemedButton(
-                    onClick = { onAddReaction(reaction) },
-                    style =
-                        MaterialTheme.components.reactionButton.getReactionStyle(
-                            isMyReaction = false,
-                            isPending = false,
-                        ),
-                    modifier = buttonModifier,
-                ) {
-                    MessageReactionDisplay(reaction)
-                    Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
-                    Text(count.toString())
+        )
+    }) {
+        ThemedButton(
+            onClick = {
+                if (highestStatus?.isByMe() == true) {
+                    onRemoveReaction()
+                } else {
+                    onAddReaction(reaction)
                 }
-            }
+            },
+            style =
+                when (highestStatus) {
+                    ReactionStatus.NotByMe -> MaterialTheme.components.reactionButton
+                    ReactionStatus.Pending -> MaterialTheme.components.pendingReactionButton
+                    ReactionStatus.Sent -> MaterialTheme.components.selectedReactionButton
+                    is ReactionStatus.SentError -> MaterialTheme.components.errorReactionButton
+                    null -> MaterialTheme.components.reactionButton
+                },
+            modifier = buttonModifier,
+        ) {
+            MessageReactionDisplay(reaction)
+            Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
+            Text(count.toString())
         }
     }
 }
@@ -189,19 +189,4 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
             modifier = Modifier.size(MaterialTheme.components.reactionButton.iconSize),
         )
     }
-}
-
-@Composable
-private fun ButtonStyle.getReactionStyle(isMyReaction: Boolean, isPending: Boolean): ButtonStyle {
-    return this.copy(
-        colors =
-            this.colors.copy(
-                containerColor =
-                    when {
-                        isPending -> MaterialTheme.components.messageBubbleError.color
-                        isMyReaction -> MaterialTheme.components.messageBubbleOwn.color
-                        else -> MaterialTheme.components.messageBubbleOther.color
-                    }
-            )
-    )
 }
