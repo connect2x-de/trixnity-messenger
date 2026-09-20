@@ -11,11 +11,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
+  bubble style accordingly
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- SDK: Fix reactions still being shown after redaction if they are still in the outbox
 
 ### Security
 

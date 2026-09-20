@@ -22,6 +22,9 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
@@ -38,6 +41,7 @@ import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -58,7 +62,15 @@ class GetEventReactionsTest {
     private val matrixClientMock = mock<MatrixClient>()
     private val roomServiceMock = mock<RoomService>()
     private val userServiceMock = mock<UserService>()
-    private val i18nMock = mock<I18n>()
+
+    private val i18n =
+        object :
+            I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
 
     @BeforeTest
     fun setup() {
@@ -271,7 +283,7 @@ class GetEventReactionsTest {
     }
 
     @Test
-    fun `should not return reactions in outbox with send error`() = runTest {
+    fun `should return reactions in outbox with send error with send error status`() = runTest {
         every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
             MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
         every { roomServiceMock.getOutbox(any()) } returns
@@ -292,7 +304,18 @@ class GetEventReactionsTest {
             )
 
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
-        getEventReactions() shouldBe EventReactions(all = setOf())
+        getEventReactions() shouldBe
+            EventReactions(
+                all =
+                    setOf(
+                        EventReaction(
+                            value = "🎉",
+                            sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
+                            eventOrTransactionId = EventIdOrTransactionId("123"),
+                            status = ReactionStatus.SentError(i18n.sendErrorEventPermission()),
+                        )
+                    )
+            )
     }
 
     @Test
@@ -408,7 +431,7 @@ class GetEventReactionsTest {
     }
 
     private suspend fun getEventReactions(): EventReactions =
-        GetEventReactionsImpl(i18nMock)
+        GetEventReactionsImpl(i18n)
             .invoke(
                 matrixClientMock,
                 roomId,

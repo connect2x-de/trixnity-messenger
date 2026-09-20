@@ -59,6 +59,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -942,7 +943,7 @@ class TimelineElementHolderViewModelTest {
                         value = "🧌",
                         sender = usUserElement,
                         eventOrTransactionId = EventIdOrTransactionId("123"),
-                        isByMe = true,
+                        status = ReactionStatus.Sent,
                     )
                 )
             )
@@ -994,7 +995,7 @@ class TimelineElementHolderViewModelTest {
                         value = "🧌",
                         sender = usUserElement,
                         eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
-                        isByMe = true,
+                        status = ReactionStatus.Sent,
                     )
                 )
             )
@@ -1047,7 +1048,7 @@ class TimelineElementHolderViewModelTest {
                             value = "🧌",
                             sender = usUserElement,
                             eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
-                            isByMe = true,
+                            status = ReactionStatus.Sent,
                         )
                     )
                 )

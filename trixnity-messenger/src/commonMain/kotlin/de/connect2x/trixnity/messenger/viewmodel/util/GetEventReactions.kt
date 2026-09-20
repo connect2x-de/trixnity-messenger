@@ -128,7 +128,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                                         combine(it) { outboxMessages ->
                                             outboxMessages
                                                 .mapNotNull { outboxMessage ->
-                                                    if (outboxMessage != null && outboxMessage.sendError == null) {
+                                                    if (outboxMessage != null) {
                                                         val relatesTo = outboxMessage.content.relatesTo
                                                         if (
                                                             relatesTo is RelatesTo.Annotation &&

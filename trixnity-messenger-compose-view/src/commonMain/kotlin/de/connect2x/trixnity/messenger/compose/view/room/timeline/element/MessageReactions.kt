@@ -149,9 +149,7 @@ internal fun MessageReactionButton(
     val highestStatus = reactionEvents.highestStatus
     val count = reactionEvents.reactions.size
     val i18n = DI.get<I18nView>()
-    Tooltip({
-        Text(reactionEvents.reactions.joinToString { it.sender.name })
-    }) {
+    Tooltip({ Text(reactionEvents.reactions.joinToString { it.sender.name }) }) {
         ThemedButton(
             onClick = {
                 if (highestStatus?.isByMe() == true) {
