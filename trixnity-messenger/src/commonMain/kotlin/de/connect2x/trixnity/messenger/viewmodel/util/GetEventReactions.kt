@@ -228,8 +228,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
 
     private fun RoomOutboxMessage<*>.getReactionStatus(): ReactionStatus {
         return when {
-            sendError != null ->
-                ReactionStatus.SentError((sendError as RoomOutboxMessage.SendError).getErrorMessage(i18n))
+            sendError != null -> ReactionStatus.SentError(sendError?.getErrorMessage(i18n))
             sentAt == null -> ReactionStatus.Pending
             else -> ReactionStatus.Sent
         }
