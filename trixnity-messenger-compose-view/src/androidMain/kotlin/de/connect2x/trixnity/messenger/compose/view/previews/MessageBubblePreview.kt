@@ -22,6 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.toByteArray
@@ -47,7 +48,7 @@ fun TextMessageBubblePreview() {
                     value = "x",
                     eventOrTransactionId = EventIdOrTransactionId("1"),
                     sender = userInfoElement,
-                    isByMe = false,
+                    status = ReactionStatus.NotByMe,
                 )
             )
         )
