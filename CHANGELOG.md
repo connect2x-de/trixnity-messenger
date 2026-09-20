@@ -21,6 +21,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
+- UI: Correctly align reactions to message bubble edge
 
 ### Security
 
