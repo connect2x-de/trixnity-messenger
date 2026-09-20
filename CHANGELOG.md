@@ -24,6 +24,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Security
 
+## 4.10.3
+
+### Changed
+
+- DEPENDENCY: Update Trixnity to 5.9.2
+
 ## 4.10.2
 
 ### Changed

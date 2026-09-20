@@ -79,13 +79,13 @@ class GetEventReactionsTest {
 
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }
                 .koin
 
         every { matrixClientMock.userId } returns user1
@@ -164,7 +164,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            ReactionStatus.NotByMe,
+                            status = ReactionStatus.NotByMe,
                         ),
                         EventReaction(
                             value = "🙈",
@@ -212,7 +212,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            ReactionStatus.Pending,
+                            status = ReactionStatus.Pending,
                         )
                     )
             )
