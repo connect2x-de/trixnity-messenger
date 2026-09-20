@@ -13061,22 +13061,22 @@ final class de.connect2x.trixnity.messenger.viewmodel.uia/UiaStepRegistrationTok
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.util/EventReaction { // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction|null[0]
-    constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel/UserInfoElement, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId, kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;kotlin.Boolean){}[0]
+    constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel/UserInfoElement, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId, de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus) // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus){}[0]
 
     final val eventOrTransactionId // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.eventOrTransactionId|{}eventOrTransactionId[0]
         final fun <get-eventOrTransactionId>(): de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.eventOrTransactionId.<get-eventOrTransactionId>|<get-eventOrTransactionId>(){}[0]
-    final val isByMe // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.isByMe|{}isByMe[0]
-        final fun <get-isByMe>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.isByMe.<get-isByMe>|<get-isByMe>(){}[0]
     final val sender // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.sender|{}sender[0]
         final fun <get-sender>(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.sender.<get-sender>|<get-sender>(){}[0]
+    final val status // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.status|{}status[0]
+        final fun <get-status>(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.status.<get-status>|<get-status>(){}[0]
     final val value // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.value|{}value[0]
         final fun <get-value>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.value.<get-value>|<get-value>(){}[0]
 
     final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.component1|component1(){}[0]
     final fun component2(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.component2|component2(){}[0]
     final fun component3(): de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.component3|component3(){}[0]
-    final fun component4(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.component4|component4(){}[0]
-    final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel/UserInfoElement = ..., de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger.viewmodel.util/EventReaction // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;kotlin.Boolean){}[0]
+    final fun component4(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel/UserInfoElement = ..., de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId = ..., de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus = ...): de.connect2x.trixnity.messenger.viewmodel.util/EventReaction // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/EventReaction.toString|toString(){}[0]
@@ -13088,7 +13088,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.util/EventReactions { // d
     final val all // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.all|{}all[0]
         final fun <get-all>(): kotlin.collections/Set<de.connect2x.trixnity.messenger.viewmodel.util/EventReaction> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.all.<get-all>|<get-all>(){}[0]
     final val byReaction // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.byReaction|{}byReaction[0]
-        final fun <get-byReaction>(): kotlin.collections/Map<kotlin/String, kotlin.collections/Set<de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo>> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.byReaction.<get-byReaction>|<get-byReaction>(){}[0]
+        final fun <get-byReaction>(): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.byReaction.<get-byReaction>|<get-byReaction>(){}[0]
     final val byUser // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.byUser|{}byUser[0]
         final fun <get-byUser>(): kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.byUser.<get-byUser>|<get-byUser>(){}[0]
 
@@ -13099,38 +13099,54 @@ final class de.connect2x.trixnity.messenger.viewmodel.util/EventReactions { // d
     final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.toString|toString(){}[0]
 
     final class ByReactionInfo { // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo|null[0]
-        constructor <init>(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId, de.connect2x.trixnity.messenger.viewmodel/UserInfoElement, kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;kotlin.Boolean){}[0]
+        constructor <init>(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId, de.connect2x.trixnity.messenger.viewmodel/UserInfoElement, de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus) // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus){}[0]
 
         final val eventOrTransactionId // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.eventOrTransactionId|{}eventOrTransactionId[0]
             final fun <get-eventOrTransactionId>(): de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.eventOrTransactionId.<get-eventOrTransactionId>|<get-eventOrTransactionId>(){}[0]
-        final val isMe // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.isMe|{}isMe[0]
-            final fun <get-isMe>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.isMe.<get-isMe>|<get-isMe>(){}[0]
         final val sender // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.sender|{}sender[0]
             final fun <get-sender>(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.sender.<get-sender>|<get-sender>(){}[0]
+        final val status // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.status|{}status[0]
+            final fun <get-status>(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.status.<get-status>|<get-status>(){}[0]
 
         final fun component1(): de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.component1|component1(){}[0]
         final fun component2(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.component2|component2(){}[0]
-        final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.component3|component3(){}[0]
-        final fun copy(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId = ..., de.connect2x.trixnity.messenger.viewmodel/UserInfoElement = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.copy|copy(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;kotlin.Boolean){}[0]
+        final fun component3(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.component3|component3(){}[0]
+        final fun copy(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId = ..., de.connect2x.trixnity.messenger.viewmodel/UserInfoElement = ..., de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus = ...): de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.copy|copy(de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo.toString|toString(){}[0]
     }
 
-    final class ByUserInfo { // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo|null[0]
-        constructor <init>(kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId>, de.connect2x.trixnity.messenger.viewmodel/UserInfoElement, kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.<init>|<init>(kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId>;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;kotlin.Boolean){}[0]
+    final class ByReactionsInfo { // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo|null[0]
+        constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo>, de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus?) // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.messenger.viewmodel.util.EventReactions.ByReactionInfo>;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus?){}[0]
 
-        final val isMe // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.isMe|{}isMe[0]
-            final fun <get-isMe>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.isMe.<get-isMe>|<get-isMe>(){}[0]
+        final val highestStatus // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.highestStatus|{}highestStatus[0]
+            final fun <get-highestStatus>(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus? // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.highestStatus.<get-highestStatus>|<get-highestStatus>(){}[0]
+        final val reactions // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.reactions|{}reactions[0]
+            final fun <get-reactions>(): kotlin.collections/Set<de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.reactions.<get-reactions>|<get-reactions>(){}[0]
+
+        final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.component1|component1(){}[0]
+        final fun component2(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus? // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.component2|component2(){}[0]
+        final fun copy(kotlin.collections/Set<de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionInfo> = ..., de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus? = ...): de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.messenger.viewmodel.util.EventReactions.ByReactionInfo>;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByReactionsInfo.toString|toString(){}[0]
+    }
+
+    final class ByUserInfo { // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo|null[0]
+        constructor <init>(kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId>, de.connect2x.trixnity.messenger.viewmodel/UserInfoElement, de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus) // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.<init>|<init>(kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId>;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus){}[0]
+
         final val reactions // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.reactions|{}reactions[0]
             final fun <get-reactions>(): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.reactions.<get-reactions>|<get-reactions>(){}[0]
         final val sender // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.sender|{}sender[0]
             final fun <get-sender>(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.sender.<get-sender>|<get-sender>(){}[0]
+        final val status // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.status|{}status[0]
+            final fun <get-status>(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.status.<get-status>|<get-status>(){}[0]
 
         final fun component1(): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId> // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.component1|component1(){}[0]
         final fun component2(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.component2|component2(){}[0]
-        final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.component3|component3(){}[0]
-        final fun copy(kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId> = ..., de.connect2x.trixnity.messenger.viewmodel/UserInfoElement = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.copy|copy(kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId>;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;kotlin.Boolean){}[0]
+        final fun component3(): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.component3|component3(){}[0]
+        final fun copy(kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId> = ..., de.connect2x.trixnity.messenger.viewmodel/UserInfoElement = ..., de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus = ...): de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.copy|copy(kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId>;de.connect2x.trixnity.messenger.viewmodel.UserInfoElement;de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/EventReactions.ByUserInfo.toString|toString(){}[0]
@@ -13143,7 +13159,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.util/EventReactions { // d
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.util/GetEventReactionsImpl : de.connect2x.trixnity.messenger.viewmodel.util/GetEventReactions { // de.connect2x.trixnity.messenger.viewmodel.util/GetEventReactionsImpl|null[0]
-    constructor <init>() // de.connect2x.trixnity.messenger.viewmodel.util/GetEventReactionsImpl.<init>|<init>(){}[0]
+    constructor <init>(de.connect2x.trixnity.messenger.i18n/I18n) // de.connect2x.trixnity.messenger.viewmodel.util/GetEventReactionsImpl.<init>|<init>(de.connect2x.trixnity.messenger.i18n.I18n){}[0]
 
     final fun invoke(de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.messenger.viewmodel.util/Initials, kotlin/Long): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.messenger.viewmodel.util/EventReactions> // de.connect2x.trixnity.messenger.viewmodel.util/GetEventReactionsImpl.invoke|invoke(de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.messenger.viewmodel.util.Initials;kotlin.Long){}[0]
 }
@@ -16975,6 +16991,44 @@ open class de.connect2x.trixnity.messenger.viewmodel/ViewModelContextImpl : com.
     open fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel/ViewModelContextImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
     open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel/ViewModelContextImpl.getKoin|getKoin(){}[0]
     open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel/ViewModelContextImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+}
+
+sealed class de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus { // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus|null[0]
+    final val priority // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.priority|{}priority[0]
+        final fun <get-priority>(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.priority.<get-priority>|<get-priority>(){}[0]
+
+    final fun (de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus).isByMe(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.isByMe|isByMe@de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus(){}[0]
+
+    final class SentError : de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus { // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError|null[0]
+        constructor <init>(kotlin/String?) // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.<init>|<init>(kotlin.String?){}[0]
+
+        final val error // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.error|{}error[0]
+            final fun <get-error>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.error.<get-error>|<get-error>(){}[0]
+
+        final fun component1(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.component1|component1(){}[0]
+        final fun copy(kotlin/String? = ...): de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.copy|copy(kotlin.String?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.SentError.toString|toString(){}[0]
+    }
+
+    final object NotByMe : de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus { // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.NotByMe|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.NotByMe.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.NotByMe.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.NotByMe.toString|toString(){}[0]
+    }
+
+    final object Pending : de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus { // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Pending|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Pending.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Pending.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Pending.toString|toString(){}[0]
+    }
+
+    final object Sent : de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus { // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Sent|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Sent.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Sent.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/ReactionStatus.Sent.toString|toString(){}[0]
+    }
 }
 
 final object de.connect2x.trixnity.messenger.i18n/DefaultLanguages : de.connect2x.trixnity.messenger.i18n/Languages { // de.connect2x.trixnity.messenger.i18n/DefaultLanguages|null[0]
