@@ -12,6 +12,7 @@ import de.connect2x.trixnity.core.model.push.toList
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.notification.AccountNotificationPushRuleModifier
 import de.connect2x.trixnity.messenger.notification.NoOpNotificationProvider
 import de.connect2x.trixnity.messenger.notification.NotificationHandlers
 import de.connect2x.trixnity.messenger.notification.NotificationProviders
@@ -136,6 +137,7 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
     private val i18n = get<I18n>()
     private val notificationProviders = get<NotificationProviders>()
     private val notificationHandlers = get<NotificationHandlers>()
+    private val accountNotificationPushRuleModifier = get<AccountNotificationPushRuleModifier>()
 
     private val settingsHolder = get<MatrixMessengerSettingsHolder>()
 
@@ -248,7 +250,8 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
 
                     val currentPushRuleSet =
                         matrixClient.user.getAccountData<PushRulesEventContent>().map { it?.global }.first()
-                    val newPushRuleSet = settings.toPushRuleSet(userId)
+                    val newPushRuleSet =
+                        accountNotificationPushRuleModifier.modify(userId, settings, settings.toPushRuleSet(userId))
                     val changes = diffPushRules(currentPushRuleSet, newPushRuleSet)
                     if (changes.isEmpty()) {
                         log.debug { "no change in push rules" }

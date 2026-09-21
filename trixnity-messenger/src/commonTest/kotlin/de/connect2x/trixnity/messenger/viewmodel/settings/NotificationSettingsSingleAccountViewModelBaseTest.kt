@@ -16,6 +16,8 @@ import de.connect2x.trixnity.core.model.push.ServerDefaultPushRules
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.firstWithClue
+import de.connect2x.trixnity.messenger.notification.AccountNotificationPushRuleModifier
+import de.connect2x.trixnity.messenger.notification.NoopAccountNotificationPushRuleModifier
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
@@ -225,6 +227,95 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
     }
 
     @Test
+    fun `modifier result is saved and used for sync confirmation and no-op detection`() = runTest {
+        val settings = sampleSettings.copy(activity = sampleSettings.activity.copy(invite = true))
+        pushRulesEventContentState.value = settings.toPushRuleSet(userId).withServerManagedRules()
+        val cut =
+            createCut(
+                AccountNotificationPushRuleModifier { account, _, rules ->
+                    account shouldBe userId
+                    rules.copy(
+                        override =
+                            rules.override?.map {
+                                if (it.ruleId == ServerDefaultPushRules.InviteForMe.id) it.copy(enabled = false) else it
+                            }
+                    )
+                }
+            )
+        continueHandlePushRuleRequest.value = true
+        cut.updateAccountSettings(settings)
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+        verifySuspend {
+            pushApiClientMock.setPushRuleEnabled(
+                "global",
+                PushRuleKind.OVERRIDE,
+                ServerDefaultPushRules.InviteForMe.id,
+                false,
+            )
+        }
+        pushRulesEventContentState.value = samplePushRuleSet.withServerManagedRules()
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe false
+        cut.updateAccountSettingsError.value shouldBe null
+
+        continueHandlePushRuleRequest.value = false
+        cut.updateAccountSettings(settings)
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe false
+    }
+
+    @Test
+    fun `modifier only enabled and action changes are sent and awaited`() = runTest {
+        val modifiedRules =
+            samplePushRuleSet.copy(
+                underride =
+                    samplePushRuleSet.underride?.map {
+                        if (it.ruleId == ServerDefaultPushRules.Call.id)
+                            it.copy(enabled = true, actions = actions(notify = true, highlight = true))
+                        else it
+                    }
+            )
+        modifiedRules.toNotificationSettings() shouldBe sampleSettings
+        val cut = createCut(AccountNotificationPushRuleModifier { _, _, _ -> modifiedRules })
+        continueHandlePushRuleRequest.value = true
+
+        cut.updateAccountSettings(sampleSettings)
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+        verifySuspend {
+            pushApiClientMock.setPushRuleEnabled("global", PushRuleKind.UNDERRIDE, ServerDefaultPushRules.Call.id, true)
+            pushApiClientMock.setPushRuleActions(
+                "global",
+                PushRuleKind.UNDERRIDE,
+                ServerDefaultPushRules.Call.id,
+                actions(notify = true, highlight = true),
+            )
+        }
+        verifyNoMoreCalls(pushApiClientMock)
+
+        pushRulesEventContentState.value =
+            samplePushRuleSet.copy(
+                underride =
+                    samplePushRuleSet.underride?.map {
+                        if (it.ruleId == ServerDefaultPushRules.Call.id) it.copy(enabled = true) else it
+                    }
+            )
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+
+        pushRulesEventContentState.value = modifiedRules
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe false
+        cut.updateAccountSettingsError.value shouldBe null
+
+        cut.updateAccountSettings(sampleSettings)
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe false
+        verifyNoMoreCalls(pushApiClientMock)
+    }
+
+    @Test
     fun `partial sync stays pending even when converted settings match`() = runTest {
         val cut = createCut()
         val settings = sampleSettings.copy(defaultLevel = AccountNotificationSettings.DefaultLevel.ROOM)
@@ -248,6 +339,87 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
         cut.accountSettingsIsUpdating.value shouldBe true
 
         pushRulesEventContentState.value = syncedRules
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe false
+        cut.updateAccountSettingsError.value shouldBe null
+    }
+
+    @Test
+    fun `enabled updates identify rules by kind and id`() = runTest {
+        val ruleId = ServerDefaultPushRules.Call.id
+        val modifiedRules =
+            samplePushRuleSet.copy(
+                override = samplePushRuleSet.override.orEmpty() + PushRule.Override(ruleId = ruleId, enabled = true)
+            )
+        val cut = createCut(AccountNotificationPushRuleModifier { _, _, _ -> modifiedRules })
+        continueHandlePushRuleRequest.value = true
+
+        cut.updateAccountSettings(sampleSettings)
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+        verifySuspend {
+            pushApiClientMock.setPushRuleEnabled("global", PushRuleKind.OVERRIDE, ruleId, true)
+            pushApiClientMock.setPushRuleActions("global", PushRuleKind.OVERRIDE, ruleId, emptySet())
+        }
+        verifyNoMoreCalls(pushApiClientMock)
+
+        pushRulesEventContentState.value =
+            samplePushRuleSet.copy(
+                underride =
+                    samplePushRuleSet.underride?.map {
+                        if (it.ruleId == ruleId) it.copy(enabled = true, actions = emptySet()) else it
+                    }
+            )
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+
+        pushRulesEventContentState.value = modifiedRules
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe false
+        cut.updateAccountSettingsError.value shouldBe null
+    }
+
+    @Test
+    fun `content upserts await the sent pattern and actions for the rule id`() = runTest {
+        val contentRule = samplePushRuleSet.content.orEmpty().single()
+        val modifiedContentRule = contentRule.copy(pattern = "modified", actions = actions(notify = true))
+        val modifiedRules = samplePushRuleSet.copy(content = listOf(modifiedContentRule))
+        val cut = createCut(AccountNotificationPushRuleModifier { _, _, _ -> modifiedRules })
+        continueHandlePushRuleRequest.value = true
+
+        cut.updateAccountSettings(sampleSettings)
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+        verifySuspend {
+            pushApiClientMock.setPushRule(
+                "global",
+                PushRuleKind.CONTENT,
+                contentRule.ruleId,
+                SetPushRule.Request(actions = modifiedContentRule.actions, pattern = modifiedContentRule.pattern),
+                beforeRuleId = null,
+                afterRuleId = null,
+            )
+        }
+        verifyNoMoreCalls(pushApiClientMock)
+
+        pushRulesEventContentState.value =
+            samplePushRuleSet.copy(content = listOf(modifiedContentRule.copy(ruleId = "other")))
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+
+        pushRulesEventContentState.value =
+            samplePushRuleSet.copy(content = listOf(modifiedContentRule.copy(pattern = contentRule.pattern)))
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+
+        pushRulesEventContentState.value =
+            samplePushRuleSet.copy(content = listOf(modifiedContentRule.copy(actions = contentRule.actions)))
+        delay(500.milliseconds)
+        cut.accountSettingsIsUpdating.value shouldBe true
+
+        // Content upserts do not send enabled or default.
+        pushRulesEventContentState.value =
+            samplePushRuleSet.copy(content = listOf(modifiedContentRule.copy(enabled = true, default = true)))
         delay(500.milliseconds)
         cut.accountSettingsIsUpdating.value shouldBe false
         cut.updateAccountSettingsError.value shouldBe null
@@ -374,9 +546,17 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
         )
     }
 
-    private fun TestScope.createCut(): NotificationSettingsSingleAccountViewModel {
+    private fun TestScope.createCut(
+        accountNotificationPushRuleModifier: AccountNotificationPushRuleModifier =
+            NoopAccountNotificationPushRuleModifier()
+    ): NotificationSettingsSingleAccountViewModel {
         val di =
-            koinApplication { modules(createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock))) }
+            koinApplication {
+                    modules(createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)))
+                    modules(
+                        module { single<AccountNotificationPushRuleModifier> { accountNotificationPushRuleModifier } }
+                    )
+                }
                 .koin
         return NotificationSettingsSingleAccountViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(di = di, userId = userId)

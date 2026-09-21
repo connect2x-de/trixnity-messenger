@@ -2223,6 +2223,10 @@ public final class de/connect2x/trixnity/messenger/multi/ProfileManagerKt {
 	public static final fun updateProfile (Lde/connect2x/trixnity/messenger/multi/ProfileManager;Ljava/lang/String;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/notification/AccountNotificationPushRuleModifier {
+	public abstract fun modify-pFTbHVM (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountNotificationSettings;Lde/connect2x/trixnity/core/model/push/PushRuleSet;)Lde/connect2x/trixnity/core/model/push/PushRuleSet;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/notification/GetNotificationIcon {
 	public abstract fun fromBytes ([BII)Lde/connect2x/sysnotify/NotificationIcon;
 	public abstract fun fromResource (Ljava/lang/String;)Lde/connect2x/sysnotify/NotificationIcon;
@@ -2270,6 +2274,11 @@ public final class de/connect2x/trixnity/messenger/notification/NoOpNotification
 
 public final class de/connect2x/trixnity/messenger/notification/NoOpNotificationProviderKt {
 	public static final fun getNotificationProviderNoOp (Lde/connect2x/trixnity/messenger/MatrixMessengerAccountSettings;)Lde/connect2x/trixnity/messenger/notification/MatrixMessengerAccountNotificationProviderNoOpSettings;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/NoopAccountNotificationPushRuleModifier : de/connect2x/trixnity/messenger/notification/AccountNotificationPushRuleModifier {
+	public fun <init> ()V
+	public fun modify-pFTbHVM (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountNotificationSettings;Lde/connect2x/trixnity/core/model/push/PushRuleSet;)Lde/connect2x/trixnity/core/model/push/PushRuleSet;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/notification/NotificationHandlerFactory {
