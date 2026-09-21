@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 
 ### Changed
+- UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 
 ### Deprecated
 

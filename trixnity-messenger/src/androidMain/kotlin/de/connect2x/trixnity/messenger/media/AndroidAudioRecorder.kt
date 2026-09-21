@@ -52,13 +52,16 @@ internal class AndroidAudioRecorder(
         return when (getContext().checkSelfPermission(Manifest.permission.RECORD_AUDIO)) {
             PackageManager.PERMISSION_GRANTED -> startRecorder(intoMediaStore)
             PackageManager.PERMISSION_DENIED -> {
+                log.debug { "Microphone permission currently denied. Requesting permission..." }
                 requestPermission()
                 PlatformAudioRecorder.StartResult.RequestedPermissions
             }
 
-            else ->
+            else -> {
                 // should never be reached
+                log.error { "Microphone permission neither granted nor denied" }
                 PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
+            }
         }
     }
 

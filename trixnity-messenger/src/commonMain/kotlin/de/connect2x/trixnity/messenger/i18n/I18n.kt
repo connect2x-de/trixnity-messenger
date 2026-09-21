@@ -1755,9 +1755,17 @@ open class I18n(
         DE - "Während der Aufnahme ist ein Fehler aufgetreten"
     }
 
-    open fun microphonePermissionDenied() = translate {
-        EN - "Microphone permission denied. Check system settings."
-        DE - "Mikrofon-Zugriff verweigert. Überprüfen Sie die System-Einstellungen."
+    open fun genericRecordingErrorWeb() = translate {
+        EN - "An error occurred. Check microphone permission in browser settings and in device settings."
+        DE -
+            "Es ist ein Fehler aufgetreten. Prüfen Sie die Mikrofon-Berechtigung in den Browser-Einstellungen und den Geräte-Einstellungen."
+    }
+
+    open fun microphonePermissionDeniedWeb() = translate {
+        EN -
+            "Microphone permission not allowed. Check the microphone permission in browser settings and in device settings."
+        DE -
+            "Mikrofon-Zugriff nicht erlaubt. Prüfen Sie die Mikrofon-Berechtigung in den Browser-Einstellungen und in den Geräte-Einstellungen."
     }
 
     open fun microphonePermissionTimeout() = translate {

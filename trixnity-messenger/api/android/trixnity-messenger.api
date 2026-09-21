@@ -1460,6 +1460,7 @@ public class de/connect2x/trixnity/messenger/i18n/I18n : de/connect2x/trixnity/m
 	public fun forgetRoomError (Ljava/lang/String;)Ljava/lang/String;
 	public fun forgetRoomErrorOffline ()Ljava/lang/String;
 	public fun genericRecordingError ()Ljava/lang/String;
+	public fun genericRecordingErrorWeb ()Ljava/lang/String;
 	public fun historyVisibilityChange (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public fun historyVisibilityJoined ()Ljava/lang/String;
 	public fun historyVisibilityShared ()Ljava/lang/String;
@@ -1476,7 +1477,7 @@ public class de/connect2x/trixnity/messenger/i18n/I18n : de/connect2x/trixnity/m
 	public fun mediaExceedsDownloadLimit ()Ljava/lang/String;
 	public fun mediaInsufficientSpace ()Ljava/lang/String;
 	public fun mediaTooLargeForPreview ()Ljava/lang/String;
-	public fun microphonePermissionDenied ()Ljava/lang/String;
+	public fun microphonePermissionDeniedWeb ()Ljava/lang/String;
 	public fun microphonePermissionTimeout ()Ljava/lang/String;
 	public fun newActivity ()Ljava/lang/String;
 	public fun newEventAlreadyExistsErr ()Ljava/lang/String;
