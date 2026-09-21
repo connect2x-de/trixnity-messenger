@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.handleFirst
 import de.connect2x.trixnity.utils.ByteArrayFlow
@@ -37,6 +38,10 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
 import web.blob.byteArray
+import web.errors.DOMException
+import web.errors.NotAllowedError
+import web.errors.NotFoundError
+import web.errors.NotReadableError
 import web.events.ERROR
 import web.events.Event
 import web.events.STOP
@@ -68,8 +73,32 @@ class WebAudioRecorder(
                         navigator.mediaDevices.getUserMedia(unsafeJso { audio = unsafeCast(true) })
                     }
                 } catch (e: JsException) {
-                    if (e.toJsErrorLike().toJsError().name == JsErrorName("NotAllowedError")) {
-                        return PlatformAudioRecorder.StartResult.Failure(i18n.microphonePermissionDenied())
+                    val missingBrowserPermissionAny = DOMException.NotAllowedError
+                    val missingSystemPermissionFirefox = DOMException.NotFoundError
+                    val missingSystemPermissionChromium = DOMException.NotReadableError
+                    val missingSystemPermissionEpiphanyWebKit = JsErrorName("OverconstrainedError")
+
+                    /**
+                     * Because the documentation is very vague, we reproduced missing system permissions (e.g. native
+                     * macOS permissions) manually and inspected which errors are thrown. For this, we installed the
+                     * browser using Flatpak and used Flatseal to revoke the 'pulseaudio' permission.
+                     *
+                     * See also this list of all possible exceptions:
+                     * https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions
+                     */
+                    val permissionErrors =
+                        listOf(
+                            missingBrowserPermissionAny,
+                            missingSystemPermissionFirefox,
+                            missingSystemPermissionChromium,
+                            missingSystemPermissionEpiphanyWebKit,
+                        )
+
+                    if (permissionErrors.contains(e.name())) {
+                        log.warn(e) {
+                            "Microphone access not possible. Either permission denied (by system or user) or microphone otherwise unavailable"
+                        }
+                        return PlatformAudioRecorder.StartResult.Failure(i18n.microphonePermissionDeniedWeb())
                     }
                     throw e
                 }
@@ -90,7 +119,7 @@ class WebAudioRecorder(
             }
         } catch (e: Throwable) {
             log.error(e) { "Unexpected error. Could not start recording" }
-            PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
+            PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingErrorWeb())
         }
     }
 
@@ -181,7 +210,7 @@ class WebAudioRecorder(
                     )
                 } else {
                     log.warn { "Stopping the web API recorder failed or timed out" }
-                    Result.failure(Throwable(i18n.genericRecordingError()))
+                    Result.failure(Throwable(i18n.genericRecordingErrorWeb()))
                 }
             } finally {
                 mediaDeferred.cancel()
@@ -220,5 +249,10 @@ class WebAudioRecorder(
     @OptIn(ExperimentalWasmJsInterop::class)
     private fun closeInputs(mediaStream: MediaStream) {
         mediaStream.getTracks().toList().forEach { track -> track.stop() }
+    }
+
+    @OptIn(ExperimentalWasmJsInterop::class)
+    private fun JsException.name(): JsErrorName {
+        return this.toJsErrorLike().toJsError().name
     }
 }

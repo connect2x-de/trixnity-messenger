@@ -132,7 +132,18 @@ class AudioRecorderImpl(
     }
 
     override suspend fun complete() {
-        stateImpl.value = complete(stateImpl.value, i18n)
+        val stateImplValue = stateImpl.value
+
+        val logMessage =
+            when (stateImplValue) {
+                State.Ready -> "Tried to complete recording but it is not yet started"
+                is State.Recording -> "Completing recording"
+                is State.Completed -> "Tried to complete a recording that is already completed"
+                is State.Failed -> "Tried to complete a failed recording"
+            }
+        log.debug { logMessage }
+
+        stateImpl.value = complete(stateImplValue, i18n)
     }
 
     override suspend fun closeSuspending() {
@@ -213,38 +224,34 @@ class AudioRecorderImpl(
 
         private suspend fun complete(stateImpl: State, i18n: I18n): State {
             return when (stateImpl) {
-                State.Ready -> {
-                    log.debug { "Tried to complete recording but it is not yet started" }
-                    State.Ready
-                }
-
                 is State.Recording -> {
-                    log.debug { "Completing recording" }
-
                     stateImpl
                         .complete()
                         .fold(
                             onSuccess = { state -> state },
                             onFailure = { t ->
-                                log.debug { "Completing recording failed." }
+                                log.warn { "Completing recording failed." }
                                 State.Failed(t.message ?: i18n.genericRecordingError())
                             },
                         )
                 }
 
-                is State.Completed -> {
-                    log.debug { "Tried to complete a recording that is already completed" }
-                    stateImpl
-                }
-                is State.Failed -> {
-                    log.debug { "Tried to complete a failed recording" }
-                    stateImpl
-                }
+                State.Ready,
+                is State.Completed,
+                is State.Failed -> stateImpl
             }
         }
 
         private suspend fun close(stateImpl: State, i18n: I18n): State {
-            log.debug { "Cleaning audio recorder" }
+            val logMessage =
+                when (stateImpl) {
+                    State.Ready -> "Closing recorder while ready"
+                    is State.Recording -> "Closing recorder while recording"
+                    is State.Completed -> "Closing recorder while completed"
+                    is State.Failed -> "Closing recorder while failed"
+                }
+            log.debug { logMessage }
+
             complete(stateImpl, i18n)
             return State.Ready
         }
