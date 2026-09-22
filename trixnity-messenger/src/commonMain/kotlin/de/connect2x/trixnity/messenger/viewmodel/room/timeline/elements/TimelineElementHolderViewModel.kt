@@ -421,17 +421,16 @@ class TimelineElementHolderViewModelImpl(
             }
             .stateIn(coroutineScope, Eagerly, null)
 
-    override val isReply: StateFlow<Boolean?> =
-        flow {
-                val eventContent = timelineEventFlow.first().event.content
-                if (eventContent !is MessageEventContent) {
-                    emit(false)
-                    return@flow
-                }
-                val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-                if (repliedEventId == null) emit(false) else emit(true)
-            }
-            .stateIn(coroutineScope, Lazily, null)
+    override val isReply: StateFlow<Boolean?> = flow {
+        val eventContent = timelineEventFlow.first().event.content
+        if (eventContent !is MessageEventContent) {
+            emit(false)
+            return@flow
+        }
+        val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
+        if (repliedEventId == null) emit(false) else emit(true)
+    }
+        .stateIn(coroutineScope, Lazily, null)
 
     private data class RepliedTimelineElementViewModelWrapper(
         val viewModel: TimelineElementHolderViewModel,
@@ -588,15 +587,14 @@ class TimelineElementHolderViewModelImpl(
             .map { it.event.sender == matrixClient.userId && it.content?.getOrNull() is TextBased }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    override val canBeRedacted: StateFlow<Boolean> =
-        channelFlow {
-                timelineEventFlow
-                    .flatMapLatest { timelineEvent ->
-                        matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId)
-                    }
-                    .collectLatest { send(it) }
+    override val canBeRedacted: StateFlow<Boolean> = channelFlow {
+        timelineEventFlow
+            .flatMapLatest { timelineEvent ->
+                matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId)
             }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+            .collectLatest { send(it) }
+    }
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isRead: StateFlow<Boolean> =
         lastReplaceOrRedaction
@@ -633,30 +631,14 @@ class TimelineElementHolderViewModelImpl(
                 timelineEventFlow.first().let { timelineEvent ->
                     if (matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId).first()) {
                         redactionError.value = null
-                        if (
-                            matrixClient.serverData.value?.versions?.let {
-                                it.versions.contains("v1.18") || it.unstableFeatures["com.beeper.msc4169"] == true
-                            } == true
-                        ) {
-                            if (
-                                matrixClient.room.getOutbox(roomId).first().none {
-                                    val content = it.first()?.content
-                                    content is RedactionEventContent && content.redacts == eventId
-                                }
-                            ) {
-                                matrixClient.room.sendMessage(roomId) { redact(eventId) }
-                            } else {
-                                log.debug { "Already redacted event $eventId." }
-                            }
-                        } else {
-                            matrixClient.api.room
-                                .redactEvent(roomId, timelineEvent.eventId, txnId = Uuid.random().toString())
-                                .onSuccess { log.debug { "successfully redacted event ${timelineEvent.eventId}" } }
-                                .onFailure {
-                                    log.error(it) { "could not redact event ${timelineEvent.eventId}" }
+                        redactEvent(timelineEvent.eventId)
+                            ?.fold(
+                                onSuccess = { log.debug { "successfully redacted event $eventId" } },
+                                onFailure = {
+                                    log.error(it) { "could not redact event $eventId" }
                                     redactionError.value = i18n.timelineElementRedactError()
-                                }
-                        }
+                                },
+                            )
                     } else
                         log.warn {
                             "try to redact timeline event $eventId," +
@@ -719,15 +701,33 @@ class TimelineElementHolderViewModelImpl(
                 }
                 is EventIdOrTransactionId.EventId -> {
                     log.debug { "sending redaction for reaction $reaction with id $eventOrTransactionId" }
-                    if (matrixClient.serverData.value?.versions?.versions?.contains("v1.18") == true) {
-                        matrixClient.room.sendMessage(roomId) { redact(eventOrTransactionId.eventId) }
-                    } else {
-                        matrixClient.api.room
-                            .redactEvent(roomId, eventOrTransactionId.eventId, txnId = Uuid.random().toString())
-                            .onFailure { log.error(it) { "could not redact event ${eventOrTransactionId.eventId}" } }
+                    redactEvent(eventOrTransactionId.eventId)?.onFailure {
+                        log.error(it) { "could not redact event ${eventOrTransactionId.eventId}" }
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun redactEvent(eventId: EventId): Result<EventId>? {
+        if (
+            matrixClient.serverData.value?.versions?.let {
+                it.versions.contains("v1.18") || it.unstableFeatures["com.beeper.msc4169"] == true
+            } == true
+        ) {
+            if (
+                matrixClient.room.getOutbox(roomId).first().none {
+                    val content = it.first()?.content
+                    content is RedactionEventContent && content.redacts == eventId
+                }
+            ) {
+                matrixClient.room.sendMessage(roomId) { redact(eventId) }
+            } else {
+                log.debug { "Already redacted event $eventId." }
+            }
+            return null
+        } else {
+            return matrixClient.api.room.redactEvent(roomId, eventId, txnId = Uuid.random().toString())
         }
     }
 
