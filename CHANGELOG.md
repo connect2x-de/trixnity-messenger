@@ -12,6 +12,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 
+- DEPENDENCY: Update c2x-conventions to 20260917.190917
+
 ### Deprecated
 
 ### Removed
