@@ -79,13 +79,13 @@ class GetEventReactionsTest {
 
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }
                 .koin
 
         every { matrixClientMock.userId } returns user1
@@ -132,7 +132,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            status = ReactionStatus.NotByMe,
+                            isByMe = ReactionStatus.NotByMe,
                         )
                     )
             )
@@ -164,19 +164,19 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            status = ReactionStatus.NotByMe,
+                            isByMe = ReactionStatus.NotByMe,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction2),
-                            status = ReactionStatus.NotByMe,
+                            isByMe = ReactionStatus.NotByMe,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user3, name = "user 3", initials = "U3"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction3),
-                            status = ReactionStatus.NotByMe,
+                            isByMe = ReactionStatus.NotByMe,
                         ),
                     )
             )
@@ -212,7 +212,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            status = ReactionStatus.Pending,
+                            isByMe = ReactionStatus.Pending,
                         )
                     )
             )
@@ -270,13 +270,13 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("2"),
-                            status = ReactionStatus.Pending,
+                            isByMe = ReactionStatus.Pending,
                         ),
                         EventReaction(
                             value = "👺",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("3"),
-                            status = ReactionStatus.Pending,
+                            isByMe = ReactionStatus.Pending,
                         ),
                     )
             )
@@ -312,7 +312,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            status = ReactionStatus.SentError(i18n.sendErrorEventPermission()),
+                            isByMe = ReactionStatus.SentError(i18n.sendErrorEventPermission()),
                         )
                     )
             )
@@ -359,7 +359,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            status = ReactionStatus.Pending,
+                            isByMe = ReactionStatus.Pending,
                         )
                     )
             )

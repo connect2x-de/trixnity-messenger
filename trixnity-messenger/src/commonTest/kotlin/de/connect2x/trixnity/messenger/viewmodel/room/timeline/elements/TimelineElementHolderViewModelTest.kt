@@ -182,28 +182,27 @@ class TimelineElementHolderViewModelTest {
 
     private val settings = createTestMatrixMessengerSettingsHolder()
     private val serverData = MutableStateFlow(ServerData(GetVersions.Response(), GetMediaConfig.Response(), null, null))
-    private val di =
-        koinApplication {
-                modules(
-                    scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings) +
-                        listOf(module { single<GetEventReactions> { getEventReactionsMock } })
-                )
-            }
-            .koin
+    private val di = koinApplication {
+        modules(
+            scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings) +
+                listOf(module { single<GetEventReactions> { getEventReactionsMock } })
+        )
+    }
+        .koin
     private val config by lazy { di.get<MatrixMessengerConfiguration>() }
 
     init {
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock, roomApiClientMock)
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { EventContentSerializerMappings.default }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { EventContentSerializerMappings.default }
+                    }
+                )
+            }
                 .koin
         every { matrixClientMock.serverData } returns serverData
         every { matrixClientMock.userId } returns usId
@@ -537,7 +536,8 @@ class TimelineElementHolderViewModelTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = aliceId,
-                sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold,
+                sentAt =
+                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold,
             ) {
                 text("Hi!")
             }
@@ -943,7 +943,7 @@ class TimelineElementHolderViewModelTest {
                         value = "🧌",
                         sender = usUserElement,
                         eventOrTransactionId = EventIdOrTransactionId("123"),
-                        status = ReactionStatus.Sent,
+                        isByMe = ReactionStatus.Sent,
                     )
                 )
             )
@@ -980,7 +980,7 @@ class TimelineElementHolderViewModelTest {
         delay(100.milliseconds)
 
         removedMessage shouldBe EventIdOrTransactionId("123")
-        removedFromOutbox = true
+        removedFromOutbox shouldBe true
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -995,7 +995,7 @@ class TimelineElementHolderViewModelTest {
                         value = "🧌",
                         sender = usUserElement,
                         eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
-                        status = ReactionStatus.Sent,
+                        isByMe = ReactionStatus.Sent,
                     )
                 )
             )
@@ -1032,7 +1032,7 @@ class TimelineElementHolderViewModelTest {
         delay(100.milliseconds)
 
         removedMessage shouldBe EventIdOrTransactionId(EventId("123"))
-        removedOld = true
+        removedOld shouldBe true
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -1048,7 +1048,7 @@ class TimelineElementHolderViewModelTest {
                             value = "🧌",
                             sender = usUserElement,
                             eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
-                            status = ReactionStatus.Sent,
+                            isByMe = ReactionStatus.Sent,
                         )
                     )
                 )
@@ -1093,7 +1093,7 @@ class TimelineElementHolderViewModelTest {
             delay(100.milliseconds)
 
             removedMessage shouldBe EventIdOrTransactionId(EventId("123"))
-            removedNew = true
+            removedNew shouldBe true
         }
 
     private fun TestScope.cut(
