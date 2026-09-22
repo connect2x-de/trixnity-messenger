@@ -18,7 +18,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
-- input area box growing infinitely in size with multiline input
+- UI: input area box growing infinitely in size with multiline input
+- UI: SSO login wizard has shown empty box while SSO login is ongoing
 
 ### Security
 
