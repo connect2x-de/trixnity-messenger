@@ -14,6 +14,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
 - DEPENDENCY: Update Trixnity to 5.9.3-SNAPSHOT.CI-20260922.144627
+- DEPENDENCY: Update SQLitenity to 0.0.8
 
 ### Deprecated
 

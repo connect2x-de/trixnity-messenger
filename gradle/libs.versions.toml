@@ -8,7 +8,7 @@ seskar = "4.53.0" # https://github.com/turansky/seskar
 
 trixnity = "5.9.3-SNAPSHOT.CI-20260922.144627" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.7.1" # https://gitlab.com/connect2x/sysnotify/-/packages
-sqlitenity = "0.0.7" # https://gitlab.com/connect2x/sqlitenity/-/releases
+sqlitenity = "0.0.8" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 unifiedPush = "3.3.3" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.17.0" # https://square.github.io/okio/changelog
