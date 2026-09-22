@@ -13,6 +13,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
+- DEPENDENCY: Update Trixnity to 5.9.3-SNAPSHOT.CI-20260922.144627
 
 ### Deprecated
 

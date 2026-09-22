@@ -137,7 +137,7 @@ kotlin {
                 implementation(libs.sqlitenity.bundled)
                 implementation(libs.sqlitenity.compat)
                 api(libs.trixnity.client.media.okio)
-                implementation(sharedLibs.androidx.roomRuntime)
+                implementation(sharedLibs.androidx.room3Runtime)
             }
         }
         named("jvmAndAndroidMain") { dependencies { api(sharedLibs.lognity.slf4j) } }

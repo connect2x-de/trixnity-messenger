@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger
 
-import androidx.room.RoomDatabase
+import androidx.room3.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
 import de.connect2x.lognity.api.logger.Logger

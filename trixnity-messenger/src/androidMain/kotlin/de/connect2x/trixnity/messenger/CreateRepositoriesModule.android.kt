@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger
 
-import androidx.room.Room
-import androidx.room.RoomDatabase
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import org.koin.core.scope.Scope
 
