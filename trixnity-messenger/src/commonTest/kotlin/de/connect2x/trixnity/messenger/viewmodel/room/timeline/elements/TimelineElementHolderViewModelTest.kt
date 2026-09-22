@@ -943,7 +943,7 @@ class TimelineElementHolderViewModelTest {
                         value = "🧌",
                         sender = usUserElement,
                         eventOrTransactionId = EventIdOrTransactionId("123"),
-                        isByMe = ReactionStatus.Sent,
+                        status = ReactionStatus.Sent,
                     )
                 )
             )
@@ -995,7 +995,7 @@ class TimelineElementHolderViewModelTest {
                         value = "🧌",
                         sender = usUserElement,
                         eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
-                        isByMe = ReactionStatus.Sent,
+                        status = ReactionStatus.Sent,
                     )
                 )
             )
@@ -1048,7 +1048,7 @@ class TimelineElementHolderViewModelTest {
                             value = "🧌",
                             sender = usUserElement,
                             eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
-                            isByMe = ReactionStatus.Sent,
+                            status = ReactionStatus.Sent,
                         )
                     )
                 )

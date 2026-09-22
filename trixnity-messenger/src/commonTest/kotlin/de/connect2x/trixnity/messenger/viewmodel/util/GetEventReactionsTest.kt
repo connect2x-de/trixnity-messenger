@@ -132,7 +132,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            isByMe = ReactionStatus.NotByMe,
+                            status = ReactionStatus.NotByMe,
                         )
                     )
             )
@@ -164,19 +164,19 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            isByMe = ReactionStatus.NotByMe,
+                            status = ReactionStatus.NotByMe,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction2),
-                            isByMe = ReactionStatus.NotByMe,
+                            status = ReactionStatus.NotByMe,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user3, name = "user 3", initials = "U3"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction3),
-                            isByMe = ReactionStatus.NotByMe,
+                            status = ReactionStatus.NotByMe,
                         ),
                     )
             )
@@ -212,7 +212,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            isByMe = ReactionStatus.Pending,
+                            status = ReactionStatus.Pending,
                         )
                     )
             )
@@ -270,13 +270,13 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("2"),
-                            isByMe = ReactionStatus.Pending,
+                            status = ReactionStatus.Pending,
                         ),
                         EventReaction(
                             value = "👺",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("3"),
-                            isByMe = ReactionStatus.Pending,
+                            status = ReactionStatus.Pending,
                         ),
                     )
             )
@@ -312,7 +312,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            isByMe = ReactionStatus.SentError(i18n.sendErrorEventPermission()),
+                            status = ReactionStatus.SentError(i18n.sendErrorEventPermission()),
                         )
                     )
             )
@@ -359,7 +359,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            isByMe = ReactionStatus.Pending,
+                            status = ReactionStatus.Pending,
                         )
                     )
             )

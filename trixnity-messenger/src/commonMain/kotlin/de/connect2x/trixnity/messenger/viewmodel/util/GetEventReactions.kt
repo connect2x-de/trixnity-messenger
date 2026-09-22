@@ -87,7 +87,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                                                                 initials,
                                                                 maxMediaSizeInMemory,
                                                             ),
-                                                        isByMe = event.getReactionStatus(matrixClient.userId),
+                                                        status = event.getReactionStatus(matrixClient.userId),
                                                     )
                                                 }
                                             }
@@ -172,7 +172,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                                                                             initials,
                                                                             maxMediaSizeInMemory,
                                                                         ),
-                                                                    isByMe = outboxEvent.value.getReactionStatus(),
+                                                                    status = outboxEvent.value.getReactionStatus(),
                                                                 )
                                                         }
                                                     } else
@@ -193,7 +193,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                                                                         initials,
                                                                         maxMediaSizeInMemory,
                                                                     ),
-                                                                isByMe = outboxEvent.value.getReactionStatus(),
+                                                                status = outboxEvent.value.getReactionStatus(),
                                                             )
                                                         )
                                                 }
@@ -212,7 +212,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                             outboxEventReaction.toSet() +
                                 timelineEventReaction.filter { timelineMessage ->
                                     val hasNewerReactionInOutbox =
-                                        timelineMessage.isByMe.isByMe() &&
+                                        timelineMessage.status.isByMe() &&
                                             outboxEventReaction.any { it.value == timelineMessage.value }
 
                                     val isPendingRedaction = outboxRedactions.any {
@@ -246,7 +246,7 @@ data class EventReaction(
     val value: String,
     val sender: UserInfoElement,
     val eventOrTransactionId: EventIdOrTransactionId,
-    val isByMe: ReactionStatus,
+    val status: ReactionStatus,
 )
 
 sealed class ReactionStatus(val priority: Int) {
@@ -269,7 +269,7 @@ data class EventReactions(val all: Set<EventReaction>) {
                 ByUserInfo(
                     reactions = value.associate { it.value to it.eventOrTransactionId },
                     sender = first.sender,
-                    status = first.isByMe,
+                    status = first.status,
                 )
             }
     }
@@ -282,7 +282,7 @@ data class EventReactions(val all: Set<EventReaction>) {
                             ByReactionInfo(
                                 eventOrTransactionId = it.eventOrTransactionId,
                                 sender = it.sender,
-                                status = it.isByMe,
+                                status = it.status,
                             )
                         }
                         .toSet()
