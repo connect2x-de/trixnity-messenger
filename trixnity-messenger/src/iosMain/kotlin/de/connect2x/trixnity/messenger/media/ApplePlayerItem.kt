@@ -98,6 +98,9 @@ internal class ApplePlayerItem(
                         }
                     }
 
+                player.currentItemPlaying.value
+                    ?.takeIf { it !== this }
+                    ?.let { previousItem -> previousItem.elapsedTime.value = Duration.ZERO }
                 player.currentItemPlaying.value = this
                 state.value = MediaPlayer.Item.State.Playing
                 Result.success(Unit)
