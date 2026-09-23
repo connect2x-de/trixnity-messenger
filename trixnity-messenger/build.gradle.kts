@@ -117,6 +117,9 @@ kotlin {
                 implementation(libs.ksoup.html)
                 implementation(sharedLibs.skie.annotations)
                 api(sharedLibs.androidx.navigation3Runtime)
+                implementation(libs.trixnity.client.repository.room)
+                implementation(libs.sqlitenity.encryptedDriver)
+                implementation(sharedLibs.androidx.room3Runtime)
             }
         }
         commonTest {
@@ -132,12 +135,8 @@ kotlin {
         }
         named("jvmAndNativeMain") {
             dependencies {
-                implementation(libs.trixnity.client.repository.room)
                 // implementation(sharedLibs.androidx.sqlite3mc.bundled)
-                implementation(libs.sqlitenity.bundled)
-                implementation(libs.sqlitenity.compat)
                 api(libs.trixnity.client.media.okio)
-                implementation(sharedLibs.androidx.roomRuntime)
             }
         }
         named("jvmAndAndroidMain") { dependencies { api(sharedLibs.lognity.slf4j) } }
@@ -180,6 +179,7 @@ kotlin {
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(sharedLibs.ktor.client.js) // since there is only 1 engine in web, we select it here
+                implementation(libs.sqlitenity.webWorker)
             }
         }
         androidUnitTest {

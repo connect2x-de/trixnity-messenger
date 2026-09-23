@@ -14360,7 +14360,10 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 
     final class Features { // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features|null[0]
-        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+
+        final val enableRoom3ForNewAccountsOnWeb // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableRoom3ForNewAccountsOnWeb|{}enableRoom3ForNewAccountsOnWeb[0]
+            final fun <get-enableRoom3ForNewAccountsOnWeb>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableRoom3ForNewAccountsOnWeb.<get-enableRoom3ForNewAccountsOnWeb>|<get-enableRoom3ForNewAccountsOnWeb>(){}[0]
 
         final var enableAudioRecorder // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder|{}enableAudioRecorder[0]
             final fun <get-enableAudioRecorder>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder.<get-enableAudioRecorder>|<get-enableAudioRecorder>(){}[0]
@@ -14391,7 +14394,8 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final fun component5(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component5|component5(){}[0]
         final fun component6(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component6|component6(){}[0]
         final fun component7(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component7|component7(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        final fun component8(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component8|component8(){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.toString|toString(){}[0]

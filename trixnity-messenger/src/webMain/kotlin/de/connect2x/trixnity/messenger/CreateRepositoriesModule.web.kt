@@ -1,30 +1,23 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.client.RepositoriesModule
-import de.connect2x.trixnity.client.store.repository.indexeddb.indexedDB
-import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.RootPath
+import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
-        val rootPath = get<RootPath>()
-        object : CreateRepositoriesModule {
-            override suspend fun generateDatabaseKey(): ByteArray? = null
+        val matrixMessengerConfiguration = get<MatrixMessengerConfiguration>()
 
-            override suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule =
-                createInternal(userId)
-
-            override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule =
-                createInternal(userId)
-
-            override fun handleExceptions(exc: Exception) {
-                // empty
-            }
-
-            private fun createInternal(userId: UserId): RepositoriesModule =
-                RepositoriesModule.indexedDB(rootPath.forAccountDatabase(userId).toString())
+        if (matrixMessengerConfiguration.features.enableRoom3ForNewAccountsOnWeb) {
+            AdaptiveCreateRepositoriesModule(
+                rootPath = get<RootPath>(),
+                fileSystem = getOrNull<FileSystem>(),
+                matrixMessengerConfiguration = matrixMessengerConfiguration,
+                scope = this@single,
+            )
+        } else {
+            IndexedDBCreateRepositoriesModule(rootPath = get<RootPath>())
         }
     }
 }
