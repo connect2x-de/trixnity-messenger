@@ -6,9 +6,9 @@ minSdkVersion = "28"
 
 seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.9.2" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "5.9.3-SNAPSHOT.CI-20260922.144627" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.7.1" # https://gitlab.com/connect2x/sysnotify/-/packages
-sqlitenity = "0.0.7" # https://gitlab.com/connect2x/sqlitenity/-/releases
+sqlitenity = "0.0.8" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 unifiedPush = "3.3.3" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.17.0" # https://square.github.io/okio/changelog
@@ -43,8 +43,8 @@ trixnity-client-cryptodriver-libolm = { module = "de.connect2x.trixnity:trixnity
 trixnity-client-cryptodriver-vodozemac = { module = "de.connect2x.trixnity:trixnity-client-cryptodriver-vodozemac", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x.sysnotify:sysnotify-core", version.ref = "sysnotify" }
-sqlitenity-bundled = { module = "de.connect2x.sqlitenity:sqlitenity-bundled", version.ref = "sqlitenity" }
-sqlitenity-compat = { module = "de.connect2x.sqlitenity:sqlitenity-compat", version.ref = "sqlitenity" }
+sqlitenity-encryptedDriver = { module = "de.connect2x.sqlitenity:sqlitenity-encrypted-driver", version.ref = "sqlitenity" }
+sqlitenity-webWorker = { module = "de.connect2x.sqlitenity:sqlitenity-web-worker", version.ref = "sqlitenity" }
 
 unifiedpush-android-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedPush" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }

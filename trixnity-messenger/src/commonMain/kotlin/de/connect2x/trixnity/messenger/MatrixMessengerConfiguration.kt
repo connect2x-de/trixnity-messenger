@@ -158,6 +158,8 @@ data class MatrixMessengerConfiguration(
         var enableNewSearch: Boolean = true,
         /** Uses the more concise account wizard when accounts log in. */
         var enableNewAccountWizard: Boolean = true,
+        /** Newly created accounts on Web use Room3 instead of IndexedDB */
+        val enableRoom3ForNewAccountsOnWeb: Boolean = true,
     )
 
     enum class CryptoDriver {

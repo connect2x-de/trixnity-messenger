@@ -9,9 +9,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
+
 ### Changed
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 
+- DEPENDENCY: Update c2x-conventions to 20260917.190917
+- DEPENDENCY: Update Trixnity to 5.9.3-SNAPSHOT.CI-20260922.144627
+- DEPENDENCY: Update SQLitenity to 0.0.8
 - SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
 
@@ -21,6 +26,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI: input area box growing infinitely in size with multiline input
+- UI: SSO login wizard has shown empty box while SSO login is ongoing
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
 

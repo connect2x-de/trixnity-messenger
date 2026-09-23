@@ -4,6 +4,7 @@ package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.sqlitenity.web.worker.SQLitenityWebWorker
 import js.objects.Object
 import js.objects.unsafeJso
 import js.string.JsStrings.toKotlinString
@@ -56,13 +57,23 @@ suspend fun Path.deleteVirtualFileSystemData() {
         if (localStorageKey.startsWith(path)) localStorage.removeItem(localStorageKey)
     }
 
-    try {
-        var opfsDirectory = navigator.storage.getDirectory()
-        for (segment in segments.dropLast(1)) {
-            opfsDirectory = opfsDirectory.getDirectoryHandle(segment, unsafeJso { create = true })
+    if (isOPFSAvailable()) {
+        try {
+            var opfsDirectory = navigator.storage.getDirectory()
+            for (segment in segments.dropLast(1)) {
+                opfsDirectory = opfsDirectory.getDirectoryHandle(segment, unsafeJso { create = true })
+            }
+            opfsDirectory.removeEntry(segments.last(), unsafeJso { recursive = true })
+        } catch (error: Throwable) {
+            log.warn(error) { "deleting OPFS directories failed" }
         }
-        opfsDirectory.removeEntry(segments.last(), unsafeJso { recursive = true })
-    } catch (error: Throwable) {
-        log.warn(error) { "deleting OPFS directories failed" }
+    }
+
+    if (isOPFSAvailable() && isWorkersAvailable()) {
+        try {
+            SQLitenityWebWorker.delete(path)
+        } catch (error: Throwable) {
+            log.warn(error) { "deleting SQLite3 databases failed" }
+        }
     }
 }
