@@ -163,6 +163,7 @@ internal fun MessageReactionButton(
                     ReactionStatus.NotByMe -> MaterialTheme.components.reactionButton
                     ReactionStatus.Pending -> MaterialTheme.components.pendingReactionButton
                     ReactionStatus.Sent -> MaterialTheme.components.selectedReactionButton
+                    ReactionStatus.RedactionPending -> MaterialTheme.components.pendingReactionButton
                     is ReactionStatus.SentError -> MaterialTheme.components.errorReactionButton
                     null -> MaterialTheme.components.reactionButton
                 },

@@ -41,7 +41,6 @@ interface GetEventReactions {
     ): Flow<EventReactions>
 }
 
-// TODO: should consider outbox (react and redact) to get immediate feedback
 class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun invoke(
@@ -208,19 +207,26 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                         timelineEventReaction,
                         outboxEventReaction,
                         outboxRedactions ->
-                        EventReactions(
+                        val allReactions =
                             outboxEventReaction.toSet() +
                                 timelineEventReaction.filter { timelineMessage ->
                                     val hasNewerReactionInOutbox =
                                         timelineMessage.status.isByMe() &&
                                             outboxEventReaction.any { it.value == timelineMessage.value }
-
+                                    !hasNewerReactionInOutbox
+                                }
+                        val pendingRedactionStatusUpdated =
+                            allReactions
+                                .map { timelineMessage ->
                                     val isPendingRedaction = outboxRedactions.any {
                                         it == timelineMessage.eventOrTransactionId.eventIdOrNull()
                                     }
-                                    !(hasNewerReactionInOutbox || isPendingRedaction)
+                                    if (isPendingRedaction) {
+                                        timelineMessage.copy(status = ReactionStatus.RedactionPending)
+                                    } else timelineMessage
                                 }
-                        )
+                                .toSet()
+                        EventReactions(pendingRedactionStatusUpdated)
                     }
                 }
             }
@@ -255,6 +261,8 @@ sealed class ReactionStatus(val priority: Int) {
     data object Sent : ReactionStatus(1)
 
     data object Pending : ReactionStatus(2)
+
+    data object RedactionPending : ReactionStatus(2)
 
     data class SentError(val error: String?) : ReactionStatus(3)
 
