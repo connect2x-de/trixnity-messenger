@@ -182,27 +182,28 @@ class TimelineElementHolderViewModelTest {
 
     private val settings = createTestMatrixMessengerSettingsHolder()
     private val serverData = MutableStateFlow(ServerData(GetVersions.Response(), GetMediaConfig.Response(), null, null))
-    private val di = koinApplication {
-        modules(
-            scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings) +
-                listOf(module { single<GetEventReactions> { getEventReactionsMock } })
-        )
-    }
-        .koin
+    private val di =
+        koinApplication {
+                modules(
+                    scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings) +
+                        listOf(module { single<GetEventReactions> { getEventReactionsMock } })
+                )
+            }
+            .koin
     private val config by lazy { di.get<MatrixMessengerConfiguration>() }
 
     init {
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock, roomApiClientMock)
         every { matrixClientMock.di } returns
             koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                        single { EventContentSerializerMappings.default }
-                    }
-                )
-            }
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { EventContentSerializerMappings.default }
+                        }
+                    )
+                }
                 .koin
         every { matrixClientMock.serverData } returns serverData
         every { matrixClientMock.userId } returns usId
@@ -536,8 +537,7 @@ class TimelineElementHolderViewModelTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = aliceId,
-                sentAt =
-                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold,
+                sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold,
             ) {
                 text("Hi!")
             }

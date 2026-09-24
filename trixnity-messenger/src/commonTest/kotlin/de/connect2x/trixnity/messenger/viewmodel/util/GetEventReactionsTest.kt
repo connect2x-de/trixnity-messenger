@@ -80,13 +80,13 @@ class GetEventReactionsTest {
 
         every { matrixClientMock.di } returns
             koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                    }
-                )
-            }
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }
                 .koin
 
         every { matrixClientMock.userId } returns user1
@@ -431,7 +431,7 @@ class GetEventReactionsTest {
             )
 
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
-            MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(reaction1))))
+            MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(eventId))))
         getEventReactions() shouldBe EventReactions(all = emptySet())
     }
 

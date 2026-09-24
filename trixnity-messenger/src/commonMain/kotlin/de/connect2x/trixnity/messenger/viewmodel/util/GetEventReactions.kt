@@ -13,7 +13,6 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
-import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -21,6 +20,7 @@ import de.connect2x.trixnity.messenger.i18n.getErrorMessage
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isReactionFor
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.NotByMe.isByMe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -127,20 +127,11 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                                         combine(it) { outboxMessages ->
                                             outboxMessages
                                                 .mapNotNull { outboxMessage ->
-                                                    if (outboxMessage != null) {
-                                                        val relatesTo = outboxMessage.content.relatesTo
-                                                        if (
-                                                            relatesTo is RelatesTo.Annotation &&
-                                                                relatesTo.eventId == eventId &&
-                                                                outboxMessage.content is ReactionEventContent
-                                                        ) {
-                                                            relatesTo.key?.let { it to outboxMessage }
-                                                        } else {
-                                                            null
-                                                        }
-                                                    } else {
-                                                        null
-                                                    }
+                                                    if (outboxMessage?.isReactionFor(roomId, eventId) ?: false)
+                                                        (outboxMessage.content.relatesTo as? RelatesTo.Annotation)
+                                                            ?.key
+                                                            ?.let { it to outboxMessage }
+                                                    else null
                                                 }
                                                 .groupBy { (reaction, _) -> reaction }
                                                 .mapValues { (_, keyToEvents) ->
