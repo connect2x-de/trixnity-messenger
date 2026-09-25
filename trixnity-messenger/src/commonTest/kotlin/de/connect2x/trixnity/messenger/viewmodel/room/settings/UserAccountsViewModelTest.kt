@@ -16,9 +16,9 @@ import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.UserApiClient
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField.DisplayName
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
@@ -51,10 +51,18 @@ import dev.mokkery.verifyNoMoreCalls
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlin.Result
+import kotlin.RuntimeException
+import kotlin.String
+import kotlin.Suppress
+import kotlin.Unit
+import kotlin.invoke
+import kotlin.requireNotNull
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.to
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -198,8 +206,7 @@ class UserAccountsViewModelTest {
 
         every { userServiceMock.getPresence(any()) } returns flowOf(UserPresence(Presence.OFFLINE, Clock.System.now()))
 
-        everySuspend { usersApiClientMock.getProfile(carol) } returns
-            Result.success(Profile(ProfileField.DisplayName("Carol")))
+        everySuspend { usersApiClientMock.getProfile(carol) } returns Result.success(Profile(DisplayName("Carol")))
 
         every { onOpenRoomMock.invoke(any(), any()) } returns Unit
         every { onCloseSettingsMock.invoke() } returns Unit
