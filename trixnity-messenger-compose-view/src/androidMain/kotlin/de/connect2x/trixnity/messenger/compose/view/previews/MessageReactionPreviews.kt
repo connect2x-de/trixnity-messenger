@@ -54,7 +54,11 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
 
-private fun previewReactionEvent(sender: String, initials: Initials, status: ReactionStatus = ReactionStatus.NotByMe) =
+private fun previewReactionEvent(
+    sender: String,
+    initials: Initials,
+    status: ReactionStatus = ReactionStatus.FromOtherAccount,
+) =
     ByReactionInfo(
         eventOrTransactionId = EventIdOrTransactionId(EventId("")),
         sender =
@@ -135,10 +139,10 @@ fun MessageReactionPreview() {
                                                 userId = UserId("@martin:local"),
                                                 initials = "M",
                                             ),
-                                        status = ReactionStatus.NotByMe,
+                                        status = ReactionStatus.FromOtherAccount,
                                     )
                                 ),
-                            highestStatus = ReactionStatus.NotByMe,
+                            highestStatus = ReactionStatus.FromOtherAccount,
                         ),
                     onAddReaction = {},
                     onRemoveReaction = {},
@@ -157,7 +161,7 @@ fun MessageReactionPreview() {
                                                 userId = UserId("@jan:local"),
                                                 initials = "M",
                                             ),
-                                        status = ReactionStatus.NotByMe,
+                                        status = ReactionStatus.FromOtherAccount,
                                     ),
                                     previewReactionEvent("username", initials, status = ReactionStatus.Sent),
                                 ),
@@ -188,8 +192,9 @@ fun MessageReactionWrappingPreview() {
                         reaction = "\uD83D\uDC4D",
                         reactionEvents =
                             EventReactions.ByReactionsInfo(
-                                reactions = setOf(previewReactionEvent("username", initials, ReactionStatus.NotByMe)),
-                                highestStatus = ReactionStatus.NotByMe,
+                                reactions =
+                                    setOf(previewReactionEvent("username", initials, ReactionStatus.FromOtherAccount)),
+                                highestStatus = ReactionStatus.FromOtherAccount,
                             ),
                         onAddReaction = {},
                         onRemoveReaction = {},
@@ -210,8 +215,9 @@ fun MessageReactionWrappingPreview() {
                         "Bee Movie By Jerry Seinfeld NARRATOR: (Black screen with text; The sound of buzzing bees can be heard) According to all known laws of aviation, : there is no way a bee should be able to fly. : Its wings are too small to get its fat little body off the ground. : The bee, of course, flies anyway : because bees don't care what humans think is impossible. BARRY BENSON: (Barry is picking out a shirt) Yellow, black. Yellow, black. Yellow, black. Yellow, black. : Ooh, black and yellow! Let's shake it up a little. JANET BENSON: Barry! Breakfast is ready! BARRY: Coming! : Hang on a second. (Barry uses his antenna like a phone) : Hello? ADAM FLAYMAN: (Through phone) - Barry? BARRY: - Adam? ADAM: - Can you believe this is happening? BARRY: - I can't. I'll pick you up. (Barry flies down the stairs) ",
                     reactionEvents =
                         EventReactions.ByReactionsInfo(
-                            reactions = setOf(previewReactionEvent("username", initials, ReactionStatus.NotByMe)),
-                            highestStatus = ReactionStatus.NotByMe,
+                            reactions =
+                                setOf(previewReactionEvent("username", initials, ReactionStatus.FromOtherAccount)),
+                            highestStatus = ReactionStatus.FromOtherAccount,
                         ),
                     onAddReaction = {},
                     onRemoveReaction = {},

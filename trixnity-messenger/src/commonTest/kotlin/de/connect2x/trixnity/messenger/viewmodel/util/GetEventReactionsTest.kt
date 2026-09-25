@@ -80,13 +80,13 @@ class GetEventReactionsTest {
 
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }
                 .koin
 
         every { matrixClientMock.userId } returns user1
@@ -133,7 +133,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            status = ReactionStatus.NotByMe,
+                            status = ReactionStatus.FromOtherAccount,
                         )
                     )
             )
@@ -165,19 +165,19 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            status = ReactionStatus.NotByMe,
+                            status = ReactionStatus.FromOtherAccount,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction2),
-                            status = ReactionStatus.NotByMe,
+                            status = ReactionStatus.FromOtherAccount,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user3, name = "user 3", initials = "U3"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction3),
-                            status = ReactionStatus.NotByMe,
+                            status = ReactionStatus.FromOtherAccount,
                         ),
                     )
             )

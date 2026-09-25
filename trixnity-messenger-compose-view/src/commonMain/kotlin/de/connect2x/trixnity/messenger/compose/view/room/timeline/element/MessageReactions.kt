@@ -35,7 +35,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.NotByMe.isByMe
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.FromOtherAccount.isByMe
 
 interface MessageReactionsView {
     @Composable
@@ -160,7 +160,7 @@ internal fun MessageReactionButton(
             },
             style =
                 when (highestStatus) {
-                    ReactionStatus.NotByMe -> MaterialTheme.components.reactionButton
+                    ReactionStatus.FromOtherAccount -> MaterialTheme.components.reactionButton
                     ReactionStatus.Pending -> MaterialTheme.components.pendingReactionButton
                     ReactionStatus.Sent -> MaterialTheme.components.selectedReactionButton
                     ReactionStatus.RedactionPending -> MaterialTheme.components.pendingReactionButton

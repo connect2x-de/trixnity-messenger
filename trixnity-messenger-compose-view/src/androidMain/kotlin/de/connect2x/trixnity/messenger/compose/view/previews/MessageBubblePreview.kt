@@ -48,7 +48,7 @@ fun TextMessageBubblePreview() {
                     value = "x",
                     eventOrTransactionId = EventIdOrTransactionId("1"),
                     sender = userInfoElement,
-                    status = ReactionStatus.NotByMe,
+                    status = ReactionStatus.FromOtherAccount,
                 )
             )
         )

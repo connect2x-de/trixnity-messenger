@@ -22,7 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isReactionFor
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.NotByMe.isByMe
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.FromOtherAccount.isByMe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -233,7 +233,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
 
     private fun TimelineEvent.getReactionStatus(selectedUser: UserId): ReactionStatus {
         return when {
-            sender != selectedUser -> ReactionStatus.NotByMe
+            sender != selectedUser -> ReactionStatus.FromOtherAccount
             else -> ReactionStatus.Sent
         }
     }
@@ -247,7 +247,7 @@ data class EventReaction(
 )
 
 sealed class ReactionStatus(val priority: Int) {
-    data object NotByMe : ReactionStatus(0)
+    data object FromOtherAccount : ReactionStatus(0)
 
     data object Sent : ReactionStatus(1)
 
@@ -257,7 +257,7 @@ sealed class ReactionStatus(val priority: Int) {
 
     data class SentError(val error: String?) : ReactionStatus(3)
 
-    fun ReactionStatus.isByMe() = this != NotByMe
+    fun ReactionStatus.isByMe() = this != FromOtherAccount
 }
 
 data class EventReactions(val all: Set<EventReaction>) {
