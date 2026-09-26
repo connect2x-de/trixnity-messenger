@@ -13988,6 +13988,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReaction 
 	public final fun getStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
 	public final fun getValue ()Ljava/lang/String;
 	public fun hashCode ()I
+	public final fun isByMe ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -14017,6 +14018,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions
 	public final fun getSender ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
 	public final fun getStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
 	public fun hashCode ()I
+	public final fun isMe ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -14045,6 +14047,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions
 	public final fun getSender ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
 	public final fun getStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
 	public fun hashCode ()I
+	public final fun isMe ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -14145,8 +14148,8 @@ public abstract class de/connect2x/trixnity/messenger/viewmodel/util/ReactionSta
 	public final fun isByMe (Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Z
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$NotByMe : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$NotByMe;
+public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$FromOtherAccount : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$FromOtherAccount;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -14154,6 +14157,13 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$Pending : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$Pending;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$RedactionPending : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$RedactionPending;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

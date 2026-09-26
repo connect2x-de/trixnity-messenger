@@ -19,6 +19,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - DEPENDENCY: Update SQLitenity to 0.0.8
 - SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
+- SDK: Align redaction behaviour for reactions with messages to allow requesting a redaction for a reaction when offline
+  if the homeserver allows it
 
 ### Deprecated
 
