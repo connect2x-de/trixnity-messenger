@@ -121,36 +121,41 @@ class TimelineElementMetadataViewModelImpl(
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val timelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
-    override val element: StateFlow<TimelineElementHolderViewModel?> = flow {
-        val timelineEvent = timelineEventFlow.first()
-        log.trace { "generate timeline element $eventId" }
-        emit(
-            timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContext("element-original"),
-                key = "element-original",
-                timelineEventFlow = timelineEventFlow,
-                roomId = roomId,
-                eventId = eventId,
-                sender = timelineEvent.sender,
-                formattedDate =
-                    formatDate(Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)),
-                formattedTime =
-                    formatTime(Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)),
-                showLoadingIndicatorBefore = flowOf(false),
-                showLoadingIndicatorAfter = flowOf(false),
-                showUnreadMarker = flowOf(false),
-                ignoreReplacedEvents = true,
-                getReceipts = ::getReceipts,
-                onMessageReplace = { _, _ -> },
-                onMessageReply = { _, _ -> },
-                onMessageReport = { _, _ -> },
-                onOpenMention = { _, _ -> },
-                onOpenMetadata = {},
-                jumpTo = { _, _ -> },
-            )
-        )
-    }
-        .stateIn(coroutineScope, Lazily, null) // only calculate once!
+    override val element: StateFlow<TimelineElementHolderViewModel?> =
+        flow {
+                val timelineEvent = timelineEventFlow.first()
+                log.trace { "generate timeline element $eventId" }
+                emit(
+                    timelineElementHolderViewModelFactory.create(
+                        viewModelContext = childContext("element-original"),
+                        key = "element-original",
+                        timelineEventFlow = timelineEventFlow,
+                        roomId = roomId,
+                        eventId = eventId,
+                        sender = timelineEvent.sender,
+                        formattedDate =
+                            formatDate(
+                                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)
+                            ),
+                        formattedTime =
+                            formatTime(
+                                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)
+                            ),
+                        showLoadingIndicatorBefore = flowOf(false),
+                        showLoadingIndicatorAfter = flowOf(false),
+                        showUnreadMarker = flowOf(false),
+                        ignoreReplacedEvents = true,
+                        getReceipts = ::getReceipts,
+                        onMessageReplace = { _, _ -> },
+                        onMessageReply = { _, _ -> },
+                        onMessageReport = { _, _ -> },
+                        onOpenMention = { _, _ -> },
+                        onOpenMetadata = {},
+                        jumpTo = { _, _ -> },
+                    )
+                )
+            }
+            .stateIn(coroutineScope, Lazily, null) // only calculate once!
 
     private data class TimelineElementHolderViewModelWrapper(
         val viewModel: TimelineElementHolderViewModel,

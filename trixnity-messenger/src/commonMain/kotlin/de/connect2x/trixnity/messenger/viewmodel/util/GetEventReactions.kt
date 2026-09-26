@@ -169,9 +169,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                                     else null
                                 }
                                 .groupBy { (reaction, _) -> reaction }
-                                .mapValues { (_, keyToEvents) ->
-                                    keyToEvents.map { (_, event) -> event }.last()
-                                }
+                                .mapValues { (_, keyToEvents) -> keyToEvents.map { (_, event) -> event }.last() }
                                 .map { (reactionKey, outboxEvent) ->
                                     // We need to check whether the event has been redacted while still
                                     // part of the outbox
@@ -221,16 +219,9 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
         return EventReaction(
             value = reactionKey,
             eventOrTransactionId =
-                outboxEvent.eventId?.let { id ->
-                    EventIdOrTransactionId(id)
-                } ?: EventIdOrTransactionId(outboxEvent.transactionId),
-            sender =
-                user.toUserInfoElement(
-                    this,
-                    matrixClient,
-                    initials,
-                    maxMediaSizeInMemory,
-                ),
+                outboxEvent.eventId?.let { id -> EventIdOrTransactionId(id) }
+                    ?: EventIdOrTransactionId(outboxEvent.transactionId),
+            sender = user.toUserInfoElement(this, matrixClient, initials, maxMediaSizeInMemory),
             status = outboxEvent.getReactionStatus(),
         )
     }
