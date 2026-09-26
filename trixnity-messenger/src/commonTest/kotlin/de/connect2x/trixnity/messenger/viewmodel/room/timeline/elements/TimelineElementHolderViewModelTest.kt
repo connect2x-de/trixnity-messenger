@@ -856,7 +856,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `redact » should redact using outbox when supported`() = runTest {
+    fun `redact » should redact using outbox when homeserver supports v1 18`() = runTest {
         settings.create(usId, MatrixMessengerAccountSettingsBase.withConfigDefaults(null, config))
         settings.update<MatrixMessengerAccountSettingsBase>(usId) { it.copy(redactionWarningIsEnabled = false) }
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
@@ -864,6 +864,43 @@ class TimelineElementHolderViewModelTest {
         serverData.value =
             ServerData(
                 versions = GetVersions.Response(listOf("v1.18")),
+                mediaConfig = GetMediaConfig.Response(),
+                capabilities = null,
+                auth = null,
+            )
+        var oldRedactCalled = false
+        var newRedactCalled = false
+        everySuspend { roomApiClientMock.redactEvent(any(), any(), txnId = any()) } calls
+            {
+                oldRedactCalled = true
+                Result.success(it.args[1] as EventId)
+            }
+        everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls
+            {
+                newRedactCalled = true
+                "t1"
+            }
+        every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+        timeline(roomServiceMock, roomId) { +timelineEvent }
+        val cut = cut()
+        delay(100.milliseconds)
+        cut.redact()
+        continually(100.milliseconds) { cut.showRedactionWarning.value shouldBe false }
+        eventually(100.milliseconds) {
+            oldRedactCalled shouldBe false
+            newRedactCalled shouldBe true
+        }
+    }
+
+    @Test
+    fun `redact » should redact using outbox when homeserver supports msc4169`() = runTest {
+        settings.create(usId, MatrixMessengerAccountSettingsBase.withConfigDefaults(null, config))
+        settings.update<MatrixMessengerAccountSettingsBase>(usId) { it.copy(redactionWarningIsEnabled = false) }
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
+        serverData.value =
+            ServerData(
+                versions = GetVersions.Response(listOf(), unstableFeatures = mapOf("com.beeper.msc4169" to true)),
                 mediaConfig = GetMediaConfig.Response(),
                 capabilities = null,
                 auth = null,
@@ -1055,6 +1092,67 @@ class TimelineElementHolderViewModelTest {
             serverData.value =
                 ServerData(
                     versions = GetVersions.Response(listOf("v1.18")),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities = null,
+                    auth = null,
+                )
+
+            var removedMessage: EventIdOrTransactionId? = null
+            var removedNew = false
+            everySuspend { roomServiceMock.cancelSendMessage(roomId, any()) } calls
+                {
+                    removedMessage = EventIdOrTransactionId(it.args[1] as String)
+                }
+            everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } calls
+                {
+                    println(it.args[2] as (suspend MessageBuilder.() -> Unit))
+                    val content =
+                        MessageBuilder(roomId, roomServiceMock, mediaServiceMock, aliceId)
+                            .build(it.args[2] as (suspend MessageBuilder.() -> Unit))
+                    removedMessage = (content as? RedactionEventContent)?.redacts?.let { EventIdOrTransactionId(it) }
+                    removedNew = true
+                    "Not relevant"
+                }
+            everySuspend { roomApiClientMock.redactEvent(roomId, any(), any(), any()) } calls
+                {
+                    val eventId = it.args[1] as EventId
+                    removedMessage = EventIdOrTransactionId(eventId)
+                    Result.success(eventId)
+                }
+
+            val cut = cut()
+            backgroundScope.launch { cut.reactions.collect() }
+
+            delay(100.milliseconds)
+
+            cut.removeReaction("🧌")
+
+            delay(100.milliseconds)
+
+            removedMessage shouldBe EventIdOrTransactionId(EventId("123"))
+            removedNew shouldBe true
+        }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun `removeReaction » target EventId and server version supports msc4169 » should send outbox redaction message`() =
+        runTest {
+            every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+            timeline(roomServiceMock, roomId) { +timelineEvent }
+            reactionsFlow.value =
+                EventReactions(
+                    setOf(
+                        EventReaction(
+                            value = "🧌",
+                            sender = usUserElement,
+                            eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
+                            status = ReactionStatus.Sent,
+                        )
+                    )
+                )
+            serverData.value =
+                ServerData(
+                    versions = GetVersions.Response(listOf(), unstableFeatures = mapOf("com.beeper.msc4169" to true)),
                     mediaConfig = GetMediaConfig.Response(),
                     capabilities = null,
                     auth = null,
