@@ -247,7 +247,12 @@ data class EventReaction(
     val sender: UserInfoElement,
     val eventOrTransactionId: EventIdOrTransactionId,
     val status: ReactionStatus,
-)
+) {
+    @Deprecated(
+        "For backwards compatibility, prefer using the status parameter instead as it provides more granular information"
+    )
+    val isByMe = status.isByMe()
+}
 
 sealed class ReactionStatus(val priority: Int) {
     data object FromOtherAccount : ReactionStatus(0)
@@ -297,7 +302,12 @@ data class EventReactions(val all: Set<EventReaction>) {
         val reactions: Map<String, EventIdOrTransactionId>,
         val sender: UserInfoElement,
         val status: ReactionStatus,
-    )
+    ) {
+        @Deprecated(
+            "For backwards compatibility, prefer using the status parameter instead as it provides more granular information"
+        )
+        val isMe = status.isByMe()
+    }
 
     data class ByReactionsInfo(val reactions: Set<ByReactionInfo>, val highestStatus: ReactionStatus?)
 
@@ -305,7 +315,12 @@ data class EventReactions(val all: Set<EventReaction>) {
         val eventOrTransactionId: EventIdOrTransactionId,
         val sender: UserInfoElement,
         val status: ReactionStatus,
-    )
+    ) {
+        @Deprecated(
+            "For backwards compatibility, prefer using the status parameter instead as it provides more granular information"
+        )
+        val isMe = status.isByMe()
+    }
 
     companion object {
         val Empty = EventReactions(setOf())
