@@ -763,7 +763,11 @@ open class InputAreaViewModelImpl(
         val roomInfo = roomInfoElement.filterNotNull().first()
         return roomInfoElement.value
             ?.let { InputAreaViewModel.SuggestedMention.AllRoomMembers(it) }
-            ?.takeIf { it.id.contains(search, ignoreCase = true) }
+            ?.takeIf {
+                val roomLocalPart = it.id.substring(1)
+                // should only suggest if it's a strict substring, ignore if it's already complete
+                search in roomLocalPart && search != roomLocalPart
+            }
     }
 
     private suspend fun typing() {

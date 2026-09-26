@@ -28,6 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - UI: input area box growing infinitely in size with multiline input
 - UI: SSO login wizard has shown empty box while SSO login is ongoing
+- SDK: room mention entry visible after click/fully typed out
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
 

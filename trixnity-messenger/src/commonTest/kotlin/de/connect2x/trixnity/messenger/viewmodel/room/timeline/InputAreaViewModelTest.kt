@@ -1041,7 +1041,7 @@ class InputAreaViewModelTest {
             } shouldBe listOf("@room")
         }
 
-        cut.textField.update("@roo", 1..1)
+        cut.textField.update("@roo", 4..4)
 
         eventually(300.milliseconds) {
             cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
@@ -1064,7 +1064,25 @@ class InputAreaViewModelTest {
             } shouldBe emptyList()
         }
 
-        cut.textField.update("@roo", 5..5)
+        cut.textField.update("@roo", 4..4)
+
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `room mention » should not add entry in list if fully typed out already`() = runTest {
+        val powerLevel = PowerLevel.User(50L)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+        delay(300.milliseconds)
+
+        cut.textField.update("@room", 5..5)
 
         eventually(300.milliseconds) {
             cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
