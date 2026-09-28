@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.util.InviteUser
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import dev.mokkery.answering.BlockingAnsweringScope
@@ -51,18 +52,10 @@ import dev.mokkery.verifyNoMoreCalls
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlin.Result
-import kotlin.RuntimeException
-import kotlin.String
-import kotlin.Suppress
-import kotlin.Unit
-import kotlin.invoke
-import kotlin.requireNotNull
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.to
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -122,6 +115,7 @@ class UserAccountsViewModelTest {
     val onCloseSettingsMock = mock<() -> Unit>()
 
     val activeVerificationMock = mock<ActiveUserVerification>()
+    val inviteUserMock = mock<InviteUser>()
 
     val i18n =
         object :
@@ -143,6 +137,7 @@ class UserAccountsViewModelTest {
             matrixClientServerApiMock,
             usersApiClientMock,
             roomsApiClientMock,
+            inviteUserMock,
         )
 
         roomUserMapFlow.value = mapOf(alice to roomUserAliceFlow, bob to roomUserBobFlow)
@@ -357,7 +352,7 @@ class UserAccountsViewModelTest {
 
     fun setupMembershipHandlingForKnockTest() {
         everySuspend { roomsApiClientMock.kickUser(roomId, any(), any()) } returns Result.success(Unit)
-        everySuspend { roomsApiClientMock.inviteUser(roomId, any(), any()) } returns Result.success(Unit)
+        everySuspend { inviteUserMock(matrixClientMock, roomId, any(), any()) } returns Result.success(Unit)
         every { userServiceMock.getPowerLevel(roomId, any()) } returns MutableStateFlow(PowerLevel.User(50))
     }
 
@@ -370,7 +365,7 @@ class UserAccountsViewModelTest {
         delay(500.milliseconds)
 
         cut.error.value shouldBe null
-        verifySuspend { roomsApiClientMock.inviteUser(roomId, alice, any()) }
+        verifySuspend { inviteUserMock(matrixClientMock, roomId, alice, any()) }
 
         cut.membershipChanging.value shouldBe false
     }
@@ -506,7 +501,7 @@ class UserAccountsViewModelTest {
                                 modules(
                                     createTestDefaultTrixnityMessengerModules(
                                         mapOf(UserId("user1", "server") to matrixClientMock)
-                                    )
+                                    ) + module { single<InviteUser> { inviteUserMock } }
                                 )
                             }
                             .koin,

@@ -1,11 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.InviteUser
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.component.get
 
 interface AddMembersViewModelFactory {
     fun create(
@@ -75,6 +77,7 @@ class AddMembersViewModelImpl(
         onBack()
     }
 
+    private val inviteUser = get<InviteUser>()
     override val groupUsers = potentialMembersViewModel.selectedUsers
     override val canAddMembers =
         groupUsers.map { it.isNotEmpty() }.stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), false)
@@ -114,13 +117,11 @@ class AddMembersViewModelImpl(
         coroutineScope.launch {
             val failedInvitations = mutableListOf<Pair<Search.SearchUserElement, Throwable>>()
             for (user in groupUsers.value) {
-                matrixClient.api.room
-                    .inviteUser(roomId, user.userId)
+                inviteUser(matrixClient, roomId, user.userId, null)
                     .fold(
                         onSuccess = { log.debug { "user ${user.userId.full} was invited" } },
                         onFailure = {
-                            log.error(it) { "Failed to invite user ${user.userId.full}" }
-                            log.trace { it.stackTraceToString() }
+                            log.warn(it) { "Failed to invite user ${user.userId.full}" }
                             failedInvitations.add(user to it)
                         },
                     )

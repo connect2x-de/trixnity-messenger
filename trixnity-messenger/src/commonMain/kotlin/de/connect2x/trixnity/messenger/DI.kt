@@ -33,6 +33,8 @@ import de.connect2x.trixnity.messenger.util.GetAccountProfileDisplayName
 import de.connect2x.trixnity.messenger.util.GetAccountProfileDisplayNameImpl
 import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
+import de.connect2x.trixnity.messenger.util.InviteUser
+import de.connect2x.trixnity.messenger.util.InviteUserImpl
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
@@ -268,6 +270,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
                 single<UserBlocking> { UserBlockingImpl() }
                 single<EnterRoom> { EnterRoomImpl() }
                 single<LeaveRoom> { LeaveRoomImpl() }
+                single<InviteUser> { InviteUserImpl(get()) }
 
                 single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
                 single<Thumbnails> { ThumbnailsImpl() }
