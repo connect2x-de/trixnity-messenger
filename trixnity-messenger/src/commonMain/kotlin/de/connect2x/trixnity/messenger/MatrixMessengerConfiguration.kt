@@ -44,15 +44,7 @@ data class MatrixMessengerConfiguration(
      */
     var defaultAccountSetupFinished: Boolean = true,
     var databaseEncryptionEnabled: Boolean = true,
-    val features: Features =
-        Features(
-            enablePdfReader = true,
-            enablePowerlevelEventConfigurationInRoomSettings = true,
-            enableMessageDrafts = true,
-            enableAudioRecorder = true,
-            enableMediaPlayer = true,
-            enableNewSearch = true,
-        ),
+    val features: Features = Features(),
 
     /** The number of elements that should be loaded before and after the viewport. */
     var timelineBuffer: Int = 25,
@@ -160,6 +152,8 @@ data class MatrixMessengerConfiguration(
         var enableNewAccountWizard: Boolean = true,
         /** Newly created accounts on Web use Room3 instead of IndexedDB */
         val enableRoom3ForNewAccountsOnWeb: Boolean = true,
+        /** Historic room keys will be shared when a user is invited. */
+        val enableHistoricRoomKeySharing: Boolean = true,
     )
 
     enum class CryptoDriver {

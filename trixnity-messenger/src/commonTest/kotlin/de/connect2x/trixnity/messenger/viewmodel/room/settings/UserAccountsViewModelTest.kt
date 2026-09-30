@@ -16,9 +16,9 @@ import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.UserApiClient
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField.DisplayName
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.util.InviteUser
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import dev.mokkery.answering.BlockingAnsweringScope
@@ -114,6 +115,7 @@ class UserAccountsViewModelTest {
     val onCloseSettingsMock = mock<() -> Unit>()
 
     val activeVerificationMock = mock<ActiveUserVerification>()
+    val inviteUserMock = mock<InviteUser>()
 
     val i18n =
         object :
@@ -135,6 +137,7 @@ class UserAccountsViewModelTest {
             matrixClientServerApiMock,
             usersApiClientMock,
             roomsApiClientMock,
+            inviteUserMock,
         )
 
         roomUserMapFlow.value = mapOf(alice to roomUserAliceFlow, bob to roomUserBobFlow)
@@ -198,8 +201,7 @@ class UserAccountsViewModelTest {
 
         every { userServiceMock.getPresence(any()) } returns flowOf(UserPresence(Presence.OFFLINE, Clock.System.now()))
 
-        everySuspend { usersApiClientMock.getProfile(carol) } returns
-            Result.success(Profile(ProfileField.DisplayName("Carol")))
+        everySuspend { usersApiClientMock.getProfile(carol) } returns Result.success(Profile(DisplayName("Carol")))
 
         every { onOpenRoomMock.invoke(any(), any()) } returns Unit
         every { onCloseSettingsMock.invoke() } returns Unit
@@ -350,7 +352,7 @@ class UserAccountsViewModelTest {
 
     fun setupMembershipHandlingForKnockTest() {
         everySuspend { roomsApiClientMock.kickUser(roomId, any(), any()) } returns Result.success(Unit)
-        everySuspend { roomsApiClientMock.inviteUser(roomId, any(), any()) } returns Result.success(Unit)
+        everySuspend { inviteUserMock(matrixClientMock, roomId, any(), any()) } returns Result.success(Unit)
         every { userServiceMock.getPowerLevel(roomId, any()) } returns MutableStateFlow(PowerLevel.User(50))
     }
 
@@ -363,7 +365,7 @@ class UserAccountsViewModelTest {
         delay(500.milliseconds)
 
         cut.error.value shouldBe null
-        verifySuspend { roomsApiClientMock.inviteUser(roomId, alice, any()) }
+        verifySuspend { inviteUserMock(matrixClientMock, roomId, alice, any()) }
 
         cut.membershipChanging.value shouldBe false
     }
@@ -499,7 +501,7 @@ class UserAccountsViewModelTest {
                                 modules(
                                     createTestDefaultTrixnityMessengerModules(
                                         mapOf(UserId("user1", "server") to matrixClientMock)
-                                    )
+                                    ) + module { single<InviteUser> { inviteUserMock } }
                                 )
                             }
                             .koin,

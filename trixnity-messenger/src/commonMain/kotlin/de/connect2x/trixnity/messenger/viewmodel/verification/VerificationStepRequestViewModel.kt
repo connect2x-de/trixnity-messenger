@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.ProfileField.DisplayName
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.GetAccountProfileDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -55,7 +55,7 @@ open class VerificationStepRequestViewModelImpl(
                 emit(
                     theirUserId?.let { userId ->
                         matrixClient.api.user
-                            .getProfileField(userId, ProfileField.DisplayName)
+                            .getProfileField(userId, DisplayName)
                             .fold({ it.value }, { theirUserId?.full })
                     }
                 )

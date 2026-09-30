@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField.AvatarUrl
+import de.connect2x.trixnity.core.model.ProfileField.AvatarUrl
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
