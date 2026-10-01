@@ -26,6 +26,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- SDK: Report the actual browser voice recording MIME type and matching file extension instead of always Ogg/Opus
 - UI: input area box growing infinitely in size with multiline input
 - UI: SSO login wizard has shown empty box while SSO login is ongoing
 - SDK: room mention entry visible after click/fully typed out

@@ -39,6 +39,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
+import web.blob.Blob
 import web.blob.byteArray
 import web.errors.DOMException
 import web.errors.NotAllowedError
@@ -112,14 +113,14 @@ class WebAudioRecorder(
                     recorder.addEventHandler(BlobEvent.DATA_AVAILABLE) { event ->
                         timing.update(event.timeStamp.toKotlinDouble())
                     }
-                val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
+                val recording = RecordingResult(recorder, intoMediaStore, coroutineScope)
                 recorder.start(1000)
                 val start = clock.now()
                 PlatformAudioRecorder.StartResult.Success(
                     AudioRecorderImpl.State.Recording(
                         start = start,
                         loudness = loudness(microphone),
-                        complete = complete(recorder, microphone, media, mediaSize, timing, removeTimingHandler),
+                        complete = complete(recorder, microphone, recording, timing, removeTimingHandler),
                         failure = genericFailureOnError(recorder),
                     )
                 )
@@ -144,19 +145,36 @@ class WebAudioRecorder(
             )
         }
 
-    private fun recordIntoMediaStore(
+    private class RecordingResult(
         recorder: MediaRecorder,
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
-    ): Pair<Deferred<AudioRecorder.State.Completed.MediaReference>, () -> Double> {
-        var recordingSizeBytes = 0.0
-        val chunks =
+        coroutineScope: CoroutineScope,
+    ) {
+        var sizeBytes: Double = 0.0
+            private set
+
+        private var mimeType: String = ""
+
+        val contentType: ContentType
+            get() = ContentType.parse(mimeType)
+
+        val fileExtension: String?
+            get() = contentType.fileExtensions().firstOrNull()
+
+        private fun addChunk(blob: Blob) {
+            sizeBytes += blob.size
+            // stop() resets recorder.mimeType; use the type of the recorded blobs instead.
+            if (blob.type.isNotBlank()) mimeType = blob.type
+        }
+
+        private val chunks =
             callbackFlow {
                     val handlerRemovers =
                         listOf(
                             recorder.addEventHandler(
                                 type = BlobEvent.DATA_AVAILABLE,
                                 handler = { event ->
-                                    recordingSizeBytes += event.data.size
+                                    addChunk(event.data)
                                     trySend(event.data)
                                 },
                             ),
@@ -173,21 +191,19 @@ class WebAudioRecorder(
                 .buffer(UNLIMITED)
                 .map { it.byteArray() }
 
-        val media = coroutineScope.async { intoMediaStore(chunks) }
-        return media to { recordingSizeBytes }
+        val media: Deferred<AudioRecorder.State.Completed.MediaReference> = coroutineScope.async {
+            intoMediaStore(chunks)
+        }
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)
     private suspend fun complete(
         recorder: MediaRecorder,
         microphone: MediaStream,
-        mediaDeferred: Deferred<AudioRecorder.State.Completed.MediaReference>,
-        mediaSize: () -> Double,
+        recording: RecordingResult,
         timing: RecordingTiming,
         removeTimingHandler: () -> Unit,
     ): suspend () -> Result<AudioRecorderImpl.State.Completed> {
-        val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
-        val opusFileExtension = "ogg"
         return {
             try {
                 timing.stop(performance.now().toKotlinDouble())
@@ -204,14 +220,22 @@ class WebAudioRecorder(
                     }
                 if (recordingSuccessful != null) {
                     val duration = timing.duration
-                    val media = mediaDeferred.await()
+                    val media = recording.media.await()
+                    val fileExtension =
+                        recording.fileExtension
+                            ?: run {
+                                log.warn {
+                                    "No file extension for recording content type ${recording.contentType}; using ogg"
+                                }
+                                "ogg"
+                            }
                     Result.success(
                         AudioRecorderImpl.State.Completed(
                             media,
                             duration,
-                            mediaSize().toLong(),
-                            opusContentType,
-                            opusFileExtension,
+                            recording.sizeBytes.toLong(),
+                            recording.contentType,
+                            fileExtension,
                         )
                     )
                 } else {
@@ -220,7 +244,7 @@ class WebAudioRecorder(
                 }
             } finally {
                 removeTimingHandler()
-                mediaDeferred.cancel()
+                recording.media.cancel()
                 closeInputs(microphone)
             }
         }
