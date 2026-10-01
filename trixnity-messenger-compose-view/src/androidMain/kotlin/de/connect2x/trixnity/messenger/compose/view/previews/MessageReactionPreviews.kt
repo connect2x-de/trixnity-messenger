@@ -48,11 +48,17 @@ import de.connect2x.trixnity.messenger.compose.view.theme.md_theme_light_tertiar
 import de.connect2x.trixnity.messenger.util.PlatformGraphemeIterableProvider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions.ByReactionInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
 
-private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
+private fun previewReactionEvent(
+    sender: String,
+    initials: Initials,
+    status: ReactionStatus = ReactionStatus.FromOtherAccount,
+) =
     ByReactionInfo(
         eventOrTransactionId = EventIdOrTransactionId(EventId("")),
         sender =
@@ -62,7 +68,7 @@ private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boole
                 initials = initials.compute(sender),
                 image = null,
             ),
-        isMe = isMe,
+        status = status,
     )
 
 @Composable
@@ -122,32 +128,45 @@ fun MessageReactionPreview() {
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
                     reactionEvents =
-                        setOf(
-                            ByReactionInfo(
-                                eventOrTransactionId = EventIdOrTransactionId(EventId("")),
-                                sender =
-                                    UserInfoElement(name = "Martin", userId = UserId("@martin:local"), initials = "M"),
-                                isMe = false,
-                            )
+                        EventReactions.ByReactionsInfo(
+                            reactions =
+                                setOf(
+                                    ByReactionInfo(
+                                        eventOrTransactionId = EventIdOrTransactionId(EventId("")),
+                                        sender =
+                                            UserInfoElement(
+                                                name = "Martin",
+                                                userId = UserId("@martin:local"),
+                                                initials = "M",
+                                            ),
+                                        status = ReactionStatus.FromOtherAccount,
+                                    )
+                                ),
+                            highestStatus = ReactionStatus.FromOtherAccount,
                         ),
-                    count = 3,
-                    myReaction = false,
                     onAddReaction = {},
                     onRemoveReaction = {},
                 )
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
                     reactionEvents =
-                        setOf(
-                            ByReactionInfo(
-                                eventOrTransactionId = EventIdOrTransactionId(EventId("")),
-                                sender = UserInfoElement(name = "Jan", userId = UserId("@jan:local"), initials = "M"),
-                                isMe = false,
-                            ),
-                            previewReactionEvent("username", initials, isMe = true),
+                        EventReactions.ByReactionsInfo(
+                            reactions =
+                                setOf(
+                                    ByReactionInfo(
+                                        eventOrTransactionId = EventIdOrTransactionId(EventId("")),
+                                        sender =
+                                            UserInfoElement(
+                                                name = "Jan",
+                                                userId = UserId("@jan:local"),
+                                                initials = "M",
+                                            ),
+                                        status = ReactionStatus.FromOtherAccount,
+                                    ),
+                                    previewReactionEvent("username", initials, status = ReactionStatus.Sent),
+                                ),
+                            highestStatus = ReactionStatus.Sent,
                         ),
-                    count = 2,
-                    myReaction = true,
                     onAddReaction = {},
                     onRemoveReaction = {},
                 )
@@ -171,27 +190,35 @@ fun MessageReactionWrappingPreview() {
                 for (i in 0..10) {
                     MessageReactionButton(
                         reaction = "\uD83D\uDC4D",
-                        reactionEvents = setOf(),
-                        count = 3,
-                        myReaction = false,
+                        reactionEvents =
+                            EventReactions.ByReactionsInfo(
+                                reactions =
+                                    setOf(previewReactionEvent("username", initials, ReactionStatus.FromOtherAccount)),
+                                highestStatus = ReactionStatus.FromOtherAccount,
+                            ),
                         onAddReaction = {},
                         onRemoveReaction = {},
                     )
                 }
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
-                    reactionEvents = setOf(previewReactionEvent("username", initials, isMe = false)),
-                    count = 2,
-                    myReaction = true,
+                    reactionEvents =
+                        EventReactions.ByReactionsInfo(
+                            setOf(previewReactionEvent("username", initials, ReactionStatus.Sent)),
+                            ReactionStatus.Sent,
+                        ),
                     onAddReaction = {},
                     onRemoveReaction = {},
                 )
                 MessageReactionButton(
                     reaction =
                         "Bee Movie By Jerry Seinfeld NARRATOR: (Black screen with text; The sound of buzzing bees can be heard) According to all known laws of aviation, : there is no way a bee should be able to fly. : Its wings are too small to get its fat little body off the ground. : The bee, of course, flies anyway : because bees don't care what humans think is impossible. BARRY BENSON: (Barry is picking out a shirt) Yellow, black. Yellow, black. Yellow, black. Yellow, black. : Ooh, black and yellow! Let's shake it up a little. JANET BENSON: Barry! Breakfast is ready! BARRY: Coming! : Hang on a second. (Barry uses his antenna like a phone) : Hello? ADAM FLAYMAN: (Through phone) - Barry? BARRY: - Adam? ADAM: - Can you believe this is happening? BARRY: - I can't. I'll pick you up. (Barry flies down the stairs) ",
-                    reactionEvents = setOf(),
-                    count = 2,
-                    myReaction = false,
+                    reactionEvents =
+                        EventReactions.ByReactionsInfo(
+                            reactions =
+                                setOf(previewReactionEvent("username", initials, ReactionStatus.FromOtherAccount)),
+                            highestStatus = ReactionStatus.FromOtherAccount,
+                        ),
                     onAddReaction = {},
                     onRemoveReaction = {},
                 )

@@ -22,6 +22,10 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -30,6 +34,7 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -37,6 +42,7 @@ import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -57,6 +63,15 @@ class GetEventReactionsTest {
     private val matrixClientMock = mock<MatrixClient>()
     private val roomServiceMock = mock<RoomService>()
     private val userServiceMock = mock<UserService>()
+
+    private val i18n =
+        object :
+            I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
 
     @BeforeTest
     fun setup() {
@@ -118,7 +133,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            isByMe = false,
+                            status = ReactionStatus.FromOtherAccount,
                         )
                     )
             )
@@ -150,19 +165,19 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction1),
-                            isByMe = false,
+                            status = ReactionStatus.FromOtherAccount,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction2),
-                            isByMe = false,
+                            status = ReactionStatus.FromOtherAccount,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user3, name = "user 3", initials = "U3"),
                             eventOrTransactionId = EventIdOrTransactionId(reaction3),
-                            isByMe = false,
+                            status = ReactionStatus.FromOtherAccount,
                         ),
                     )
             )
@@ -198,7 +213,7 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            isByMe = true,
+                            status = ReactionStatus.Pending,
                         )
                     )
             )
@@ -256,20 +271,20 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("2"),
-                            isByMe = true,
+                            status = ReactionStatus.Pending,
                         ),
                         EventReaction(
                             value = "👺",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("3"),
-                            isByMe = true,
+                            status = ReactionStatus.Pending,
                         ),
                     )
             )
     }
 
     @Test
-    fun `should not return reactions in outbox with send error`() = runTest {
+    fun `should return reactions in outbox with send error with send error status`() = runTest {
         every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
             MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
         every { roomServiceMock.getOutbox(any()) } returns
@@ -290,7 +305,18 @@ class GetEventReactionsTest {
             )
 
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
-        getEventReactions() shouldBe EventReactions(all = setOf())
+        getEventReactions() shouldBe
+            EventReactions(
+                all =
+                    setOf(
+                        EventReaction(
+                            value = "🎉",
+                            sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
+                            eventOrTransactionId = EventIdOrTransactionId("123"),
+                            status = ReactionStatus.SentError(i18n.sendErrorEventPermission()),
+                        )
+                    )
+            )
     }
 
     @Test
@@ -334,28 +360,55 @@ class GetEventReactionsTest {
                             value = "🎉",
                             sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
                             eventOrTransactionId = EventIdOrTransactionId("123"),
-                            isByMe = true,
+                            status = ReactionStatus.Pending,
                         )
                     )
             )
     }
 
     @Test
-    fun `should not return reactions from timeline if redaction in outbox`() = runTest {
+    fun `should return reactions from timeline with redaction pending status if a redaction is in the outbox`() =
+        runTest {
+            every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+                MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+            every { roomServiceMock.getTimelineEvent(any(), reaction1) } returns
+                MutableStateFlow(
+                    timelineEvent(
+                        user1,
+                        reaction1,
+                        ReactionEventContent(relatesTo = RelatesTo.Annotation(eventId, key = "🎉")),
+                    )
+                )
+
+            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+                MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(reaction1))))
+
+            every { roomServiceMock.getOutbox(any()) } returns
+                MutableStateFlow(
+                    listOf(
+                        MutableStateFlow(
+                            RoomOutboxMessage(
+                                roomId = roomId,
+                                transactionId = "123",
+                                content = RedactionEventContent(reaction1),
+                                createdAt = Instant.fromEpochSeconds(123, 0),
+                                sentAt = null,
+                                eventId = null,
+                                sendError = null,
+                            )
+                        )
+                    )
+                )
+
+            val allReactions = getEventReactions().all
+            allReactions shouldHaveSize 1
+            allReactions.first().status shouldBe ReactionStatus.RedactionPending
+        }
+
+    @Test
+    fun `should not return reactions from outbox if they have been redacted via the server`() = runTest {
         every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
             MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
-        every { roomServiceMock.getTimelineEvent(any(), reaction1) } returns
-            MutableStateFlow(
-                timelineEvent(
-                    user1,
-                    reaction1,
-                    ReactionEventContent(relatesTo = RelatesTo.Annotation(eventId, key = "🎉")),
-                )
-            )
-
-        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
-            MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(reaction1))))
-
         every { roomServiceMock.getOutbox(any()) } returns
             MutableStateFlow(
                 listOf(
@@ -363,21 +416,76 @@ class GetEventReactionsTest {
                         RoomOutboxMessage(
                             roomId = roomId,
                             transactionId = "123",
-                            content = RedactionEventContent(reaction1),
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
                             createdAt = Instant.fromEpochSeconds(123, 0),
-                            sentAt = null,
-                            eventId = null,
+                            sentAt = Instant.fromEpochSeconds(123, 0),
+                            eventId = reaction1,
                             sendError = null,
                         )
                     )
                 )
             )
+        every { roomServiceMock.getTimelineEvent(roomId, reaction1) } returns
+            MutableStateFlow(
+                timelineEvent(content = RedactedEventContent("m.annotation"), sender = user1, eventId = reaction1)
+            )
 
-        getEventReactions() shouldBe EventReactions(all = setOf())
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+            MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(eventId))))
+        getEventReactions() shouldBe EventReactions(all = emptySet())
     }
 
+    @Test
+    fun `should return reactions from timeline with redaction pending status if a redaction and the original reaction are in the outbox`() =
+        runTest {
+            every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+                MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+            every { roomServiceMock.getOutbox(any()) } returns
+                MutableStateFlow(
+                    listOf(
+                        MutableStateFlow(
+                            RoomOutboxMessage(
+                                roomId = roomId,
+                                transactionId = "123",
+                                content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                                createdAt = Instant.fromEpochSeconds(123, 0),
+                                sentAt = Instant.fromEpochSeconds(123, 0),
+                                eventId = reaction1,
+                                sendError = null,
+                            )
+                        ),
+                        MutableStateFlow(
+                            RoomOutboxMessage(
+                                roomId = roomId,
+                                transactionId = "124",
+                                content = RedactionEventContent(reaction1),
+                                createdAt = Instant.fromEpochSeconds(124, 0),
+                                sentAt = null,
+                                eventId = null,
+                                sendError = null,
+                            )
+                        ),
+                    )
+                )
+            every { roomServiceMock.getTimelineEvent(roomId, reaction1) } returns
+                MutableStateFlow(
+                    timelineEvent(
+                        content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                        sender = user1,
+                        eventId = reaction1,
+                    )
+                )
+
+            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+                MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(reaction1))))
+
+            val allReactions = getEventReactions().all
+            allReactions shouldHaveSize 1
+            allReactions.first().status shouldBe ReactionStatus.RedactionPending
+        }
+
     private suspend fun getEventReactions(): EventReactions =
-        GetEventReactionsImpl()
+        GetEventReactionsImpl(i18n)
             .invoke(
                 matrixClientMock,
                 roomId,

@@ -621,7 +621,7 @@ private fun timelineElementViewModels() = module {
 
 private fun roomViewModels() = module {
     single<RoomViewModelFactory> { RoomViewModelFactory }
-    single<GetEventReactions> { GetEventReactionsImpl() }
+    single<GetEventReactions> { GetEventReactionsImpl(get()) }
     single<GetEventReaders> { GetEventReadersImpl() }
     single<JoinRoomActionViewModelFactory> { JoinRoomActionViewModelFactory }
 }

@@ -633,30 +633,14 @@ class TimelineElementHolderViewModelImpl(
                 timelineEventFlow.first().let { timelineEvent ->
                     if (matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId).first()) {
                         redactionError.value = null
-                        if (
-                            matrixClient.serverData.value?.versions?.let {
-                                it.versions.contains("v1.18") || it.unstableFeatures["com.beeper.msc4169"] == true
-                            } == true
-                        ) {
-                            if (
-                                matrixClient.room.getOutbox(roomId).first().none {
-                                    val content = it.first()?.content
-                                    content is RedactionEventContent && content.redacts == eventId
-                                }
-                            ) {
-                                matrixClient.room.sendMessage(roomId) { redact(eventId) }
-                            } else {
-                                log.debug { "Already redacted event $eventId." }
-                            }
-                        } else {
-                            matrixClient.api.room
-                                .redactEvent(roomId, timelineEvent.eventId, txnId = Uuid.random().toString())
-                                .onSuccess { log.debug { "successfully redacted event ${timelineEvent.eventId}" } }
-                                .onFailure {
-                                    log.error(it) { "could not redact event ${timelineEvent.eventId}" }
+                        redactEvent(timelineEvent.eventId)
+                            ?.fold(
+                                onSuccess = { log.debug { "successfully redacted event $eventId" } },
+                                onFailure = {
+                                    log.error(it) { "could not redact event $eventId" }
                                     redactionError.value = i18n.timelineElementRedactError()
-                                }
-                        }
+                                },
+                            )
                     } else
                         log.warn {
                             "try to redact timeline event $eventId," +
@@ -703,6 +687,7 @@ class TimelineElementHolderViewModelImpl(
     }
 
     override fun removeReaction(reaction: String) {
+        log.debug { "removing reaction $reaction" }
         coroutineScope.launch {
             when (
                 val eventOrTransactionId = reactions.value?.byUser?.get(matrixClient.userId)?.reactions?.get(reaction)
@@ -711,18 +696,40 @@ class TimelineElementHolderViewModelImpl(
                     log.warn { "could not remove reaction, because not present in loaded reactions" }
                 }
                 is TransactionId -> {
+                    log.debug {
+                        "reaction $reaction with id $eventOrTransactionId isn't sent yet, removing from outbox"
+                    }
                     matrixClient.room.cancelSendMessage(roomId, eventOrTransactionId.transactionId)
                 }
                 is EventIdOrTransactionId.EventId -> {
-                    if (matrixClient.serverData.value?.versions?.versions?.contains("v1.18") == true) {
-                        matrixClient.room.sendMessage(roomId) { redact(eventOrTransactionId.eventId) }
-                    } else {
-                        matrixClient.api.room
-                            .redactEvent(roomId, eventOrTransactionId.eventId, txnId = Uuid.random().toString())
-                            .onFailure { log.error(it) { "could not redact event ${eventOrTransactionId.eventId}" } }
+                    log.debug { "sending redaction for reaction $reaction with id $eventOrTransactionId" }
+                    redactEvent(eventOrTransactionId.eventId)?.onFailure {
+                        log.error(it) { "could not redact event ${eventOrTransactionId.eventId}" }
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun redactEvent(eventId: EventId): Result<EventId>? {
+        if (
+            matrixClient.serverData.value?.versions?.let {
+                it.versions.contains("v1.18") || it.unstableFeatures["com.beeper.msc4169"] == true
+            } == true
+        ) {
+            if (
+                matrixClient.room.getOutbox(roomId).first().none {
+                    val content = it.first()?.content
+                    content is RedactionEventContent && content.redacts == eventId
+                }
+            ) {
+                matrixClient.room.sendMessage(roomId) { redact(eventId) }
+            } else {
+                log.debug { "Already redacted event $eventId." }
+            }
+            return null
+        } else {
+            return matrixClient.api.room.redactEvent(roomId, eventId, txnId = Uuid.random().toString())
         }
     }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.outlined.AddReaction
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -33,6 +34,8 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.FromOtherAccount.isByMe
 
 interface MessageReactionsView {
     @Composable
@@ -64,7 +67,8 @@ class MessageReactionsViewImpl : MessageReactionsView {
             return
         }
         val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
-        val reactionList = remember(reactions) { reactions.entries.sortedByDescending { it.value.size }.map { it.key } }
+        val reactionList =
+            remember(reactions) { reactions.entries.sortedByDescending { it.value.reactions.size }.map { it.key } }
 
         EmojiPopup(
             isOpen = reactionsOpen.value,
@@ -91,7 +95,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
 @Composable
 private fun MessageReactionList(
     reactionList: List<String>,
-    reactions: Map<String, Set<EventReactions.ByReactionInfo>>,
+    reactions: Map<String, EventReactions.ByReactionsInfo>,
     onAddReaction: (String) -> Unit,
     onRemoveReaction: (String) -> Unit,
     onOpenReactions: () -> Unit,
@@ -105,15 +109,14 @@ private fun MessageReactionList(
             verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
         ) {
             for (reaction in reactionList) {
-                val reactionEvents = reactions[reaction].orEmpty()
-                MessageReactionButton(
-                    reaction = reaction,
-                    reactionEvents = reactionEvents,
-                    count = reactionEvents.size,
-                    myReaction = reactionEvents.any { it.isMe },
-                    onAddReaction = onAddReaction,
-                    onRemoveReaction = { onRemoveReaction(reaction) },
-                )
+                reactions[reaction]?.let {
+                    MessageReactionButton(
+                        reaction = reaction,
+                        reactionEvents = it,
+                        onAddReaction = onAddReaction,
+                        onRemoveReaction = { onRemoveReaction(reaction) },
+                    )
+                }
             }
             MessageAddReactionButton(onClick = onOpenReactions, i18n.reactMessage())
         }
@@ -139,32 +142,41 @@ private val buttonModifier = Modifier.sizeIn(minWidth = 54.dp, minHeight = 32.dp
 @Composable
 internal fun MessageReactionButton(
     reaction: String,
-    reactionEvents: Set<EventReactions.ByReactionInfo>,
-    count: Int,
-    myReaction: Boolean,
+    reactionEvents: EventReactions.ByReactionsInfo,
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: () -> Unit,
 ) {
-    Tooltip({ Text(reactionEvents.joinToString { it.sender.name }) }) {
-        if (myReaction) {
-            ThemedButton(
-                onClick = { onRemoveReaction() },
-                style = MaterialTheme.components.selectedReactionButton,
-                modifier = buttonModifier,
-            ) {
-                MessageReactionDisplay(reaction)
+    val highestStatus = reactionEvents.highestStatus
+    val count = reactionEvents.reactions.size
+    val i18n = DI.get<I18nView>()
+    Tooltip({ Text(reactionEvents.reactions.joinToString { it.sender.name }) }) {
+        ThemedButton(
+            onClick = {
+                if (highestStatus?.isByMe() == true) {
+                    onRemoveReaction()
+                } else {
+                    onAddReaction(reaction)
+                }
+            },
+            style =
+                when (highestStatus) {
+                    ReactionStatus.FromOtherAccount -> MaterialTheme.components.reactionButton
+                    ReactionStatus.Pending -> MaterialTheme.components.pendingReactionButton
+                    ReactionStatus.Sent -> MaterialTheme.components.selectedReactionButton
+                    ReactionStatus.RedactionPending -> MaterialTheme.components.pendingReactionButton
+                    is ReactionStatus.SentError -> MaterialTheme.components.errorReactionButton
+                    null -> MaterialTheme.components.reactionButton
+                },
+            modifier = buttonModifier,
+        ) {
+            MessageReactionDisplay(reaction)
+            Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
+            Text(count.toString())
+            if (highestStatus is ReactionStatus.SentError) {
                 Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
-                Text(count.toString())
-            }
-        } else {
-            ThemedButton(
-                onClick = { onAddReaction(reaction) },
-                style = MaterialTheme.components.reactionButton,
-                modifier = buttonModifier,
-            ) {
-                MessageReactionDisplay(reaction)
-                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
-                Text(count.toString())
+                Tooltip(highestStatus.error ?: i18n.anErrorHasOccurred()) {
+                    Icon(Icons.Default.Error, contentDescription = i18n.anErrorHasOccurred())
+                }
             }
         }
     }

@@ -13995,16 +13995,17 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/ErrorType : ja
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReaction {
-	public fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Z)V
+	public fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
 	public final fun component3 ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;
-	public final fun component4 ()Z
-	public final fun copy (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Z)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
+	public final fun component4 ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
+	public final fun copy (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEventOrTransactionId ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;
 	public final fun getSender ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
+	public final fun getStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
 	public final fun getValue ()Ljava/lang/String;
 	public fun hashCode ()I
 	public final fun isByMe ()Z
@@ -14026,30 +14027,45 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionInfo {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Z)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)V
 	public final fun component1 ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;
 	public final fun component2 ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
-	public final fun component3 ()Z
-	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Z)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionInfo;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionInfo;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionInfo;
+	public final fun component3 ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
+	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionInfo;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionInfo;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEventOrTransactionId ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;
 	public final fun getSender ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
+	public final fun getStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
 	public fun hashCode ()I
 	public final fun isMe ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo {
+	public fun <init> (Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
+	public final fun copy (Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHighestStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
+	public final fun getReactions ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByUserInfo {
-	public fun <init> (Ljava/util/Map;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Z)V
+	public fun <init> (Ljava/util/Map;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)V
 	public final fun component1 ()Ljava/util/Map;
 	public final fun component2 ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
-	public final fun component3 ()Z
-	public final fun copy (Ljava/util/Map;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Z)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByUserInfo;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByUserInfo;Ljava/util/Map;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByUserInfo;
+	public final fun component3 ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
+	public final fun copy (Ljava/util/Map;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByUserInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByUserInfo;Ljava/util/Map;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByUserInfo;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getReactions ()Ljava/util/Map;
 	public final fun getSender ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
+	public final fun getStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
 	public fun hashCode ()I
 	public final fun isMe ()Z
 	public fun toString ()Ljava/lang/String;
@@ -14091,7 +14107,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/util/G
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/GetEventReactionsImpl : de/connect2x/trixnity/messenger/viewmodel/util/GetEventReactions {
-	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/i18n/I18n;)V
 	public fun invoke--g3GeBo (Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/util/Initials;J)Lkotlinx/coroutines/flow/Flow;
 }
 
@@ -14144,6 +14160,51 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/NewlinesKt {
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/PreviewImageByteArrayKt {
 	public static final fun previewImageByteArray ()[B
+}
+
+public abstract class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public synthetic fun <init> (ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getPriority ()I
+	public final fun isByMe (Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Z
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$FromOtherAccount : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$FromOtherAccount;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$Pending : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$Pending;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$RedactionPending : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$RedactionPending;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$Sent : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$Sent;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$SentError : de/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$SentError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$SentError;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus$SentError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/ReceiptsKt {
