@@ -669,8 +669,8 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 
 public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features {
 	public fun <init> ()V
-	public fun <init> (ZZZZZZZZ)V
-	public synthetic fun <init> (ZZZZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZZZZZZZZ)V
+	public synthetic fun <init> (ZZZZZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
 	public final fun component2 ()Z
 	public final fun component3 ()Z
@@ -679,10 +679,12 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public final fun component6 ()Z
 	public final fun component7 ()Z
 	public final fun component8 ()Z
-	public final fun copy (ZZZZZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public final fun component9 ()Z
+	public final fun copy (ZZZZZZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZZZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEnableAudioRecorder ()Z
+	public final fun getEnableHistoricRoomKeySharing ()Z
 	public final fun getEnableMediaPlayer ()Z
 	public final fun getEnableMessageDrafts ()Z
 	public final fun getEnableNewAccountWizard ()Z
@@ -2311,6 +2313,10 @@ public final class de/connect2x/trixnity/messenger/multi/ProfileManagerKt {
 	public static final fun updateProfile (Lde/connect2x/trixnity/messenger/multi/ProfileManager;Ljava/lang/String;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/notification/AccountNotificationPushRuleModifier {
+	public abstract fun modify-pFTbHVM (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountNotificationSettings;Lde/connect2x/trixnity/core/model/push/PushRuleSet;)Lde/connect2x/trixnity/core/model/push/PushRuleSet;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/notification/GetNotificationIcon {
 	public abstract fun fromBytes ([BII)Lde/connect2x/sysnotify/NotificationIcon;
 	public abstract fun fromResource (Ljava/lang/String;)Lde/connect2x/sysnotify/NotificationIcon;
@@ -2358,6 +2364,11 @@ public final class de/connect2x/trixnity/messenger/notification/NoOpNotification
 
 public final class de/connect2x/trixnity/messenger/notification/NoOpNotificationProviderKt {
 	public static final fun getNotificationProviderNoOp (Lde/connect2x/trixnity/messenger/MatrixMessengerAccountSettings;)Lde/connect2x/trixnity/messenger/notification/MatrixMessengerAccountNotificationProviderNoOpSettings;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/NoopAccountNotificationPushRuleModifier : de/connect2x/trixnity/messenger/notification/AccountNotificationPushRuleModifier {
+	public fun <init> ()V
+	public fun modify-pFTbHVM (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountNotificationSettings;Lde/connect2x/trixnity/core/model/push/PushRuleSet;)Lde/connect2x/trixnity/core/model/push/PushRuleSet;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/notification/NotificationHandlerFactory {
@@ -3465,6 +3476,15 @@ public abstract interface class de/connect2x/trixnity/messenger/util/Information
 
 public final class de/connect2x/trixnity/messenger/util/InformationMarkdownFlavourImpl : org/intellij/markdown/flavours/gfm/GFMFlavourDescriptor, de/connect2x/trixnity/messenger/util/InformationMarkdownFlavour {
 	public fun <init> ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/util/InviteUser {
+	public abstract fun invoke-SA-gL1w (Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/util/InviteUserImpl : de/connect2x/trixnity/messenger/util/InviteUser {
+	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)V
+	public fun invoke-SA-gL1w (Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/util/IsNetworkAvailable {

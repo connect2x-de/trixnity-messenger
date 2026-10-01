@@ -10,12 +10,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 
 - SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
+- SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
+- SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
 
 ### Changed
 
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
-- DEPENDENCY: Update c2x-conventions to 20260923.184919
-- DEPENDENCY: Update Trixnity to 5.9.3-SNAPSHOT.CI-20260922.144627
+- DEPENDENCY: Update c2x-conventions to 20260917.190917
+- DEPENDENCY: Update Trixnity to 5.10.0-SNAPSHOT.CI-20260929.090055
 - DEPENDENCY: Update SQLitenity to 0.0.8
 - SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
@@ -31,6 +33,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: input area box growing infinitely in size with multiline input
 - UI: SSO login wizard has shown empty box while SSO login is ongoing
 - SDK: room mention entry visible after click/fully typed out
+- SDK: rare initialization error in timeline viewmodel
+- UI: iOS PdfReader causing App to crash when viewing large PDF files
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
 

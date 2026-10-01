@@ -148,6 +148,10 @@ abstract fun interface de.connect2x.trixnity.messenger.multi/MatrixMessengerFact
     abstract suspend fun invoke(kotlin/String): de.connect2x.trixnity.messenger/MatrixMessenger // de.connect2x.trixnity.messenger.multi/MatrixMessengerFactory.invoke|invoke(kotlin.String){}[0]
 }
 
+abstract fun interface de.connect2x.trixnity.messenger.notification/AccountNotificationPushRuleModifier { // de.connect2x.trixnity.messenger.notification/AccountNotificationPushRuleModifier|null[0]
+    abstract fun modify(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.viewmodel.settings/AccountNotificationSettings, de.connect2x.trixnity.core.model.push/PushRuleSet): de.connect2x.trixnity.core.model.push/PushRuleSet // de.connect2x.trixnity.messenger.notification/AccountNotificationPushRuleModifier.modify|modify(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings;de.connect2x.trixnity.core.model.push.PushRuleSet){}[0]
+}
+
 abstract fun interface de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory { // de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory|null[0]
     abstract fun invoke(kotlin/String, kotlin/String, kotlin/String, kotlin/Boolean): de.connect2x.sysnotify/NotificationHandler // de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory.invoke|invoke(kotlin.String;kotlin.String;kotlin.String;kotlin.Boolean){}[0]
 }
@@ -174,6 +178,10 @@ abstract fun interface de.connect2x.trixnity.messenger.util/GetDefaultDeviceDisp
 
 abstract fun interface de.connect2x.trixnity.messenger.util/GetImageDimensions { // de.connect2x.trixnity.messenger.util/GetImageDimensions|null[0]
     abstract suspend fun invoke(kotlinx.coroutines.flow/Flow<kotlin/ByteArray>, kotlin/Long, io.ktor.http/ContentType?): kotlin/Pair<kotlin/Int?, kotlin/Int?> // de.connect2x.trixnity.messenger.util/GetImageDimensions.invoke|invoke(kotlinx.coroutines.flow.Flow<kotlin.ByteArray>;kotlin.Long;io.ktor.http.ContentType?){}[0]
+}
+
+abstract fun interface de.connect2x.trixnity.messenger.util/InviteUser { // de.connect2x.trixnity.messenger.util/InviteUser|null[0]
+    abstract suspend fun invoke(de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/UserId, kotlin/String?): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger.util/InviteUser.invoke|invoke(de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.UserId;kotlin.String?){}[0]
 }
 
 abstract fun interface de.connect2x.trixnity.messenger.util/IsNetworkAvailable { // de.connect2x.trixnity.messenger.util/IsNetworkAvailable|null[0]
@@ -6937,6 +6945,12 @@ final class de.connect2x.trixnity.messenger.notification/NoOpNotificationProvide
     final suspend fun enable(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.notification/NoOpNotificationProvider.enable|enable(de.connect2x.trixnity.core.model.UserId){}[0]
 }
 
+final class de.connect2x.trixnity.messenger.notification/NoopAccountNotificationPushRuleModifier : de.connect2x.trixnity.messenger.notification/AccountNotificationPushRuleModifier { // de.connect2x.trixnity.messenger.notification/NoopAccountNotificationPushRuleModifier|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.notification/NoopAccountNotificationPushRuleModifier.<init>|<init>(){}[0]
+
+    final fun modify(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.viewmodel.settings/AccountNotificationSettings, de.connect2x.trixnity.core.model.push/PushRuleSet): de.connect2x.trixnity.core.model.push/PushRuleSet // de.connect2x.trixnity.messenger.notification/NoopAccountNotificationPushRuleModifier.modify|modify(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings;de.connect2x.trixnity.core.model.push.PushRuleSet){}[0]
+}
+
 final class de.connect2x.trixnity.messenger.notification/NotificationHandlersImpl : de.connect2x.trixnity.messenger.notification/NotificationHandlers { // de.connect2x.trixnity.messenger.notification/NotificationHandlersImpl|null[0]
     constructor <init>(de.connect2x.trixnity.messenger/MatrixMessengerConfiguration, de.connect2x.trixnity.messenger.notification/NotificationProviders, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerSettingsHolder?, de.connect2x.trixnity.messenger/MatrixClients, kotlin/Function1<kotlin/Boolean, kotlin/Unit> = ..., de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory = ...) // de.connect2x.trixnity.messenger.notification/NotificationHandlersImpl.<init>|<init>(de.connect2x.trixnity.messenger.MatrixMessengerConfiguration;de.connect2x.trixnity.messenger.notification.NotificationProviders;de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder?;de.connect2x.trixnity.messenger.MatrixClients;kotlin.Function1<kotlin.Boolean,kotlin.Unit>;de.connect2x.trixnity.messenger.notification.NotificationHandlerFactory){}[0]
 
@@ -7270,6 +7284,12 @@ final class de.connect2x.trixnity.messenger.util/GetAccountProfileDisplayNameImp
 
 final class de.connect2x.trixnity.messenger.util/InformationMarkdownFlavourImpl : de.connect2x.trixnity.messenger.util/InformationMarkdownFlavour, org.intellij.markdown.flavours.gfm/GFMFlavourDescriptor { // de.connect2x.trixnity.messenger.util/InformationMarkdownFlavourImpl|null[0]
     constructor <init>() // de.connect2x.trixnity.messenger.util/InformationMarkdownFlavourImpl.<init>|<init>(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.util/InviteUserImpl : de.connect2x.trixnity.messenger.util/InviteUser { // de.connect2x.trixnity.messenger.util/InviteUserImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger/MatrixMessengerConfiguration) // de.connect2x.trixnity.messenger.util/InviteUserImpl.<init>|<init>(de.connect2x.trixnity.messenger.MatrixMessengerConfiguration){}[0]
+
+    final suspend fun invoke(de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/UserId, kotlin/String?): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.messenger.util/InviteUserImpl.invoke|invoke(de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.UserId;kotlin.String?){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.util/LeaveRoomImpl : de.connect2x.trixnity.messenger.util/LeaveRoom { // de.connect2x.trixnity.messenger.util/LeaveRoomImpl|null[0]
@@ -14382,8 +14402,10 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 
     final class Features { // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features|null[0]
-        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
 
+        final val enableHistoricRoomKeySharing // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableHistoricRoomKeySharing|{}enableHistoricRoomKeySharing[0]
+            final fun <get-enableHistoricRoomKeySharing>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableHistoricRoomKeySharing.<get-enableHistoricRoomKeySharing>|<get-enableHistoricRoomKeySharing>(){}[0]
         final val enableRoom3ForNewAccountsOnWeb // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableRoom3ForNewAccountsOnWeb|{}enableRoom3ForNewAccountsOnWeb[0]
             final fun <get-enableRoom3ForNewAccountsOnWeb>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableRoom3ForNewAccountsOnWeb.<get-enableRoom3ForNewAccountsOnWeb>|<get-enableRoom3ForNewAccountsOnWeb>(){}[0]
 
@@ -14417,7 +14439,8 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final fun component6(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component6|component6(){}[0]
         final fun component7(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component7|component7(){}[0]
         final fun component8(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component8|component8(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        final fun component9(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component9|component9(){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.toString|toString(){}[0]
