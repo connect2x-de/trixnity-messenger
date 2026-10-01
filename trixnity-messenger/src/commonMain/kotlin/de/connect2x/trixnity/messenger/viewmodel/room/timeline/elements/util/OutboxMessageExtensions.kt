@@ -8,9 +8,10 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedFlatMapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
 internal fun RoomOutboxMessage<*>.isReplacementFor(roomId: RoomId, eventId: EventId) =
@@ -25,8 +26,9 @@ internal fun RoomOutboxMessage<*>.isReactionFor(roomId: RoomId, eventId: EventId
         content.relatesTo is RelatesTo.Annotation &&
         content.relatesTo?.eventId == eventId
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal fun getRedactionsFromOutbox(matrixClient: MatrixClient, roomId: RoomId): Flow<Set<EventId>> {
-    return matrixClient.room.getOutbox(roomId).scopedFlatMapLatest {
+    return matrixClient.room.getOutbox(roomId).flatMapLatest {
         if (it.isEmpty()) {
             (flowOf(emptySet()))
         } else {
