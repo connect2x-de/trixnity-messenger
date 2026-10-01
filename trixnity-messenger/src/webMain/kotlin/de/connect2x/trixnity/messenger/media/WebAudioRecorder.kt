@@ -13,6 +13,7 @@ import js.errors.JsErrorName
 import js.errors.name
 import js.errors.toJsError
 import js.errors.toJsErrorLike
+import js.numbers.JsNumbers.toKotlinDouble
 import js.numbers.JsNumbers.toKotlinFloat
 import js.objects.unsafeJso
 import js.reflect.unsafeCast
@@ -23,8 +24,9 @@ import kotlin.js.JsException
 import kotlin.js.toList
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -52,6 +54,7 @@ import web.mediarecorder.DATA_AVAILABLE
 import web.mediarecorder.MediaRecorder
 import web.mediastreams.MediaStream
 import web.navigator.navigator
+import web.performance.performance
 
 class WebAudioRecorder(
     private val audioContext: AudioContext,
@@ -103,14 +106,20 @@ class WebAudioRecorder(
                     throw e
                 }
             if (microphone != null) {
-                val recorder = startRecorder(microphone)
+                val recorder = MediaRecorder(microphone)
+                val timing = RecordingTiming(performance.now().toKotlinDouble())
+                val removeTimingHandler =
+                    recorder.addEventHandler(BlobEvent.DATA_AVAILABLE) { event ->
+                        timing.update(event.timeStamp.toKotlinDouble())
+                    }
                 val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
+                recorder.start(1000)
                 val start = clock.now()
                 PlatformAudioRecorder.StartResult.Success(
                     AudioRecorderImpl.State.Recording(
                         start = start,
                         loudness = loudness(microphone),
-                        complete = complete(recorder, microphone, media, mediaSize, start),
+                        complete = complete(recorder, microphone, media, mediaSize, timing, removeTimingHandler),
                         failure = genericFailureOnError(recorder),
                     )
                 )
@@ -134,12 +143,6 @@ class WebAudioRecorder(
                 },
             )
         }
-
-    private fun startRecorder(microphone: MediaStream): MediaRecorder {
-        val recorder = MediaRecorder(microphone)
-        recorder.start()
-        return recorder
-    }
 
     private fun recordIntoMediaStore(
         recorder: MediaRecorder,
@@ -180,12 +183,14 @@ class WebAudioRecorder(
         microphone: MediaStream,
         mediaDeferred: Deferred<AudioRecorder.State.Completed.MediaReference>,
         mediaSize: () -> Double,
-        start: Instant,
+        timing: RecordingTiming,
+        removeTimingHandler: () -> Unit,
     ): suspend () -> Result<AudioRecorderImpl.State.Completed> {
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         val opusFileExtension = "ogg"
         return {
             try {
+                timing.stop(performance.now().toKotlinDouble())
                 recorder.stop()
                 val recordingSuccessful =
                     withTimeoutOrNull(5.seconds) {
@@ -198,11 +203,12 @@ class WebAudioRecorder(
                         }
                     }
                 if (recordingSuccessful != null) {
+                    val duration = timing.duration
                     val media = mediaDeferred.await()
                     Result.success(
                         AudioRecorderImpl.State.Completed(
                             media,
-                            clock.now() - start,
+                            duration,
                             mediaSize().toLong(),
                             opusContentType,
                             opusFileExtension,
@@ -213,6 +219,7 @@ class WebAudioRecorder(
                     Result.failure(Throwable(i18n.genericRecordingErrorWeb()))
                 }
             } finally {
+                removeTimingHandler()
                 mediaDeferred.cancel()
                 closeInputs(microphone)
             }
@@ -254,5 +261,25 @@ class WebAudioRecorder(
     @OptIn(ExperimentalWasmJsInterop::class)
     private fun JsException.name(): JsErrorName {
         return this.toJsErrorLike().toJsError().name
+    }
+}
+
+/** Event timestamps share performance.now()'s monotonic clock; chunk delivery intervals can vary. */
+internal class RecordingTiming(private val startTimestamp: Double) {
+    private var latestTimestamp = startTimestamp
+    private var stopTimestamp: Double? = null
+
+    val duration: Duration
+        get() =
+            (latestTimestamp.coerceAtMost(stopTimestamp ?: latestTimestamp) - startTimestamp)
+                .coerceAtLeast(0.0)
+                .milliseconds
+
+    fun update(timestamp: Double) {
+        latestTimestamp = maxOf(latestTimestamp, timestamp)
+    }
+
+    fun stop(timestamp: Double) {
+        stopTimestamp = timestamp
     }
 }
