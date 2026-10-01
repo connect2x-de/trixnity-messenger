@@ -8,6 +8,7 @@ import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.toByteArray
 import de.connect2x.trixnity.messenger.util.toNSUrl
+import kotlin.math.sqrt
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
@@ -102,7 +103,9 @@ class IosPDFReader(
         val page = document.value?.pageAtIndex(pageId.toULong()) ?: return null
         val pageBounds = page.boundsForBox(kPDFDisplayBoxMediaBox)
         val (width, height) = pageBounds.useContents { size.width to size.height }
-        val scaleFactor = dpi / 72.0
+
+        val maxScale = sqrt(1024.0 * 1024.0 * 2.0 / (width * height))
+        val scaleFactor = minOf(dpi / 72.0, maxScale)
         val (scaledWidth, scaledHeight) = Pair(width * scaleFactor, height * scaleFactor)
 
         // Render the PDF as image

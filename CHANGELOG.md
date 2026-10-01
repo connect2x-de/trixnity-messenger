@@ -30,6 +30,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: SSO login wizard has shown empty box while SSO login is ongoing
 - SDK: room mention entry visible after click/fully typed out
 - SDK: rare initialization error in timeline viewmodel
+- UI: iOS PdfReader causing App to crash when viewing large PDF files
 
 ### Security
 
