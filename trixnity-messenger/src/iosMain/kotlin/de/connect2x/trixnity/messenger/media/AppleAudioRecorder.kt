@@ -7,6 +7,7 @@ import de.connect2x.trixnity.utils.readByteArrayFlow
 import io.ktor.http.*
 import kotlin.coroutines.resume
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
@@ -148,6 +149,10 @@ internal class AppleAudioRecorder(
                 },
                 complete = {
                     try {
+                        // currentTime is only valid while recording, so read it before stopping.
+                        val duration =
+                            audioRecorder.currentTime.takeIf { it.isFinite() && it >= 0.0 }?.seconds
+                                ?: (clock.now() - start)
                         audioRecorder.stop()
                         val fileData = fileSystem.readByteArrayFlow(file)
                         if (fileData != null) {
@@ -155,7 +160,7 @@ internal class AppleAudioRecorder(
                             Result.success(
                                 AudioRecorderImpl.State.Completed(
                                     media,
-                                    duration = clock.now() - start,
+                                    duration = duration,
                                     sizeBytes = fileSystem.metadata(file).size,
                                     contentType = ContentType.Audio.MP4,
                                     fileExtension = audioFileExtension,
