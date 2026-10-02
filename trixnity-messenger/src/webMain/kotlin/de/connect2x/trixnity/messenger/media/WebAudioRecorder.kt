@@ -163,7 +163,6 @@ class WebAudioRecorder(
 
         private fun addChunk(blob: Blob) {
             sizeBytes += blob.size
-            // stop() resets recorder.mimeType; use the type of the recorded blobs instead.
             if (blob.type.isNotBlank()) mimeType = blob.type
         }
 
@@ -288,7 +287,6 @@ class WebAudioRecorder(
     }
 }
 
-/** Event timestamps share performance.now()'s monotonic clock; chunk delivery intervals can vary. */
 internal class RecordingTiming(private val startTimestamp: Double) {
     private var latestTimestamp = startTimestamp
     private var stopTimestamp: Double? = null
