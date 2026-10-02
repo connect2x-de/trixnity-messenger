@@ -8,14 +8,18 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,6 +35,7 @@ import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -66,6 +71,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
         val memberListViewModel = roomSettingsViewModel.memberListViewModel
         val memberListElementViewModels = memberListViewModel.elements.collectAsState().value
+        val searchTerm by memberListViewModel.searchTerm.collectAsState()
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
         Column {
@@ -92,7 +98,19 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                     } else null,
             )
 
-            FlowRow(Modifier.fillMaxWidth()) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    value = searchTerm,
+                    onValueChange = { memberListViewModel.searchTerm.value = it },
+                    leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
+                    label = { Text(i18n.userSearchNameOrMatrixId()) },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
+                    singleLine = true,
+                )
+                Spacer(Modifier.size(5.dp))
                 ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.JOIN)) {
                     Text(
                         i18n.settingsRoomMemberListJoined(),
