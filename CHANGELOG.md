@@ -26,6 +26,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- SDK: Correct voice message recording duration on Android, iOS, and Web by using recording metadata or recorder
+  timestamps and excluding time spent storing the recording
 - SDK: Report the actual browser voice recording MIME type and matching file extension instead of always Ogg/Opus
 - UI: input area box growing infinitely in size with multiline input
 - UI: SSO login wizard has shown empty box while SSO login is ongoing
