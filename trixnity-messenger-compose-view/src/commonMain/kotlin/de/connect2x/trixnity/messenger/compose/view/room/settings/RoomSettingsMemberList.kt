@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -98,19 +98,19 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                     } else null,
             )
 
-            FlowRow(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedTextField(
-                    value = searchTerm,
-                    onValueChange = { memberListViewModel.searchTerm.value = it },
-                    leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
-                    label = { Text(i18n.userSearchNameOrMatrixId()) },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
-                    singleLine = true,
-                )
-                Spacer(Modifier.size(5.dp))
+            OutlinedTextField(
+                value = searchTerm,
+                onValueChange = { memberListViewModel.searchTerm.value = it },
+                modifier = Modifier.fillMaxWidth(),
+                leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
+                label = { Text(i18n.userSearchNameOrMatrixId()) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
+                singleLine = true,
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            FlowRow(modifier = Modifier.fillMaxWidth(), itemVerticalAlignment = Alignment.CenterVertically) {
                 ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.JOIN)) {
                     Text(
                         i18n.settingsRoomMemberListJoined(),
@@ -147,6 +147,8 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                     )
                 }
             }
+
+            Spacer(Modifier.height(12.dp))
 
             if (memberListElementViewModels.isNotEmpty()) {
                 MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
