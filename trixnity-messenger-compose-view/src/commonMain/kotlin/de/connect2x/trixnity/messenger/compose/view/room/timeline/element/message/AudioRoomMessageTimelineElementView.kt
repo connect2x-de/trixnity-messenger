@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -127,7 +128,7 @@ internal fun NonPlayableAudioMessage(element: Audio, showActionMenu: () -> Unit,
                             }
                             .buttonPointerModifier(),
                 )
-                FileInfo(element)
+                FileInfo(element, Modifier.widthIn(max = 200.dp))
             }
         }
     }

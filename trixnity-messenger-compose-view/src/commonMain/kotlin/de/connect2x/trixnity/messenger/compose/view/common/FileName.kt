@@ -1,12 +1,11 @@
 package de.connect2x.trixnity.messenger.compose.view.common
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,24 +26,24 @@ fun FileName(fileName: String) {
 
 @Composable
 fun FileInfo(element: RoomMessageTimelineElementViewModel.FileBased<*>, modifier: Modifier = Modifier) {
-    Text(
-        buildAnnotatedString {
-            append(element.name)
-            pushStyle(SpanStyle(fontWeight = FontWeight.Light))
-            when (element) {
-                is RoomMessageTimelineElementViewModel.FileBased.File -> {
-                    append(element.size)
+    Column(modifier) {
+        Text(element.name, style = MaterialTheme.typography.bodySmall, overflow = TextOverflow.Ellipsis, maxLines = 1)
+        val metadata =
+            buildString {
+                    if (element is RoomMessageTimelineElementViewModel.FileBased.Audio) {
+                        append(element.duration.ifNotNull { formatDuration(it) })
+                    }
+                    append(element.size.orEmpty())
                 }
-
-                is RoomMessageTimelineElementViewModel.FileBased.Audio -> {
-                    append(element.duration.ifNotNull { formatDuration(it) })
-                    append(element.size)
-                }
-            }
-        },
-        style = MaterialTheme.typography.bodySmall,
-        overflow = TextOverflow.Ellipsis,
-        maxLines = 3,
-        modifier = modifier.sizeIn(maxWidth = 200.dp),
-    )
+                .trim()
+        if (metadata.isNotEmpty()) {
+            Text(
+                metadata,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Light,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
 }
