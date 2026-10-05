@@ -178,6 +178,7 @@ internal fun FileBasedView(
     val widthModifier =
         when (element) {
             is RoomMessageTimelineElementViewModel.FileBased.File -> Modifier.width(300.dp)
+            is RoomMessageTimelineElementViewModel.FileBased.Audio -> Modifier.width(300.dp)
             else -> Modifier
         }
     Box(widthModifier) {
