@@ -86,15 +86,6 @@ import de.connect2x.trixnity.messenger.compose.view.room.settings.SearchUsersSet
 import de.connect2x.trixnity.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataListItemView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataMessageHistoryListItemView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataMessageHistoryListItemViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataReadersAndReactionsListItemView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataReadersAndReactionsListItemViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataSenderListItemView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataSenderListItemViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomNewSearchViewImpl
@@ -192,6 +183,15 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePillView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePillViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataMessageHistoryListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataMessageHistoryListItemViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataReadersAndReactionsListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataReadersAndReactionsListItemViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataSenderListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataSenderListItemViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.CanonicalAliasStateTimelineElementView
@@ -592,6 +592,7 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
         }
     }
 
+    // sorted timeline element metadata sections
     timelineElementMetadataListItemView<TimelineElementMetadataSenderListItemView>({
         TimelineElementMetadataSenderListItemViewImpl()
     }) {}
