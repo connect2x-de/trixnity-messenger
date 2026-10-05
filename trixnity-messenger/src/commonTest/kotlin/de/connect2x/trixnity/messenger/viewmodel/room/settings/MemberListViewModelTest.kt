@@ -281,6 +281,21 @@ class MemberListViewModelTest {
     }
 
     @Test
+    fun `reset filters restores default memberships and clears search`() = runTest {
+        setMembershipsAndGetRoomUsers(alices = Membership.BAN, bobs = Membership.LEAVE, mine = Membership.JOIN)
+        val cut = memberListViewModel()
+        cut.searchTerm.value = "alice"
+        cut.filterByMemberships.value = setOf(Membership.BAN)
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(alice) }
+
+        cut.resetFilters()
+
+        cut.searchTerm.value shouldBe ""
+        cut.filterByMemberships.value shouldBe MemberListViewModel.defaultMemberships
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(me, alice) }
+    }
+
+    @Test
     fun `Calculate membership amounts in a Room with 3 joined Members`() = runTest {
         val (roomAlice, roomBob, roomMe) =
             setMembershipsAndGetRoomUsers(alices = Membership.JOIN, bobs = Membership.JOIN, mine = Membership.JOIN)

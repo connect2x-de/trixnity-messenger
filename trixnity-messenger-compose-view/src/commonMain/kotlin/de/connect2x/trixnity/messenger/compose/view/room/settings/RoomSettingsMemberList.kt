@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -87,11 +88,19 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val memberListViewModel = roomSettingsViewModel.memberListViewModel
         val memberListElementViewModels = memberListViewModel.elements.collectAsState().value
         val searchTerm by memberListViewModel.searchTerm.collectAsState()
-        var showFilters by remember(memberListViewModel) { mutableStateOf(searchTerm.isNotEmpty()) }
+        var showFilters by
+            remember(memberListViewModel) {
+                mutableStateOf(
+                    searchTerm.isNotEmpty() ||
+                        memberListViewModel.filterByMemberships.value != MemberListViewModel.defaultMemberships
+                )
+            }
         val focusRequester = remember { FocusRequester() }
+        val memberListState = rememberLazyListState()
         fun closeFilters() {
             showFilters = false
-            memberListViewModel.searchTerm.value = ""
+            memberListViewModel.resetFilters()
+            memberListState.requestScrollToItem(0)
         }
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
@@ -182,16 +191,23 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
             }
 
             if (memberListElementViewModels.isNotEmpty()) {
-                MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
+                MemberList(
+                    memberListViewModel,
+                    state = memberListState,
+                    onClickUser = { roomSettingsViewModel.openUserProfile(it) },
+                )
             }
         }
     }
 }
 
 @Composable
-fun MemberList(memberListViewModel: MemberListViewModel, onClickUser: (UserId) -> Unit) {
+fun MemberList(
+    memberListViewModel: MemberListViewModel,
+    state: LazyListState = rememberLazyListState(),
+    onClickUser: (UserId) -> Unit,
+) {
     val members by memberListViewModel.elements.collectAsState()
-    val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
     val focusedItem = remember(members) { mutableStateOf(members.firstOrNull()?.memberUserId?.full) }

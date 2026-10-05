@@ -49,6 +49,15 @@ interface MemberListViewModel {
     val membershipCounts: StateFlow<Map<Membership, Int>>
     val showLoadingSpinner: StateFlow<Boolean>
     val error: StateFlow<String?>
+
+    fun resetFilters() {
+        searchTerm.value = ""
+        filterByMemberships.value = defaultMemberships
+    }
+
+    companion object {
+        val defaultMemberships = setOf(Membership.JOIN, Membership.KNOCK, Membership.INVITE, Membership.BAN)
+    }
 }
 
 open class MemberListViewModelImpl(
@@ -81,7 +90,7 @@ open class MemberListViewModelImpl(
     override val searchTerm = MutableStateFlow("")
 
     override val filterByMemberships: MutableStateFlow<Set<Membership>> =
-        MutableStateFlow(setOf(Membership.JOIN, Membership.KNOCK, Membership.INVITE, Membership.BAN))
+        MutableStateFlow(MemberListViewModel.defaultMemberships)
 
     override val elements: StateFlow<List<MemberListElementViewModel>> =
         combine(
