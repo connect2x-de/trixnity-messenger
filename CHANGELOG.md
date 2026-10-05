@@ -16,6 +16,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
+
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
 - DEPENDENCY: Update Trixnity to 5.10.0-SNAPSHOT.CI-20260929.090055

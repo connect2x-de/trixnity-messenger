@@ -3068,6 +3068,11 @@ open class I18nView(
         DE - "Standard"
     }
 
+    open fun leaveAndForgetRoom() = translate {
+        EN - "Leave and forget"
+        DE - "Verlassen und vergessen"
+    }
+
     open fun forgetRoomWarningHeader() = translate {
         EN - "Forget room?"
         DE - "Raum vergessen?"

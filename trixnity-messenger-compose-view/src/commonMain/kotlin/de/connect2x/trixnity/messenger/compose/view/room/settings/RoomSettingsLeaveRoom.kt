@@ -62,7 +62,11 @@ fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
         isLeave = isLeave,
         onDismiss = roomSettingsViewModel::closeLeaveRoomWarningDialog,
         onConfirm = {
-            if (isLeave) roomSettingsViewModel.forgetRoom() else roomSettingsViewModel.leaveRoom()
+            roomSettingsViewModel.leaveRoom()
+            roomSettingsViewModel.closeLeaveRoomWarningDialog()
+        },
+        onForget = {
+            roomSettingsViewModel.forgetRoom()
             roomSettingsViewModel.closeLeaveRoomWarningDialog()
         },
     )
@@ -73,6 +77,7 @@ internal fun RoomLeaveWarning(
     isDirect: Boolean,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
+    onForget: () -> Unit,
     isLeave: Boolean = false,
 ) {
     val i18n = DI.get<I18nView>()
@@ -101,7 +106,12 @@ internal fun RoomLeaveWarning(
             ThemedButton(style = MaterialTheme.components.commonButton, onClick = onDismiss) {
                 Text(i18n.actionCancel())
             }
-            ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onConfirm) { Text(confirm) }
+            if (!isLeave) {
+                ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onConfirm) { Text(confirm) }
+            }
+            ThemedButton(style = MaterialTheme.components.destructiveButton, onClick = onForget) {
+                Text(if (isLeave) confirm else i18n.leaveAndForgetRoom())
+            }
         }
     }
 }

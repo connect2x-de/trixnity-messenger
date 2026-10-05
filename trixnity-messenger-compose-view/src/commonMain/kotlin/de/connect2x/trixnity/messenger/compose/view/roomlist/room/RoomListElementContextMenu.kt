@@ -33,6 +33,10 @@ internal fun RoomListElementViewModel.RoomListElementContextMenuActions(i18n: I1
                 leaveRoom()
                 showLeaveWarning = false
             },
+            onForget = {
+                forgetRoom()
+                showLeaveWarning = false
+            },
         )
     }
     return buildList {
