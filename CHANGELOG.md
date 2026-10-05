@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   bubble style accordingly
 - SDK: Align redaction behaviour for reactions with messages to allow requesting a redaction for a reaction when offline
   if the homeserver allows it
+- UI: Hide the passphrase by default during self verification
 
 ### Deprecated
 

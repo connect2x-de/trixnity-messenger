@@ -67,7 +67,7 @@ class PasswordLoginViewImpl : PasswordLoginView {
             PasswordField(
                 password = password,
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
-                modifier = tabToNextAndEnterSend,
+                modifier = tabToNextAndEnterSend.fillMaxWidth(),
             ) {
                 Text(i18n.addMatrixClientPassword())
             }

@@ -60,7 +60,7 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
                 Spacer(Modifier.height(20.dp))
                 PasswordField(
                     password = uiaStepPasswordViewModel.password.collectAsTextFieldValueState(),
-                    modifier = tabToNextAndEnterSend,
+                    modifier = tabToNextAndEnterSend.fillMaxWidth(),
                 ) {
                     Text(i18n.addMatrixClientPassword())
                 }

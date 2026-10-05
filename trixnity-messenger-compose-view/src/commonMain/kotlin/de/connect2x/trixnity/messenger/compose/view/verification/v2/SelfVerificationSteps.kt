@@ -42,6 +42,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.PasswordField
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingButton
 import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingIconButton
@@ -197,75 +198,63 @@ fun RecoveryKey(viewModel: SelfVerificationViewModel) {
 @Composable
 fun PasswordPhrase(viewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
-    val selfVerificationMethods by viewModel.availableSelfVerificationMethods.collectAsState()
 
-    if (
-        selfVerificationMethods?.any { it is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase } == true
-    ) {
+    val passphrase = viewModel.passphrase.collectAsTextFieldValueState()
+    val passphraseWrong by viewModel.passphraseWrong.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val passphraseVerificationInProgress by viewModel.passphraseVerificationInProgress.collectAsState()
 
-        var passphrase by viewModel.passphrase.collectAsTextFieldValueState()
-        val passphraseWrong by viewModel.passphraseWrong.collectAsState()
-        val error by viewModel.error.collectAsState()
-        val passphraseVerificationInProgress by viewModel.passphraseVerificationInProgress.collectAsState()
-
-        WizardSection {
-            Text(
-                i18n.selfVerificationMethodsRecoveryPassphrase().capitalize(Locale.current),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+    WizardSection {
+        Text(
+            i18n.selfVerificationMethodsRecoveryPassphrase().capitalize(Locale.current),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+        ) {
+            PasswordField(
+                passphrase,
+                lineCount = 2,
+                isError = passphraseWrong,
+                modifier = Modifier.weight(1.0f, fill = true),
+                supportingText = {
+                    if (passphraseWrong)
+                        Text(
+                            i18n.selfVerificationMethodsRecoveryPassphraseWrong(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                },
             ) {
-                OutlinedTextFieldWithToolbar(
-                    passphrase,
-                    onValueChange = { passphrase = it },
-                    label = { Text(i18n.commonRecoveryPassphrase()) },
-                    modifier = Modifier.weight(1.0f, fill = true),
-                    keyboardOptions =
-                        KeyboardOptions(
-                            capitalization = KeyboardCapitalization.None,
-                            autoCorrectEnabled = false,
-                            keyboardType = KeyboardType.Password,
-                        ),
-                    maxLines = 2,
-                    isError = passphraseWrong,
-                    supportingText = {
-                        if (passphraseWrong)
-                            Text(
-                                i18n.selfVerificationMethodsRecoveryPassphraseWrong(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                    },
-                )
-                if (Platform.current.isWeb) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        AutofillButton(onUsernameChange = {}, onPasswordChange = { passphrase = TextFieldValue(it) })
-                    }
-                }
-                ThemedLoadingButton(
-                    onClick = {},
-                    isLoading = passphraseVerificationInProgress,
-                    enabled = passphraseVerificationInProgress.not(),
-                    style = MaterialTheme.components.primaryButton.copy(contentPadding = PaddingValues(0.dp)),
+                Text(i18n.commonRecoveryPassphrase())
+            }
+            if (Platform.current.isWeb) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    FilledIconButton(
-                        onClick = { viewModel.verifyWithPassphrase() },
-                        modifier = Modifier.buttonPointerModifier(),
-                    ) {
-                        Icon(Icons.Outlined.Check, contentDescription = null)
-                    }
+                    AutofillButton(onUsernameChange = {}, onPasswordChange = { passphrase.value = TextFieldValue(it) })
                 }
             }
-            error?.let {
-                MiddleSpacer()
-                ErrorView(it)
+            ThemedLoadingButton(
+                onClick = {},
+                isLoading = passphraseVerificationInProgress,
+                enabled = passphraseVerificationInProgress.not(),
+                style = MaterialTheme.components.primaryButton.copy(contentPadding = PaddingValues(0.dp)),
+            ) {
+                FilledIconButton(
+                    onClick = { viewModel.verifyWithPassphrase() },
+                    modifier = Modifier.buttonPointerModifier(),
+                ) {
+                    Icon(Icons.Outlined.Check, contentDescription = null)
+                }
             }
+        }
+        error?.let {
+            MiddleSpacer()
+            ErrorView(it)
         }
     }
 }
