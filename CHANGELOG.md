@@ -40,6 +40,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: iOS PdfReader causing App to crash when viewing large PDF files
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
+- UI: Only display available verification methods in SelfVerificationWizard
 
 ### Security
 
