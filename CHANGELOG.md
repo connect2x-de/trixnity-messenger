@@ -9,6 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- UI: Add a leave room action with confirmation to the room list's more options menu
 - SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
 - SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
 - SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
