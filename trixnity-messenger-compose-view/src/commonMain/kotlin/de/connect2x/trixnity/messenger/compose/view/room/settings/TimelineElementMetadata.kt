@@ -56,6 +56,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.util.DevInfoButton
 import de.connect2x.trixnity.messenger.compose.view.util.waitForElementWithTimeout
+import de.connect2x.trixnity.messenger.internal.sort.getSorted
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -69,6 +70,95 @@ import kotlinx.coroutines.withContext
 
 interface TimelineElementMetadataView {
     @Composable fun create(viewModel: TimelineElementMetadataViewModel, isBottomOfStack: Boolean, isSinglePane: Boolean)
+}
+
+interface TimelineElementMetadataListItemView {
+    @Composable
+    fun ColumnScope.create(
+        viewModel: TimelineElementMetadataViewModel,
+        elementHistory: List<TimelineElementHolderViewModel>,
+        firstElement: TimelineElementHolderViewModel?,
+        lastElement: TimelineElementHolderViewModel?,
+        scrollState: ScrollState,
+        BottomOfStack: Boolean,
+        isSinglePane: Boolean,
+    )
+}
+
+interface TimelineElementMetadataSenderListItemView : TimelineElementMetadataListItemView
+
+class TimelineElementMetadataSenderListItemViewImpl : TimelineElementMetadataSenderListItemView {
+    @Composable
+    override fun ColumnScope.create(
+        viewModel: TimelineElementMetadataViewModel,
+        elementHistory: List<TimelineElementHolderViewModel>,
+        firstElement: TimelineElementHolderViewModel?,
+        lastElement: TimelineElementHolderViewModel?,
+        scrollState: ScrollState,
+        isBottomOfStack: Boolean,
+        isSinglePane: Boolean,
+    ) {
+        val i18n = DI.get<I18nView>()
+        val sender = lastElement?.sender?.collectAsState()?.value
+        if (sender == null) {
+            LoadingSpinner()
+        } else {
+            SubHeading(i18n.timelineElementMetadataSender())
+            UserInfo(sender, onOpenUserProfile = viewModel::openUserProfile)
+        }
+    }
+}
+
+interface TimelineElementMetadataMessageHistoryListItemView : TimelineElementMetadataListItemView
+
+class TimelineElementMetadataMessageHistoryListItemViewImpl : TimelineElementMetadataMessageHistoryListItemView {
+    @Composable
+    override fun ColumnScope.create(
+        viewModel: TimelineElementMetadataViewModel,
+        elementHistory: List<TimelineElementHolderViewModel>,
+        firstElement: TimelineElementHolderViewModel?,
+        lastElement: TimelineElementHolderViewModel?,
+        scrollState: ScrollState,
+        BottomOfStack: Boolean,
+        isSinglePane: Boolean,
+    ) {
+        val i18n = DI.get<I18nView>()
+        if (lastElement == null || elementHistory.isEmpty()) {
+            LoadingSpinner()
+        } else {
+            SubHeading(i18n.timelineElementMetadataMessage())
+            MessageContentHistorySwitch(lastElement, elementHistory)
+            SmallSpacer()
+        }
+    }
+}
+
+interface TimelineElementMetadataReadersAndReactionsListItemView : TimelineElementMetadataListItemView
+
+class TimelineElementMetadataReadersAndReactionsListItemViewImpl :
+    TimelineElementMetadataReadersAndReactionsListItemView {
+    @Composable
+    override fun ColumnScope.create(
+        viewModel: TimelineElementMetadataViewModel,
+        elementHistory: List<TimelineElementHolderViewModel>,
+        firstElement: TimelineElementHolderViewModel?,
+        lastElement: TimelineElementHolderViewModel?,
+        scrollState: ScrollState,
+        BottomOfStack: Boolean,
+        isSinglePane: Boolean,
+    ) {
+        val reactions = firstElement?.reactions?.collectAsState()?.value
+        val readers = firstElement?.readers?.collectAsState()?.value
+
+        if (reactions == null || readers == null) {
+            LoadingSpinner()
+        } else {
+            HorizontalDivider()
+            MiddleSpacer()
+            ReadersAndReactions(reactions, readers, scrollState, viewModel::openUserProfile)
+            SmallSpacer()
+        }
+    }
 }
 
 @Composable
@@ -89,9 +179,6 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         var elementHistory by remember { mutableStateOf(listOf<TimelineElementHolderViewModel>()) }
         val firstElement = elementHistory.firstOrNull()
         var lastElement by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
-        val sender = lastElement?.sender?.collectAsState()?.value
-        val reactions = firstElement?.reactions?.collectAsState()?.value
-        val readers = firstElement?.readers?.collectAsState()?.value
         val scrollState = rememberScrollState()
 
         LaunchedEffect(Unit) {
@@ -118,13 +205,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
             { DevInfoButton(viewModel::openDevInfo) },
         ) {
-            if (
-                reactions == null ||
-                    readers == null ||
-                    sender == null ||
-                    lastElement == null ||
-                    elementHistory.isEmpty()
-            ) {
+            if (lastElement == null || elementHistory.isEmpty()) {
                 LoadingSpinner(Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize()) {
@@ -135,15 +216,19 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                                 .fillMaxSize()
                                 .verticalScroll(scrollState),
                     ) {
-                        SubHeading(i18n.timelineElementMetadataSender())
-                        UserInfo(sender, onOpenUserProfile = viewModel::openUserProfile)
-                        SubHeading(i18n.timelineElementMetadataMessage())
-                        lastElement?.let { MessageContentHistorySwitch(it, elementHistory) }
-                        SmallSpacer()
-                        HorizontalDivider()
-                        MiddleSpacer()
-                        ReadersAndReactions(reactions, readers, scrollState, viewModel::openUserProfile)
-                        SmallSpacer()
+                        DI.current.getSorted<TimelineElementMetadataListItemView>().forEach {
+                            with(it) {
+                                create(
+                                    viewModel,
+                                    elementHistory,
+                                    firstElement,
+                                    lastElement,
+                                    scrollState,
+                                    isBottomOfStack,
+                                    isSinglePane,
+                                )
+                            }
+                        }
                     }
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
