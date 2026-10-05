@@ -15,6 +15,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- UI: Use a consistent width for audio messages
+
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
 - DEPENDENCY: Update Trixnity to 5.10.0-SNAPSHOT.CI-20260929.090055
@@ -30,6 +32,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI: Keep file message bubbles a consistent width during downloads and truncate long filenames to a single line
 - SDK: Correct voice message recording duration on Android, iOS, and Web by using recording metadata or recorder
   timestamps and excluding time spent storing the recording
 - SDK: Report the actual browser voice recording MIME type and matching file extension instead of always Ogg/Opus
