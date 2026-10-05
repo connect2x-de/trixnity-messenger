@@ -411,7 +411,7 @@ open class RoomListElementViewModelImpl(
             leaveRoom(matrixClient, roomId, forget = false)
                 .onSuccess { log.info { "successfully left room" } }
                 .onFailure {
-                    if (it is CancellationException) return@launch
+                    if (it is CancellationException) throw it
                     log.error(it) { "cannot leave room $roomId" }
                     val groupOrChat =
                         if (isDirect.value == true) i18n.eventChangeChatGenitive() else i18n.eventChangeGroupGenitive()
