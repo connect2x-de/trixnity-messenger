@@ -4179,6 +4179,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun knockLabel(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.knockLabel|knockLabel(){}[0]
     open fun knockRequest(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.knockRequest|knockRequest(){}[0]
     open fun labelMessages(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.labelMessages|labelMessages(){}[0]
+    open fun leaveAndForgetRoom(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.leaveAndForgetRoom|leaveAndForgetRoom(){}[0]
     open fun loading(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.loading|loading(){}[0]
     open fun locationClickText(kotlin/Pair<kotlin/String, kotlin/String>): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.locationClickText|locationClickText(kotlin.Pair<kotlin.String,kotlin.String>){}[0]
     open fun login(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.login|login(){}[0]
@@ -4677,7 +4678,7 @@ open class de.connect2x.trixnity.messenger.compose.view.settings/AccountSetupWiz
 }
 
 open class de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuItem { // de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuItem|null[0]
-    constructor <init>(androidx.compose.ui.graphics.vector/ImageVector, kotlin/String, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuItem.<init>|<init>(androidx.compose.ui.graphics.vector.ImageVector;kotlin.String;kotlin.Function0<kotlin.Unit>){}[0]
+    constructor <init>(androidx.compose.ui.graphics.vector/ImageVector, kotlin/String, kotlin/Function0<kotlin/Unit>, androidx.compose.ui.graphics/Color? = ...) // de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuItem.<init>|<init>(androidx.compose.ui.graphics.vector.ImageVector;kotlin.String;kotlin.Function0<kotlin.Unit>;androidx.compose.ui.graphics.Color?){}[0]
 
     open val icon // de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuItem.icon|{}icon[0]
         open fun <get-icon>(): androidx.compose.ui.graphics.vector/ImageVector // de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuItem.icon.<get-icon>|<get-icon>(){}[0]

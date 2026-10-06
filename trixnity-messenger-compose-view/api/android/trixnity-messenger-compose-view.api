@@ -1403,6 +1403,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun knockLabel ()Ljava/lang/String;
 	public fun knockRequest ()Ljava/lang/String;
 	public fun labelMessages ()Ljava/lang/String;
+	public fun leaveAndForgetRoom ()Ljava/lang/String;
 	public fun loading ()Ljava/lang/String;
 	public fun locationClickText (Lkotlin/Pair;)Ljava/lang/String;
 	public fun login ()Ljava/lang/String;
@@ -6442,7 +6443,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 
 public class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedActionMenuItem {
 	public static final field $stable I
-	public fun <init> (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/graphics/Color;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/graphics/Color;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getIcon ()Landroidx/compose/ui/graphics/vector/ImageVector;
 	public fun getLabel ()Ljava/lang/String;
 	public final fun invoke ()V
