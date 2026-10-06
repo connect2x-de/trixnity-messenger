@@ -15,6 +15,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
 - SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
 - UI: Allow for extending `TimelineElementMetadata` with more items via DI
+- UI: Downscale images in the timeline
 
 ### Changed
 
