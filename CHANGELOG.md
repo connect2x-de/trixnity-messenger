@@ -12,6 +12,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
 - SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
 - SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
+- UI: Allow for extending `TimelineElementMetadata` with more items via DI
 
 ### Changed
 
@@ -23,6 +24,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   bubble style accordingly
 - SDK: Align redaction behaviour for reactions with messages to allow requesting a redaction for a reaction when offline
   if the homeserver allows it
+- UI: (**breaking change**) each timeline element metadata section implements new interface
+  `TimelineElementMetadataListItemView` and moved to different package
 
 ### Deprecated
 
