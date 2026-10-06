@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
@@ -12,6 +13,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,6 +24,7 @@ import kotlinx.coroutines.CancellationException
 private val log = Logger("de.connect2x.trixnity.messenger.compose.view.richtext.InlineImage")
 
 internal val inlineImageDecodeSize = IntSize(800, 800)
+internal val LocalInlineImageMaxHeight = staticCompositionLocalOf<Dp?> { null }
 
 private const val maxInlineImageDimension = 320f
 
@@ -51,12 +54,13 @@ internal fun CompoundTextContext.measureInlineImage(
     image: RichText.Inline.Block,
     bitmap: ImageBitmap?,
     constraints: Constraints,
+    maxHeight: Float? = null,
 ): Placeholder? {
     if (bitmap == null) return null
     val fontSize = textStyle.fontSize.takeIf { it.isSp } ?: 14.sp
     val emoteHeight = with(density) { (fontSize * 2).toDp() }.value
     val maxWidth = with(density) { constraints.maxWidth.toDp().value }
-    val size = inlineImageSize(image.attributes, IntSize(bitmap.width, bitmap.height), emoteHeight, maxWidth)
+    val size = inlineImageSize(image.attributes, IntSize(bitmap.width, bitmap.height), emoteHeight, maxWidth, maxHeight)
     return with(density) {
         Placeholder(
             width = size.width.dp.toSp(),
@@ -71,6 +75,7 @@ internal fun inlineImageSize(
     intrinsicSize: IntSize,
     emoteHeight: Float,
     maxWidth: Float,
+    maxHeight: Float? = null,
 ): Size {
     val emoticon = "data-mx-emoticon" in attributes
     val width = attributes["width"].imageDimension()
@@ -78,9 +83,11 @@ internal fun inlineImageSize(
     val ratio = intrinsicSize.width.toFloat() / intrinsicSize.height
     val requestedHeight =
         if (emoticon) emoteHeight else height ?: width?.let { it / ratio } ?: intrinsicSize.height.toFloat()
-    val requestedWidth = if (emoticon) requestedHeight * ratio else width ?: requestedHeight * ratio
+    val requestedWidth =
+        if (emoticon || maxHeight != null) requestedHeight * ratio else width ?: requestedHeight * ratio
     val boundedWidth = maxWidth.coerceIn(1f, maxInlineImageDimension)
-    val scale = minOf(1f, boundedWidth / requestedWidth, maxInlineImageDimension / requestedHeight)
+    val boundedHeight = maxHeight?.coerceIn(1f, maxInlineImageDimension) ?: maxInlineImageDimension
+    val scale = minOf(1f, boundedWidth / requestedWidth, boundedHeight / requestedHeight)
     return Size((requestedWidth * scale).coerceAtLeast(1f), (requestedHeight * scale).coerceAtLeast(1f))
 }
 

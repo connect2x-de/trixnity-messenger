@@ -7,6 +7,20 @@ import kotlin.test.assertEquals
 
 class InlineImageSizeTest {
     @Test
+    fun replyImagesFitOneLineAndPreserveTheirIntrinsicAspectRatio() {
+        assertEquals(Size(10f, 20f), inlineImageSize(emptyMap(), IntSize(100, 200), 32f, 320f, maxHeight = 20f))
+        assertEquals(
+            Size(40f, 20f),
+            inlineImageSize(mapOf("width" to "80", "height" to "60"), IntSize(100, 50), 32f, 320f, maxHeight = 20f),
+        )
+        assertEquals(
+            Size(40f, 20f),
+            inlineImageSize(mapOf("data-mx-emoticon" to ""), IntSize(100, 50), 32f, 320f, maxHeight = 20f),
+        )
+        assertEquals(Size(10f, 5f), inlineImageSize(emptyMap(), IntSize(10, 5), 32f, 320f, maxHeight = 20f))
+    }
+
+    @Test
     fun customEmotesAreIdentifiedByAttributePresenceRegardlessOfValue() {
         for (marker in listOf("", "false", "true", "anything")) {
             val attributes = mapOf("data-mx-emoticon" to marker, "width" to "999", "height" to "999")

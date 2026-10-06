@@ -31,15 +31,16 @@ internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContex
             renderInlineContent(content, inlineContext, first, context.loadImage != null)
         }
     val images = rendered.images
+    val maxImageHeight = LocalInlineImageMaxHeight.current?.value
     val bitmaps =
         images.values
             .mapNotNull { it.attributes["src"] }
             .toSet()
             .associateWith { uri -> key(uri) { rememberInlineImage(uri, context.loadImage) } }
     val imageMeasurer: CompoundTextContext.(String, Constraints) -> Placeholder? =
-        remember(images, bitmaps, measurer) {
+        remember(images, bitmaps, measurer, maxImageHeight) {
             { key, constraints ->
-                images[key]?.let { measureInlineImage(it, bitmaps[it.attributes["src"]], constraints) }
+                images[key]?.let { measureInlineImage(it, bitmaps[it.attributes["src"]], constraints, maxImageHeight) }
                     ?: measurer(key, constraints)
             }
         }
