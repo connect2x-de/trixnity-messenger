@@ -14,6 +14,9 @@ import de.connect2x.trixnity.messenger.compose.view.common.MatrixUsername
 import de.connect2x.trixnity.messenger.compose.view.common.PasswordField
 import de.connect2x.trixnity.messenger.compose.view.common.TabInTextField
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.BackButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.NextButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -56,4 +59,20 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             }
         }
     }
+}
+
+@Composable
+fun RegisterMatrixAccountWizardPanel(viewModel: RegisterMatrixAccountViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    return WizardPanel(
+        title = { i18n.registrationHeader() },
+        content = { RegisterNewAccount(viewModel) },
+        buttons = {
+            val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
+
+            BackButton { viewModel.back() }
+            NextButton(enabled = canRegisterNewUser, text = i18n.registerNewAccount()) { viewModel.register() }
+        },
+        wizardId = "ConnectingWizard",
+    )
 }

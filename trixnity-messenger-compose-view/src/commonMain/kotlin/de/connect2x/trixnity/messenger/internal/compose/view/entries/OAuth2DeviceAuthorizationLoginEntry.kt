@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.internal.compose.view.entries
 
 import androidx.compose.runtime.Composable
-import de.connect2x.trixnity.messenger.compose.view.connecting.ConnectingWizard
+import de.connect2x.trixnity.messenger.compose.view.connecting.OAuth2DeviceAuthorizationLoginWizardPanel
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.rememberComponent
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.NavigationEntry
 import de.connect2x.trixnity.messenger.internal.routes.root.OAuth2DeviceAuthorizationLoginRoute
@@ -11,6 +11,8 @@ internal class OAuth2DeviceAuthorizationLoginEntry : NavigationEntry<OAuth2Devic
 
     @Composable
     override fun Content(route: OAuth2DeviceAuthorizationLoginRoute) {
-        ConnectingWizard(viewModel = rememberComponent<OAuth2DeviceAuthorizationLoginViewModel>())
+        OAuth2DeviceAuthorizationLoginWizardPanel(
+            viewModel = rememberComponent<OAuth2DeviceAuthorizationLoginViewModel>()
+        )
     }
 }
