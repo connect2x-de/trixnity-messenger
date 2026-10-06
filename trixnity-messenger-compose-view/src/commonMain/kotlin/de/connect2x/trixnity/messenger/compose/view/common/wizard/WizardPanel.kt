@@ -10,15 +10,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -28,22 +23,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.findRootCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -146,45 +132,20 @@ private fun ColumnScope.WizardContent(
     scrollState: ScrollState,
     boxWithConstraints: BoxWithConstraintsScope,
 ) {
-    Box(Modifier.weight(1.0f, fill = true)) {
-        Box(Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize().verticalScroll(scrollState)) { wizardStep.content(boxWithConstraints) }
-        }
-    }
+    Box(Modifier.weight(1.0f, true).verticalScroll(scrollState)) { wizardStep.content(boxWithConstraints) }
 }
 
 @Composable
-private fun WizardButtons(wizardStep: WizardPanelContent) {
-    var currentOffsetPx by remember { mutableIntStateOf(0) }
-    val density = LocalDensity.current
-    val imeBottom = WindowInsets.ime.getBottom(density)
-    val extraImeBottomPadding = if (imeBottom > 0) 10 else 0
-
-    Column(
-        Modifier.fillMaxWidth()
-            .offset { IntOffset(0, -currentOffsetPx) }
-            .onGloballyPositioned { coords ->
-                val screenHeight = coords.findRootCoordinates().size.height
-                val currentY = coords.positionInWindow().y
-                val height = coords.size.height
-                // Calculate where the bottom IS, then "undo" the current offset to find where it naturally wants to
-                // sit.
-                val restingBottom = currentY + height + currentOffsetPx
-                // The gap between the button and the bottom of the screen (Stuff below the button row is here)
-                val spaceBelowButtons = screenHeight - restingBottom
-                // We only need to move if the IME is taller than the space below
-                currentOffsetPx = (imeBottom - spaceBelowButtons + extraImeBottomPadding).toInt().coerceAtLeast(0)
-            }
-    ) {
-        Spacer(Modifier.size(20.dp))
-        Column(
-            Modifier.fillMaxWidth().weight(1.0f, fill = false),
-            horizontalAlignment = Alignment.End,
+private fun ColumnScope.WizardButtons(wizardStep: WizardPanelContent) {
+    wizardStep.buttons?.let { buttons ->
+        MiddleSpacer()
+        FlowRow(
+            modifier = Modifier.align(Alignment.End),
+            horizontalArrangement =
+                Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small, Alignment.CenterHorizontally),
             verticalArrangement = Arrangement.Bottom,
         ) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small)) {
-                wizardStep.buttons?.let { it() }
-            }
+            buttons()
         }
     }
 }
@@ -199,7 +160,7 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
             Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
         enabled = enabled,
     ) {
-        Text(text ?: i18n.commonNext())
+        Text(text ?: i18n.actionNext())
     }
 }
 
@@ -213,6 +174,6 @@ fun RowScope.BackButton(enabled: Boolean = true, text: String? = null, onBack: (
         modifier =
             Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
     ) {
-        Text(text ?: i18n.commonBack())
+        Text(text ?: i18n.actionBack())
     }
 }
