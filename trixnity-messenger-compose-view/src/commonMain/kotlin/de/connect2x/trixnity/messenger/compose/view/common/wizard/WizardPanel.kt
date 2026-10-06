@@ -1,12 +1,16 @@
 package de.connect2x.trixnity.messenger.compose.view.common.wizard
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +18,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,10 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
-import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardButtons.NextButton
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooter
@@ -59,62 +63,24 @@ data class WizardPanelContent(
     val title: @Composable () -> String,
     val subTitle: (@Composable () -> String)? = null,
     val content: @Composable (BoxWithConstraintsScope) -> Unit,
-    val additionalButton: (@Composable RowScope.() -> Unit)? = null,
-    val nextButton: (@Composable () -> Nav3WizardNavigationButton) = { Nav3WizardNavigationButton.Standard() },
-    val backButton: (@Composable () -> Nav3WizardNavigationButton) = { Nav3WizardNavigationButton.Standard() },
-    val buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
-        Triple(WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton)
-    },
-    val onNext: () -> Unit,
-    val onBack: () -> Unit,
+    val buttons: (@Composable RowScope.() -> Unit)?,
 )
-
-sealed interface Nav3WizardNavigationButton {
-    data class Standard(
-        val enabled: @Composable () -> Boolean = { true },
-        val content: (@Composable () -> Unit)? = null,
-    ) : Nav3WizardNavigationButton
-
-    data object None : Nav3WizardNavigationButton
-
-    data class Custom(val button: @Composable RowScope.() -> Unit) : Nav3WizardNavigationButton
-}
 
 @Composable
 fun WizardPanel(
-    wizardId: String,
     title: @Composable () -> String,
     subTitle: (@Composable () -> String)? = null,
     content: @Composable (BoxWithConstraintsScope) -> Unit,
-    additionalButton: (@Composable RowScope.() -> Unit)? = null,
-    nextButton: (@Composable () -> Nav3WizardNavigationButton) = { Nav3WizardNavigationButton.Standard() },
-    backButton: (@Composable () -> Nav3WizardNavigationButton) = { Nav3WizardNavigationButton.Standard() },
-    buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
-        Triple(WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton)
-    },
-    onNext: () -> Unit = {},
-    onBack: () -> Unit = {},
+    buttons: (@Composable RowScope.() -> Unit)? = null,
+    wizardId: String? = null,
 ) {
-    WizardPanel(
-        wizardId,
-        WizardPanelContent(
-            title,
-            subTitle,
-            content,
-            additionalButton,
-            nextButton,
-            backButton,
-            buttonOrder,
-            onNext,
-            onBack,
-        ),
-    )
+    WizardPanel(WizardPanelContent(title, subTitle, content, buttons), wizardId)
 }
 
 @Composable
-fun WizardPanel(wizardId: String, wizardStep: WizardPanelContent) {
+fun WizardPanel(wizardStep: WizardPanelContent, wizardId: String?) {
     Surface(
-        Modifier.fillMaxSize().testTag(wizardId),
+        Modifier.fillMaxSize().then(if (wizardId != null) Modifier.testTag(wizardId) else Modifier),
         color = MaterialTheme.colorScheme.surface,
     ) {
         Column(
@@ -189,8 +155,6 @@ private fun ColumnScope.WizardContent(
 
 @Composable
 private fun WizardButtons(wizardStep: WizardPanelContent) {
-    val additionalButton = wizardStep.additionalButton
-
     var currentOffsetPx by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
     val imeBottom = WindowInsets.ime.getBottom(density)
@@ -212,100 +176,43 @@ private fun WizardButtons(wizardStep: WizardPanelContent) {
                 currentOffsetPx = (imeBottom - spaceBelowButtons + extraImeBottomPadding).toInt().coerceAtLeast(0)
             }
     ) {
-        val buttonList = wizardStep.buttonOrder().toList().toMutableList()
-        if (additionalButton == null) {
-            buttonList.remove(WizardButtons.AdditionalButton)
-        }
-        MessengerModalButtonRow(
-            button1 = getCorrespondingButton(buttonList[0], wizardStep),
-            button2 = if (buttonList.size > 1) getCorrespondingButton(buttonList[1], wizardStep) else null,
-            button3 = if (buttonList.size > 2) getCorrespondingButton(buttonList[2], wizardStep) else null,
-        )
-    }
-}
-
-@Composable
-private fun RowScope.NextButton(wizardStep: WizardPanelContent) {
-    when (val nextButton = wizardStep.nextButton()) {
-        is Nav3WizardNavigationButton.Standard -> {
-            NextButtonImpl(nextButton, wizardStep.onNext)
-        }
-
-        is Nav3WizardNavigationButton.None -> {}
-
-        is Nav3WizardNavigationButton.Custom -> {
-            nextButton.button(this)
+        Spacer(Modifier.size(20.dp))
+        Column(
+            Modifier.fillMaxWidth().weight(1.0f, fill = false),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.Bottom,
+        ) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small)) {
+                wizardStep.buttons?.let { it() }
+            }
         }
     }
 }
 
 @Composable
-private fun NextButtonImpl(
-    nextButton: Nav3WizardNavigationButton.Standard,
-    onNext: () -> Unit,
-) {
+fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
     ThemedButton(
         style = MaterialTheme.components.primaryButton,
-        onClick = onNext,
-        enabled = nextButton.enabled(),
-        modifier = Modifier.testTag("next"),
+        onClick = nextAction,
+        modifier =
+            Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
+        enabled = enabled,
     ) {
-        if (nextButton.content != null) {
-            nextButton.content()
-        } else Text(i18n.commonNext())
+        Text(text ?: i18n.commonNext())
     }
 }
 
 @Composable
-private fun RowScope.BackButton(wizardStep: WizardPanelContent) {
-    when (val backButton = wizardStep.backButton()) {
-        is Nav3WizardNavigationButton.Standard -> {
-            BackButtonImpl(backButton, wizardStep.onBack)
-        }
-
-        is Nav3WizardNavigationButton.None -> {}
-
-        is Nav3WizardNavigationButton.Custom -> {
-            backButton.button(this)
-        }
-    }
-}
-
-@Composable
-private fun BackButtonImpl(
-    backButton: Nav3WizardNavigationButton.Standard,
-    onBack: () -> Unit,
-) {
+fun RowScope.BackButton(enabled: Boolean = true, text: String? = null, onBack: () -> Unit) {
     val i18n = DI.get<I18nView>()
     ThemedButton(
         style = MaterialTheme.components.commonButton,
         onClick = onBack,
-        enabled = backButton.enabled(),
+        enabled = enabled,
+        modifier =
+            Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
     ) {
-        if (backButton.content != null) {
-            backButton.content()
-        } else Text(i18n.commonBack())
-    }
-}
-
-@Composable
-private fun getCorrespondingButton(
-    wizardButton: WizardButtons,
-    wizardStep: WizardPanelContent,
-): @Composable (RowScope.() -> Unit) {
-    return when (wizardButton) {
-        NextButton -> {
-            { NextButton(wizardStep) }
-        }
-
-        WizardButtons.BackButton -> {
-            { BackButton(wizardStep) }
-        }
-
-        WizardButtons.AdditionalButton -> {
-            // TODO Additional Button
-            { wizardStep.additionalButton?.let { it() } }
-        }
+        Text(text ?: i18n.commonBack())
     }
 }
