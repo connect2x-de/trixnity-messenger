@@ -1,9 +1,11 @@
 package de.connect2x.trixnity.messenger.compose.view.richtext
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -11,9 +13,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Constraints
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.richtext.html.parseColor
+import de.connect2x.trixnity.messenger.util.isMatrixMediaUri
 
 @Composable
 internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContext, first: Boolean) {
@@ -22,15 +26,47 @@ internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContex
     val inlineContext = rememberInlineRichTextContext(context)
     val measurer = rememberMentionChipMeasurer(inlineContext, i18n)
 
-    val content =
-        remember(content.children, inlineContext) { buildAnnotatedString { Children(content, inlineContext, first) } }
+    val rendered =
+        remember(content.children, inlineContext, context.loadImage != null) {
+            renderInlineContent(content, inlineContext, first, context.loadImage != null)
+        }
+    val images = rendered.images
+    val bitmaps =
+        images.values
+            .mapNotNull { it.attributes["src"] }
+            .toSet()
+            .associateWith { uri -> key(uri) { rememberInlineImage(uri, context.loadImage) } }
+    val imageMeasurer: CompoundTextContext.(String, Constraints) -> Placeholder? =
+        remember(images, bitmaps, measurer) {
+            { key, constraints ->
+                images[key]?.let { measureInlineImage(it, bitmaps[it.attributes["src"]], constraints) }
+                    ?: measurer(key, constraints)
+            }
+        }
 
-    CompoundText(content = content, onMeasure = measurer) { url, constraints ->
+    CompoundText(content = rendered.text, onMeasure = imageMeasurer) { url, constraints ->
         val mention = inlineContext.mentions?.get(url)
-        if (mention != null) {
+        val image = images[url]
+        if (image != null) {
+            bitmaps[image.attributes["src"]]?.let { InlineImage(image, it) }
+        } else if (mention != null) {
             MentionChip(mention, i18n, constraints, onMentionClick = context.onMentionClick)
         }
     }
+}
+
+internal data class RenderedInlineContent(val text: AnnotatedString, val images: Map<String, RichText.Inline.Block>)
+
+internal fun renderInlineContent(
+    content: RichText.InlineSpan,
+    context: InlineRichTextContext,
+    first: Boolean,
+    allowImages: Boolean = true,
+): RenderedInlineContent {
+    val images = mutableMapOf<String, RichText.Inline.Block>()
+    val imageContext = context.copy(onImage = { key, image -> images[key] = image }, allowImages = allowImages)
+    val text = buildAnnotatedString { Children(content, imageContext, first) }
+    return RenderedInlineContent(text, images.toMap())
 }
 
 internal fun AnnotatedString.Builder.Children(
@@ -91,7 +127,7 @@ internal fun AnnotatedString.Builder.inlineContent(
                 val href = node.attributes["href"] ?: ""
                 if (context.mentions?.get(href) != null) {
                     pushStringAnnotation(INLINE_CONTENT_TAG, href)
-                    Children(node, context, first)
+                    Children(node, context.copy(allowImages = false), first)
                     pop()
                 } else if (
                     href.startsWith("https:") ||
@@ -171,7 +207,7 @@ internal fun AnnotatedString.Builder.inlineContent(
                             color = parseColor(node.attributes["data-mx-color"] ?: ""),
                         )
                     )
-                    Children(node, context, first)
+                    Children(node, context.copy(allowImages = false), first)
                     pop()
                 }
                     ?: run {
@@ -187,7 +223,16 @@ internal fun AnnotatedString.Builder.inlineContent(
             }
 
             "img" -> {
-                // TODO
+                val alt = node.attributes["alt"] ?: node.attributes["title"] ?: "\uFFFC"
+                if (context.allowImages && isMatrixMediaUri(node.attributes["src"])) {
+                    val key = "image:$length"
+                    context.onImage?.invoke(key, node)
+                    pushStringAnnotation(INLINE_CONTENT_TAG, key)
+                    append(alt.ifBlank { "\uFFFC" })
+                    pop()
+                } else {
+                    append(alt)
+                }
             }
         }
     }

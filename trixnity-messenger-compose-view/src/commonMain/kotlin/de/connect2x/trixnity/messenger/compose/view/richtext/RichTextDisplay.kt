@@ -33,14 +33,16 @@ fun RichTextDisplay(
     onCopy: ((String) -> Unit)? = null,
     onLinkClick: (String) -> Unit = {},
     onMentionClick: (TimelineElementMention) -> Unit = {},
+    loadImage: (suspend (String) -> ByteArray?)? = null,
 ) {
     val richText = remember(document) { RichTextVisitor().process(document) }
 
     val textColor = LocalTextStyle.current.color
 
     val context =
-        remember(colors.linkColor) {
+        remember(colors.linkColor, loadImage) {
             RichTextContext(
+                loadImage = loadImage,
                 mentions = mentions,
                 onCopy = onCopy,
                 onLinkClick = onLinkClick,

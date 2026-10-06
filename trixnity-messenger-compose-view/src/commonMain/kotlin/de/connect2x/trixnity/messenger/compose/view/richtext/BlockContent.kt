@@ -51,6 +51,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import kotlinx.coroutines.flow.StateFlow
 
 internal data class RichTextContext(
+    val loadImage: (suspend (String) -> ByteArray?)? = null,
     val listScope: ListScope? = null,
     val preformatted: Boolean = false,
     val textLinkStyles: TextLinkStyles? = null,
@@ -333,10 +334,6 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
 
         "summary" -> {
             Children(node, context)
-        }
-
-        "img" -> {
-            // TODO
         }
 
         else -> Unit

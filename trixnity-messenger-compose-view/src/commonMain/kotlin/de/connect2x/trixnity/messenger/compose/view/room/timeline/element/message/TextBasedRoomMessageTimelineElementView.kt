@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
@@ -116,6 +117,7 @@ private fun MessageTextContent(
             ) {
                 RichTextDisplay(
                     document = content,
+                    loadImage = remember(element) { element::loadInlineImage },
                     mentions = element.mentionsInFormattedBody,
                     modifier = Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { showActionMenu() }) },
                     colors =

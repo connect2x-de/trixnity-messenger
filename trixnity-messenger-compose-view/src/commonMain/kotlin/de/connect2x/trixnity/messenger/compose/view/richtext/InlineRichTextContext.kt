@@ -14,6 +14,8 @@ internal data class InlineRichTextContext(
     val onCopy: ((String) -> Unit)? = null,
     val onLinkClick: (String) -> Unit = {},
     val onMentionClick: (TimelineElementMention) -> Unit = {},
+    val onImage: ((String, RichText.Inline.Block) -> Unit)? = null,
+    val allowImages: Boolean = true,
 )
 
 @Composable

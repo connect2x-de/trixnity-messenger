@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.core.MSC2448
 import de.connect2x.trixnity.core.model.RoomId
@@ -14,6 +15,7 @@ import de.connect2x.trixnity.messenger.util.MatrixReferences
 import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
+import de.connect2x.trixnity.messenger.util.isMatrixMediaUri
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
@@ -30,7 +32,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
-sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
+interface InlineImageLoader {
+    suspend fun loadInlineImage(uri: String): ByteArray? = null
+}
+
+sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C>, InlineImageLoader {
     /** This event's message (stripped of any fallbacks for rich replies). */
     val body: String
 
@@ -148,7 +154,9 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
     content: C,
     private val roomId: RoomId,
     private val onOpenMention: OpenMentionCallback,
-) : MatrixClientViewModelContext by viewModelContext { // Do not inherit from RoomMessageTimelineElementViewModel to
+) :
+    InlineImageLoader,
+    MatrixClientViewModelContext by viewModelContext { // Do not inherit from RoomMessageTimelineElementViewModel to
     // simplify pattern matching, etc.
     private val mentionHelper =
         MentionHelper(
@@ -175,6 +183,15 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
         mentionHelper.processMentions(formattedBodyContent).stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     val isMentioned: Boolean = content.isUserMentioned(userId)
+
+    override suspend fun loadInlineImage(uri: String): ByteArray? {
+        if (!isMatrixMediaUri(uri)) return null
+        val maxSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
+        return matrixClient.media
+            .getMedia(uri, maxSize = maxSize)
+            .getOrNull()
+            ?.toByteArray(coroutineScope, maxSize = maxSize)
+    }
 
     fun openMention(mention: TimelineElementMention) {
         onOpenMention(userId, mention)

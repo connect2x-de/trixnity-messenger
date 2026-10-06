@@ -53,7 +53,8 @@ internal class RichTextVisitor {
         acc.add(
             RichText.Inline.Block(
                 tag = node.tag.lowercase(),
-                attributes = node.attributes,
+                attributes =
+                    if (node.tag == "img") node.attributes.filterKeys { it in imageAttributes } else node.attributes,
                 rawContent = node.rawContent,
                 children = children,
             )
@@ -108,6 +109,8 @@ internal class RichTextVisitor {
     }
 
     companion object {
+        private val imageAttributes = setOf("width", "height", "alt", "title", "src")
+
         fun process(document: HtmlNode.HtmlElement): RichText.Block = RichTextVisitor().process(document)
     }
 }
