@@ -19,7 +19,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
-- SDK: (**breaking changes**) Custom timeline holders must implement `BaseTimelineElementHolderViewModel.openSenderProfile`
 - UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
