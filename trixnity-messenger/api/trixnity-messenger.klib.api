@@ -1741,8 +1741,17 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/Membe
         abstract fun <get-filterByMemberships>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.filterByMemberships.<get-filterByMemberships>|<get-filterByMemberships>(){}[0]
     abstract val membershipCounts // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.membershipCounts|{}membershipCounts[0]
         abstract fun <get-membershipCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.room/Membership, kotlin/Int>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.membershipCounts.<get-membershipCounts>|<get-membershipCounts>(){}[0]
+    abstract val searchTerm // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.searchTerm|{}searchTerm[0]
+        abstract fun <get-searchTerm>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
     abstract val showLoadingSpinner // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.showLoadingSpinner|{}showLoadingSpinner[0]
         abstract fun <get-showLoadingSpinner>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.showLoadingSpinner.<get-showLoadingSpinner>|<get-showLoadingSpinner>(){}[0]
+
+    open fun resetFilters() // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.resetFilters|resetFilters(){}[0]
+
+    final object Companion { // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.Companion|null[0]
+        final val defaultMemberships // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.Companion.defaultMemberships|{}defaultMemberships[0]
+            final fun <get-defaultMemberships>(): kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.Companion.defaultMemberships.<get-defaultMemberships>|<get-defaultMemberships>(){}[0]
+    }
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelFactory|null[0]
@@ -8161,6 +8170,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMembe
         final fun <get-filterByMemberships>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.filterByMemberships.<get-filterByMemberships>|<get-filterByMemberships>(){}[0]
     final val membershipCounts // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.membershipCounts|{}membershipCounts[0]
         final fun <get-membershipCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.room/Membership, kotlin/Int>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.membershipCounts.<get-membershipCounts>|<get-membershipCounts>(){}[0]
+    final val searchTerm // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.searchTerm|{}searchTerm[0]
+        final fun <get-searchTerm>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
     final val showLoadingSpinner // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.showLoadingSpinner|{}showLoadingSpinner[0]
         final fun <get-showLoadingSpinner>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.showLoadingSpinner.<get-showLoadingSpinner>|<get-showLoadingSpinner>(){}[0]
 }
@@ -15560,6 +15571,8 @@ open class de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListVie
         open fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
     open val membershipCounts // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.membershipCounts|{}membershipCounts[0]
         open fun <get-membershipCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.room/Membership, kotlin/Int>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.membershipCounts.<get-membershipCounts>|<get-membershipCounts>(){}[0]
+    open val searchTerm // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.searchTerm|{}searchTerm[0]
+        open fun <get-searchTerm>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
     open val showLoadingSpinner // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.showLoadingSpinner|{}showLoadingSpinner[0]
         open fun <get-showLoadingSpinner>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.showLoadingSpinner.<get-showLoadingSpinner>|<get-showLoadingSpinner>(){}[0]
     open val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.stateKeeper|{}stateKeeper[0]
