@@ -20,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -65,9 +64,9 @@ fun WizardPanel(
 
 @Composable
 fun WizardPanel(wizardStep: WizardPanelContent, wizardId: String?) {
-    Surface(
-        Modifier.fillMaxSize().then(if (wizardId != null) Modifier.testTag(wizardId) else Modifier),
-        color = MaterialTheme.colorScheme.surface,
+    ThemedSurface(
+        modifier = Modifier.fillMaxSize().then(if (wizardId != null) Modifier.testTag(wizardId) else Modifier),
+        style = SurfaceStyle.default(color = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

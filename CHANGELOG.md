@@ -32,6 +32,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   if the homeserver allows it
 - UI: (**breaking change**) each timeline element metadata section implements new interface
   `TimelineElementMetadataListItemView` and moved to different package
+- UI: Replace single, view model dependent step ConnectingWizard with UI-only WizardPanel, removing old navigation logic
 
 ### Deprecated
 
