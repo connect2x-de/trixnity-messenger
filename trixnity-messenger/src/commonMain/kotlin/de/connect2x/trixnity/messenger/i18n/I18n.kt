@@ -771,13 +771,13 @@ open class I18n(
     }
 
     open fun settingsRoomLeaveRoomWarningConfirmButtonChat() = translate {
-        EN - "Yes, leave chat"
-        DE - "Ja, Chat verlassen"
+        EN - "Leave"
+        DE - "Verlassen"
     }
 
     open fun settingsRoomLeaveRoomWarningConfirmButtonGroup() = translate {
-        EN - "Yes, leave group"
-        DE - "Ja, Gruppe verlassen"
+        EN - "Leave"
+        DE - "Verlassen"
     }
 
     open fun settingsRoomLeaveRoomWarningMessageChat() = translate {

@@ -9,6 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- UI: Add a leave room action with confirmation to the room list's more options menu
 - UI: Search room members by display name or Matrix address
 - SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
 - SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
@@ -17,8 +18,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
-
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
 - DEPENDENCY: Update Trixnity to 5.10.0-SNAPSHOT.CI-20260929.090055

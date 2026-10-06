@@ -11014,6 +11014,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -11064,6 +11065,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -11114,6 +11116,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -11164,6 +11167,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -11228,6 +11232,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomli
 	public abstract fun isLoaded ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun leaveRoom ()V
 	public abstract fun markRead ()V
 	public abstract fun markUnread ()V
 	public abstract fun rejectInvitation ()V
@@ -11296,6 +11301,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementV
 	public fun isLoaded ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V

@@ -48,6 +48,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -109,6 +110,8 @@ interface RoomListElementViewModel {
     fun rejectInvitation()
 
     fun rejectInvitationAndBlockInviter()
+
+    fun leaveRoom()
 
     fun forgetRoom()
 
@@ -398,6 +401,25 @@ open class RoomListElementViewModelImpl(
         }
     }
 
+    override fun leaveRoom() {
+        coroutineScope.launch {
+            if (!matrixClient.syncState.value.hasConnection()) {
+                error.value = i18n.settingsRoomLeaveRoomErrorOffline()
+                return@launch
+            }
+
+            leaveRoom(matrixClient, roomId, forget = false)
+                .onSuccess { log.info { "successfully left room" } }
+                .onFailure {
+                    if (it is CancellationException) throw it
+                    log.error(it) { "cannot leave room $roomId" }
+                    val groupOrChat =
+                        if (isDirect.value == true) i18n.eventChangeChatGenitive() else i18n.eventChangeGroupGenitive()
+                    error.value = i18n.settingsRoomLeaveRoomError(groupOrChat)
+                }
+        }
+    }
+
     override fun forgetRoom() {
         coroutineScope.launch {
             if (!matrixClient.syncState.value.hasConnection()) {
@@ -586,6 +608,8 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
 
     override fun rejectInvitation() {}
 
+    override fun leaveRoom() {}
+
     override fun forgetRoom() {}
 
     override fun rejectInvitationAndBlockInviter() {}
@@ -631,6 +655,8 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override fun acceptInvitation() {}
 
     override fun rejectInvitation() {}
+
+    override fun leaveRoom() {}
 
     override fun forgetRoom() {}
 
@@ -678,6 +704,8 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
 
     override fun rejectInvitation() {}
 
+    override fun leaveRoom() {}
+
     override fun forgetRoom() {}
 
     override fun rejectInvitationAndBlockInviter() {}
@@ -723,6 +751,8 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override fun acceptInvitation() {}
 
     override fun rejectInvitation() {}
+
+    override fun leaveRoom() {}
 
     override fun forgetRoom() {}
 

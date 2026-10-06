@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -198,6 +199,7 @@ open class ThemedActionMenuItem(
     open val icon: ImageVector,
     open val label: String,
     internal open val action: () -> Unit,
+    internal val contentColor: Color? = null,
 ) {
     operator fun invoke() = action()
 
@@ -212,8 +214,8 @@ open class ThemedActionMenuItem(
     @Composable
     internal fun dropDownMenuItem(onClose: () -> Unit) {
         ThemedDropdownMenuItem(
-            leadingIcon = { Icon(icon, contentDescription = null) },
-            text = { Text(label) },
+            leadingIcon = { Icon(icon, contentDescription = null, tint = contentColor ?: LocalContentColor.current) },
+            text = { Text(label, color = contentColor ?: Color.Unspecified) },
             onClick = {
                 onClose()
                 action()
@@ -234,8 +236,10 @@ open class ThemedActionMenuItem(
                 MaterialTheme.components.listItem.copy(
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 ),
-            leadingContent = { Icon(icon, contentDescription = null) },
-            headlineContent = { Text(label) },
+            leadingContent = {
+                Icon(icon, contentDescription = null, tint = contentColor ?: LocalContentColor.current)
+            },
+            headlineContent = { Text(label, color = contentColor ?: Color.Unspecified) },
         )
     }
 }
