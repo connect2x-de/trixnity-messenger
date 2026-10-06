@@ -81,6 +81,7 @@ class InlineImageTest {
                 "height" to "32",
                 "alt" to "cat",
                 "title" to "cat_wave",
+                "data-mx-emoticon" to "false",
             ),
             rendered.images.values.single().attributes,
         )

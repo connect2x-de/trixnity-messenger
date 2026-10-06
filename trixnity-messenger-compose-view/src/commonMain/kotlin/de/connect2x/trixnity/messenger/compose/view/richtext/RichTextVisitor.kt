@@ -109,7 +109,7 @@ internal class RichTextVisitor {
     }
 
     companion object {
-        private val imageAttributes = setOf("width", "height", "alt", "title", "src")
+        private val imageAttributes = setOf("width", "height", "alt", "title", "src", "data-mx-emoticon")
 
         fun process(document: HtmlNode.HtmlElement): RichText.Block = RichTextVisitor().process(document)
     }

@@ -14,6 +14,7 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import kotlinx.coroutines.CancellationException
@@ -52,8 +53,10 @@ internal fun CompoundTextContext.measureInlineImage(
     constraints: Constraints,
 ): Placeholder? {
     if (bitmap == null) return null
+    val fontSize = textStyle.fontSize.takeIf { it.isSp } ?: 14.sp
+    val emoteHeight = with(density) { (fontSize * 2).toDp() }.value
     val maxWidth = with(density) { constraints.maxWidth.toDp().value }
-    val size = inlineImageSize(image.attributes, IntSize(bitmap.width, bitmap.height), maxWidth)
+    val size = inlineImageSize(image.attributes, IntSize(bitmap.width, bitmap.height), emoteHeight, maxWidth)
     return with(density) {
         Placeholder(
             width = size.width.dp.toSp(),
@@ -63,12 +66,19 @@ internal fun CompoundTextContext.measureInlineImage(
     }
 }
 
-internal fun inlineImageSize(attributes: Map<String, String>, intrinsicSize: IntSize, maxWidth: Float): Size {
+internal fun inlineImageSize(
+    attributes: Map<String, String>,
+    intrinsicSize: IntSize,
+    emoteHeight: Float,
+    maxWidth: Float,
+): Size {
+    val emoticon = "data-mx-emoticon" in attributes
     val width = attributes["width"].imageDimension()
     val height = attributes["height"].imageDimension()
     val ratio = intrinsicSize.width.toFloat() / intrinsicSize.height
-    val requestedHeight = height ?: width?.let { it / ratio } ?: intrinsicSize.height.toFloat()
-    val requestedWidth = width ?: requestedHeight * ratio
+    val requestedHeight =
+        if (emoticon) emoteHeight else height ?: width?.let { it / ratio } ?: intrinsicSize.height.toFloat()
+    val requestedWidth = if (emoticon) requestedHeight * ratio else width ?: requestedHeight * ratio
     val boundedWidth = maxWidth.coerceIn(1f, maxInlineImageDimension)
     val scale = minOf(1f, boundedWidth / requestedWidth, maxInlineImageDimension / requestedHeight)
     return Size((requestedWidth * scale).coerceAtLeast(1f), (requestedHeight * scale).coerceAtLeast(1f))
