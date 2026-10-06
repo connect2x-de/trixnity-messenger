@@ -8828,6 +8828,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun jumpTo ()V
+	public abstract fun openSenderProfile ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId {
@@ -8944,6 +8945,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun retrySend ()V
 }
@@ -9009,6 +9011,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public synthetic fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun openTimelineElementMetadata ()V
 	public fun redact ()V
 	public fun removeReaction (Ljava/lang/String;)V
@@ -9078,6 +9081,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public synthetic fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun openTimelineElementMetadata ()V
 	public fun redact ()V
 	public fun removeReaction (Ljava/lang/String;)V
@@ -9322,6 +9326,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun openTimelineElementMetadata ()V
 	public fun redact ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V

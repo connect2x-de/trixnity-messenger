@@ -737,6 +737,10 @@ class TimelineElementHolderViewModelImpl(
         onOpenMetadata(this.eventId)
     }
 
+    override fun openSenderProfile() {
+        sender.value?.let { onOpenMention(userId, TimelineElementMention.User(it)) }
+    }
+
     override fun jumpTo() {
         jumpTo(roomId, eventId)
     }
@@ -812,6 +816,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
 
     override fun openTimelineElementMetadata() {}
 
+    override fun openSenderProfile() {}
+
     override fun jumpTo() {}
 }
 
@@ -884,6 +890,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
 
     override fun openTimelineElementMetadata() {}
+
+    override fun openSenderProfile() {}
 
     override fun jumpTo() {}
 }

@@ -5770,6 +5770,7 @@ sealed interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.element
         abstract fun <get-showSender>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/BaseTimelineElementHolderViewModel.showSender.<get-showSender>|<get-showSender>(){}[0]
 
     abstract fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/BaseTimelineElementHolderViewModel.jumpTo|jumpTo(){}[0]
+    abstract fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/BaseTimelineElementHolderViewModel.openSenderProfile|openSenderProfile(){}[0]
 }
 
 sealed interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId { // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId|null[0]
@@ -9673,6 +9674,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Out
     final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.getKoin|getKoin(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.openSenderProfile|openSenderProfile(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     final fun retrySend() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.retrySend|retrySend(){}[0]
 }
@@ -9749,6 +9751,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Pre
     final fun endReplace() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.endReplace|endReplace(){}[0]
     final fun endReply() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.endReply|endReply(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.openSenderProfile|openSenderProfile(){}[0]
     final fun openTimelineElementMetadata() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.openTimelineElementMetadata|openTimelineElementMetadata(){}[0]
     final fun redact() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.redact|redact(){}[0]
     final fun removeReaction(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.removeReaction|removeReaction(kotlin.String){}[0]
@@ -9829,6 +9832,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Pre
     final fun endReplace() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.endReplace|endReplace(){}[0]
     final fun endReply() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.endReply|endReply(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.openSenderProfile|openSenderProfile(){}[0]
     final fun openTimelineElementMetadata() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.openTimelineElementMetadata|openTimelineElementMetadata(){}[0]
     final fun redact() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.redact|redact(){}[0]
     final fun removeReaction(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.removeReaction|removeReaction(kotlin.String){}[0]
@@ -9990,6 +9994,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Tim
     final fun endReply() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.endReply|endReply(){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.getKoin|getKoin(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.openSenderProfile|openSenderProfile(){}[0]
     final fun openTimelineElementMetadata() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.openTimelineElementMetadata|openTimelineElementMetadata(){}[0]
     final fun redact() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.redact|redact(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
