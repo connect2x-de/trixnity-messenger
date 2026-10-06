@@ -99,7 +99,7 @@ class OutboxElementHolderViewModelImpl(
     override val transactionId: String,
     override val formattedDate: String,
     override val formattedTime: String,
-    onOpenMention: OpenMentionCallback,
+    private val onOpenMention: OpenMentionCallback,
     private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
     private val timeZone = get<TimeZone>()
@@ -318,6 +318,10 @@ class OutboxElementHolderViewModelImpl(
 
     override fun retrySend() {
         coroutineScope.launch { matrixClient.room.retrySendMessage(roomId = roomId, transactionId = transactionId) }
+    }
+
+    override fun openSenderProfile() {
+        sender.value?.let { onOpenMention(userId, TimelineElementMention.User(it)) }
     }
 
     override fun jumpTo() {
