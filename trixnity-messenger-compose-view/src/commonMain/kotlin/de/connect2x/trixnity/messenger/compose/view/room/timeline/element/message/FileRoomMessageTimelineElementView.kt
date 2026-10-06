@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -93,14 +94,15 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
 internal fun MessageFile(element: File, showActionMenu: () -> Unit, onSave: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Row(
-        Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onSave() }, onLongPress = { showActionMenu() }) }
+        Modifier.fillMaxWidth()
+            .pointerInput(Unit) { detectTapGestures(onTap = { onSave() }, onLongPress = { showActionMenu() }) }
             .padding(10.dp)
     ) {
         Box(Modifier.align(Alignment.CenterVertically).clip(CircleShape).background(Color.LightGray)) {
             Icon(Icons.Default.Attachment, i18n.commonAttachment(), Modifier.padding(10.dp))
         }
         Spacer(Modifier.size(10.dp))
-        FileInfo(element, Modifier.align(Alignment.CenterVertically))
+        FileInfo(element, Modifier.weight(1f).align(Alignment.CenterVertically))
     }
 }
 

@@ -1702,6 +1702,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun selfVerificationWaitingForMethods ()Ljava/lang/String;
 	public fun sendAttachmentTitle ()Ljava/lang/String;
 	public fun settingsRoomMemberListBanned ()Ljava/lang/String;
+	public fun settingsRoomMemberListHideFilters ()Ljava/lang/String;
 	public fun settingsRoomMemberListInvited ()Ljava/lang/String;
 	public fun settingsRoomMemberListJoined ()Ljava/lang/String;
 	public fun settingsRoomMemberListKickUserWarningMessageChat ()Ljava/lang/String;
@@ -1709,6 +1710,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun settingsRoomMemberListKickUserWarningTitleChat (Ljava/lang/String;)Ljava/lang/String;
 	public fun settingsRoomMemberListKickUserWarningTitleGroup (Ljava/lang/String;)Ljava/lang/String;
 	public fun settingsRoomMemberListKnocking ()Ljava/lang/String;
+	public fun settingsRoomMemberListShowFilters ()Ljava/lang/String;
 	public fun shareDataTitle (Lde/connect2x/trixnity/messenger/util/SharedData;)Ljava/lang/String;
 	public fun shareFilesCancel ()Ljava/lang/String;
 	public fun shareFilesTitle (I)Ljava/lang/String;
@@ -2201,7 +2203,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Co
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ComposableSingletons$RoomSettingsMemberListKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/settings/ComposableSingletons$RoomSettingsMemberListKt;
 	public fun <init> ()V
-	public final fun getLambda$1224139425$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-673937458$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ComposableSingletons$UserProfileKt {
@@ -2345,7 +2347,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ro
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsMemberListKt {
-	public static final fun MemberList (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public static final fun MemberList (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel;Landroidx/compose/foundation/lazy/LazyListState;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 	public static final fun RoomSettingsMemberList (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
@@ -2472,22 +2474,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ti
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementDevInfoViewModel;Landroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataKt {
-	public static final fun ReadersAndReactions (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;Ljava/util/List;Landroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
-	public static final fun SubHeading (Landroidx/compose/foundation/layout/ColumnScope;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
-	public static final fun TimelineElementMetadata (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataView {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/UserProfileKt {
@@ -3678,6 +3664,53 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/bubble/RepliedElementKt {
 	public static final fun RepliedElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataKt {
+	public static final fun SubHeading (Landroidx/compose/foundation/layout/ColumnScope;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+	public static final fun TimelineElementMetadata (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
+	public static final fun UserInfo (Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Landroidx/compose/ui/Modifier;Ljava/util/Set;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+	public abstract fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataMessageHistoryListItemView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataMessageHistoryListItemViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataMessageHistoryListItemView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataReadersAndReactionsListItemView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataReadersAndReactionsListItemViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataReadersAndReactionsListItemView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataSenderListItemView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataSenderListItemViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataSenderListItemView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/state/AvatarStateTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
