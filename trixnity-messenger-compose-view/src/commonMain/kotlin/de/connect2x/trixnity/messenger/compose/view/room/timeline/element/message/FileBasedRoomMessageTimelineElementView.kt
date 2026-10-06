@@ -175,7 +175,13 @@ internal fun FileBasedView(
 
     val elementDetailsFactory = DI.get<ElementDetailsViewSelector>().rememberFactory(element)
     var openElementDetails by remember { mutableStateOf(false) }
-    Box {
+    val widthModifier =
+        when (element) {
+            is RoomMessageTimelineElementViewModel.FileBased.File -> Modifier.width(300.dp)
+            is RoomMessageTimelineElementViewModel.FileBased.Audio -> Modifier.width(300.dp)
+            else -> Modifier
+        }
+    Box(widthModifier) {
         Column(
             Modifier.pointerInput(Unit) {
                     detectTapGestures(onTap = { openElementDetails = true }, onLongPress = { showActionMenu() })
