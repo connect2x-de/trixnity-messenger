@@ -246,6 +246,56 @@ class MemberListViewModelTest {
     }
 
     @Test
+    fun `search matches display name and Matrix address and clears reactively`() = runTest {
+        roomUserAliceFlow.value = roomUserAliceFlow.value.copy(name = "Wonderland")
+        val cut = memberListViewModel()
+
+        cut.searchTerm.value = "  DERLand  "
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(alice) }
+
+        cut.searchTerm.value = "@BOB:LOCALHOST"
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(bob) }
+
+        cut.searchTerm.value = "unknown"
+        eventually(2.seconds) { cut.elements.value shouldBe emptyList() }
+
+        cut.searchTerm.value = ""
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(alice, bob, me) }
+    }
+
+    @Test
+    fun `search respects membership filters and preserves membership counts`() = runTest {
+        setMembershipsAndGetRoomUsers(alices = Membership.BAN, bobs = Membership.JOIN, mine = Membership.JOIN)
+        val cut = memberListViewModel()
+        cut.searchTerm.value = "alice"
+        cut.filterByMemberships.value = setOf(Membership.JOIN)
+
+        eventually(2.seconds) {
+            cut.elements.value shouldBe emptyList()
+            cut.membershipCounts.value[Membership.JOIN] shouldBe 2
+            cut.membershipCounts.value[Membership.BAN] shouldBe 1
+        }
+
+        cut.filterByMemberships.value = setOf(Membership.BAN)
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(alice) }
+    }
+
+    @Test
+    fun `reset filters restores default memberships and clears search`() = runTest {
+        setMembershipsAndGetRoomUsers(alices = Membership.BAN, bobs = Membership.LEAVE, mine = Membership.JOIN)
+        val cut = memberListViewModel()
+        cut.searchTerm.value = "alice"
+        cut.filterByMemberships.value = setOf(Membership.BAN)
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(alice) }
+
+        cut.resetFilters()
+
+        cut.searchTerm.value shouldBe ""
+        cut.filterByMemberships.value shouldBe MemberListViewModel.defaultMemberships
+        eventually(2.seconds) { cut.elements.value.map { it.memberUserId } shouldBe listOf(me, alice) }
+    }
+
+    @Test
     fun `Calculate membership amounts in a Room with 3 joined Members`() = runTest {
         val (roomAlice, roomBob, roomMe) =
             setMembershipsAndGetRoomUsers(alices = Membership.JOIN, bobs = Membership.JOIN, mine = Membership.JOIN)
