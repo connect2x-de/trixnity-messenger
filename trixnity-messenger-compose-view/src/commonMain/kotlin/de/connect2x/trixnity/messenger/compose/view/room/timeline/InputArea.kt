@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -158,7 +157,7 @@ class InputAreaViewImpl : InputAreaView {
                 }
             }
 
-            Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+            Box(contentAlignment = Alignment.Center) {
                 if (canRecordAudio) {
                     StartAudioRecordingButton()
                 } else {
@@ -193,7 +192,7 @@ class InputAreaViewImpl : InputAreaView {
 
                 MentionSelector(inputAreaViewModel, focusRequester)
                 Row(
-                    Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(8.dp),
+                    Modifier.fillMaxWidth().padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -209,7 +208,16 @@ class InputAreaViewImpl : InputAreaView {
                             if (isEdit) {
                                 TextInput(canRecordAudio = true)
                             } else {
-                                AudioRecordingArea(inputAreaViewModel.audio)
+                                // Hack: the input area does not constrain its height, so the audio recorder's
+                                // fillMaxHeight fills all available space. Constrain the audio row here until
+                                // the parent sizing is fixed; intrinsic sizing around text breaks its line limit.
+                                Row(
+                                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    AudioRecordingArea(inputAreaViewModel.audio)
+                                }
                             }
                     }
                 }
