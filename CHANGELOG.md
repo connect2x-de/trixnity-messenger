@@ -51,6 +51,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
 - UI: Only display available verification methods in SelfVerificationWizard
+- SDK: When exporting a room then do not throw an exception when the start condition filters out all events 
 
 ### Security
 

@@ -274,6 +274,51 @@ class ExportRoomTest {
     }
 
     @Test
+    fun `range - no event found due to start condition`() = runTest {
+        val cut = cut()
+
+        val noEvents = ExportRoomRangeStartCondition { true }
+        cut(
+            roomId,
+            fakeProperties,
+            matrixClientMock,
+            includeMedia = true,
+            rangeStartCondition = noEvents,
+            timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
+        ) shouldBe ExportRoomResult.Success()
+
+        verifySuspend {
+            sinkMock.start()
+            sinkMock.finish()
+        }
+        verifySuspend(VerifyMode.not) { sinkMock.processTimelineEvent(any()) }
+    }
+
+    @Test
+    fun `range - no event found due to end condition`() = runTest {
+        val cut = cut()
+
+        val noEvents = ExportRoomRangeEndCondition { true }
+        cut(
+            roomId,
+            fakeProperties,
+            matrixClientMock,
+            includeMedia = true,
+            rangeStartCondition = ExportRoomRangeStartCondition.firstEvent(),
+            rangeEndCondition = noEvents,
+            timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
+        ) shouldBe ExportRoomResult.Success()
+
+        verifySuspend {
+            sinkMock.start()
+            sinkMock.finish()
+        }
+        verifySuspend(VerifyMode.not) { sinkMock.processTimelineEvent(any()) }
+    }
+
+    @Test
     fun `add errors to result`() = runTest {
         val cut = cut()
 
