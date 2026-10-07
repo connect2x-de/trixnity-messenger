@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
 interface InlineImageLoader {
-    suspend fun loadInlineImage(uri: String): ByteArray? = null
+    suspend fun loadInlineImage(uri: String, size: Int): ByteArray? = null
 }
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C>, InlineImageLoader {
@@ -185,7 +185,7 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
 
     val isMentioned: Boolean = content.isUserMentioned(userId)
 
-    override suspend fun loadInlineImage(uri: String): ByteArray? {
+    override suspend fun loadInlineImage(uri: String, size: Int): ByteArray? {
         if (!isMatrixMediaUri(uri)) return null
         val maxSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
         return get<Thumbnails>()
@@ -202,8 +202,8 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
                 thumbnailProgressFlow = MutableStateFlow(null),
                 maxMediaSizeInMemory = maxSize,
                 maxDownloadSize = maxSize,
-                width = 800L,
-                height = 800L,
+                width = size.toLong(),
+                height = size.toLong(),
             )
     }
 

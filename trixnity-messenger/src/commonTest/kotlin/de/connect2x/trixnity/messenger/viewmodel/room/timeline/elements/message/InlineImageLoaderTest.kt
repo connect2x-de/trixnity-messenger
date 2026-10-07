@@ -28,12 +28,21 @@ class InlineImageLoaderTest {
     private val maxSize = MatrixMessengerConfiguration().downloadLimits.thumbnail
 
     @Test
+    fun `load smaller thumbnails for emoticons`() = runTest {
+        val bytes = "emoticon".encodeToByteArray()
+        everySuspend { mediaService.getThumbnail(uri, 128L, 128L, maxSize, maxSize, any(), progress = any()) } returns
+            Result.success(InMemoryPlatformMedia(bytes))
+
+        withViewModel { it.loadInlineImage(uri, 128) shouldBe bytes }
+    }
+
+    @Test
     fun `load server thumbnail without downloading original`() = runTest {
         val bytes = "thumbnail".encodeToByteArray()
         everySuspend { mediaService.getThumbnail(uri, 800L, 800L, maxSize, maxSize, any(), progress = any()) } returns
             Result.success(InMemoryPlatformMedia(bytes))
 
-        withViewModel { it.loadInlineImage(uri) shouldBe bytes }
+        withViewModel { it.loadInlineImage(uri, 800) shouldBe bytes }
     }
 
     @Test
@@ -44,12 +53,12 @@ class InlineImageLoaderTest {
         everySuspend { mediaService.getMedia(uri, maxSize, maxSize, any()) } returns
             Result.success(InMemoryPlatformMedia(bytes))
 
-        withViewModel { it.loadInlineImage(uri) shouldBe bytes }
+        withViewModel { it.loadInlineImage(uri, 800) shouldBe bytes }
     }
 
     @Test
     fun `reject non Matrix media sources`() = runTest {
-        withViewModel { it.loadInlineImage("https://server/image") shouldBe null }
+        withViewModel { it.loadInlineImage("https://server/image", 800) shouldBe null }
     }
 
     private suspend fun TestScope.withViewModel(block: suspend (InlineImageLoader) -> Unit) {

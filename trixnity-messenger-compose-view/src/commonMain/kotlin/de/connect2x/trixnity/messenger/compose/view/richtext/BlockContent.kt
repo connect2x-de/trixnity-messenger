@@ -51,7 +51,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import kotlinx.coroutines.flow.StateFlow
 
 internal data class RichTextContext(
-    val loadImage: (suspend (String) -> ByteArray?)? = null,
+    val loadImage: (suspend (String, Int) -> ByteArray?)? = null,
     val listScope: ListScope? = null,
     val preformatted: Boolean = false,
     val textLinkStyles: TextLinkStyles? = null,

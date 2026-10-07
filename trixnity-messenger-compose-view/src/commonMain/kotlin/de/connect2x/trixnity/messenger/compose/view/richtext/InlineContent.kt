@@ -34,9 +34,12 @@ internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContex
     val maxImageHeight = LocalInlineImageMaxHeight.current?.value
     val bitmaps =
         images.values
-            .mapNotNull { it.attributes["src"] }
-            .toSet()
-            .associateWith { uri -> key(uri) { rememberInlineImage(uri, context.loadImage) } }
+            .groupBy { it.attributes.getValue("src") }
+            .mapValues { (uri, images) ->
+                val size =
+                    if (images.all { "data-mx-emoticon" in it.attributes }) inlineEmoticonSize else inlineImageSize
+                key(uri) { rememberInlineImage(uri, size, context.loadImage) }
+            }
     val imageMeasurer: CompoundTextContext.(String, Constraints) -> Placeholder? =
         remember(images, bitmaps, measurer, maxImageHeight) {
             { key, constraints ->

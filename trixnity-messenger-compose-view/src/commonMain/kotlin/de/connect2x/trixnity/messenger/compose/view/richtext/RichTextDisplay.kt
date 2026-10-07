@@ -33,7 +33,7 @@ fun RichTextDisplay(
     onCopy: ((String) -> Unit)? = null,
     onLinkClick: (String) -> Unit = {},
     onMentionClick: (TimelineElementMention) -> Unit = {},
-    loadImage: (suspend (String) -> ByteArray?)? = null,
+    loadImage: (suspend (String, Int) -> ByteArray?)? = null,
 ) {
     val richText = remember(document) { RichTextVisitor().process(document) }
 

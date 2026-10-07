@@ -57,7 +57,7 @@ class InlineImageReplyLayoutTest {
 
                 override fun openMention(mention: TimelineElementMention) {}
 
-                override suspend fun loadInlineImage(uri: String) = bytes
+                override suspend fun loadInlineImage(uri: String, size: Int) = bytes
             }
         val storage =
             object : SettingsStorage {

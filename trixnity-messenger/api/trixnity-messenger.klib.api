@@ -2255,7 +2255,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.eleme
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/InlineImageLoader { // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/InlineImageLoader|null[0]
-    open suspend fun loadInlineImage(kotlin/String): kotlin/ByteArray? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/InlineImageLoader.loadInlineImage|loadInlineImage(kotlin.String){}[0]
+    open suspend fun loadInlineImage(kotlin/String, kotlin/Int): kotlin/ByteArray? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/InlineImageLoader.loadInlineImage|loadInlineImage(kotlin.String;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/LocationRoomMessageTimelineElementViewModelFactory : de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementViewModelFactory<de.connect2x.trixnity.core.model.events.m.room/RoomMessageEventContent.Location> { // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/LocationRoomMessageTimelineElementViewModelFactory|null[0]
@@ -6077,7 +6077,7 @@ abstract class <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessageEv
     open fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
     open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.getKoin|getKoin(){}[0]
     open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
-    open suspend fun loadInlineImage(kotlin/String): kotlin/ByteArray? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.loadInlineImage|loadInlineImage(kotlin.String){}[0]
+    open suspend fun loadInlineImage(kotlin/String, kotlin/Int): kotlin/ByteArray? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.loadInlineImage|loadInlineImage(kotlin.String;kotlin.Int){}[0]
 }
 
 abstract class <#A: de.connect2x.trixnity.messenger.media/AbstractMediaItem<#A>> de.connect2x.trixnity.messenger.media/AbstractMediaItem : de.connect2x.trixnity.messenger.media/MediaItemLifecycleImpl, de.connect2x.trixnity.messenger.media/MediaPlayer.Item { // de.connect2x.trixnity.messenger.media/AbstractMediaItem|null[0]

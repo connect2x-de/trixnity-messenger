@@ -9575,11 +9575,11 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader {
-	public fun loadInlineImage (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadInlineImage (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/LocationRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -9638,7 +9638,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
@@ -9670,19 +9670,19 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$DefaultImpls {
 	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
@@ -9697,7 +9697,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
@@ -9709,7 +9709,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
@@ -9718,35 +9718,35 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Emote : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Emote$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Emote;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Emote;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Text : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Text$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Text;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Text;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Unknown : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
@@ -9754,7 +9754,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Unknown$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Unknown;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Unknown;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$VerificationRequest : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
@@ -9764,7 +9764,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$VerificationRequest$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$VerificationRequest;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$VerificationRequest;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader {
@@ -9794,7 +9794,7 @@ public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/el
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public final fun isMentioned ()Z
-	public fun loadInlineImage (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadInlineImage (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun openMention (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }

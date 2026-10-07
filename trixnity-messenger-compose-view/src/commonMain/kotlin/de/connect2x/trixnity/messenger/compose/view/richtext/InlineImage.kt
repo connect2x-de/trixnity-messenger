@@ -23,7 +23,8 @@ import kotlinx.coroutines.CancellationException
 
 private val log = Logger("de.connect2x.trixnity.messenger.compose.view.richtext.InlineImage")
 
-internal val inlineImageDecodeSize = IntSize(800, 800)
+internal const val inlineImageSize = 800
+internal const val inlineEmoticonSize = 128
 internal val LocalInlineImageMaxHeight = staticCompositionLocalOf<Dp?> { null }
 
 private const val maxInlineImageDimension = 320f
@@ -31,18 +32,26 @@ private const val maxInlineImageDimension = 320f
 private fun String?.imageDimension(): Float? = this?.toIntOrNull()?.takeIf { it > 0 }?.toFloat()
 
 @Composable
-internal fun rememberInlineImage(uri: String, loadImage: (suspend (String) -> ByteArray?)?): ImageBitmap? {
+internal fun rememberInlineImage(
+    uri: String,
+    size: Int,
+    loadImage: (suspend (String, Int) -> ByteArray?)?,
+): ImageBitmap? {
     val bytes by
-        produceState<ByteArray?>(null, uri, loadImage) {
+        produceState<ByteArray?>(null, uri, size, loadImage) {
             value = null
-            value = loadInlineImageOrNull(uri, loadImage)
+            value = loadInlineImageOrNull(uri, size, loadImage)
         }
-    return rememberImageBitmapOrNull(bytes, maxSize = inlineImageDecodeSize)
+    return rememberImageBitmapOrNull(bytes, maxSize = IntSize(size, size))
 }
 
-internal suspend fun loadInlineImageOrNull(uri: String, loadImage: (suspend (String) -> ByteArray?)?): ByteArray? =
+internal suspend fun loadInlineImageOrNull(
+    uri: String,
+    size: Int,
+    loadImage: (suspend (String, Int) -> ByteArray?)?,
+): ByteArray? =
     try {
-        loadImage?.invoke(uri)
+        loadImage?.invoke(uri, size)
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
