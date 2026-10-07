@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.core.MSC2448
 import de.connect2x.trixnity.core.model.RoomId
@@ -23,10 +22,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMentioned
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import kotlin.time.Duration
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -187,10 +188,23 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
     override suspend fun loadInlineImage(uri: String): ByteArray? {
         if (!isMatrixMediaUri(uri)) return null
         val maxSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
-        return matrixClient.media
-            .getMedia(uri, maxSize = maxSize)
-            .getOrNull()
-            ?.toByteArray(coroutineScope, maxSize = maxSize)
+        return get<Thumbnails>()
+            .loadThumbnail(
+                coroutineScope,
+                matrixClient,
+                thumbnailFile = null,
+                thumbnailUrl = null,
+                thumbnailInfo = null,
+                file = null,
+                fileUrl = uri,
+                fileInfo = null,
+                sizeInBytes = maxSize,
+                thumbnailProgressFlow = MutableStateFlow(null),
+                maxMediaSizeInMemory = maxSize,
+                maxDownloadSize = maxSize,
+                width = 800L,
+                height = 800L,
+            )
     }
 
     fun openMention(mention: TimelineElementMention) {
