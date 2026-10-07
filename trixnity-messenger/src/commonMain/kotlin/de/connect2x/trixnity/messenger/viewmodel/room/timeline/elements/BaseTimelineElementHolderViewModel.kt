@@ -52,6 +52,8 @@ sealed interface BaseTimelineElementHolderViewModel {
      */
     val sendError: StateFlow<String?>
 
+    fun openSenderProfile()
+
     /** Scroll to this element in the timeline. */
     fun jumpTo()
 }

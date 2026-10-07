@@ -1131,6 +1131,16 @@ open class I18nView(
         DE - "Beigetreten"
     }
 
+    open fun settingsRoomMemberListShowFilters() = translate {
+        EN - "Show member filters"
+        DE - "Mitgliederfilter anzeigen"
+    }
+
+    open fun settingsRoomMemberListHideFilters() = translate {
+        EN - "Hide member filters"
+        DE - "Mitgliederfilter ausblenden"
+    }
+
     open fun settingsRoomMemberListKnocking() = translate {
         EN - "Knocking"
         DE - "Klopfend"
@@ -3071,6 +3081,11 @@ open class I18nView(
     open fun appearanceAccentColorDefault() = translate {
         EN - "Default"
         DE - "Standard"
+    }
+
+    open fun leaveAndForgetRoom() = translate {
+        EN - "Leave and forget"
+        DE - "Verlassen und vergessen"
     }
 
     open fun forgetRoomWarningHeader() = translate {

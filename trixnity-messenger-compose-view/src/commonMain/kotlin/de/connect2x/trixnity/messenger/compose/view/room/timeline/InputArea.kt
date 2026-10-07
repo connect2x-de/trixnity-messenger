@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -157,7 +158,7 @@ class InputAreaViewImpl : InputAreaView {
                 }
             }
 
-            Box(Modifier.height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                 if (canRecordAudio) {
                     StartAudioRecordingButton()
                 } else {
@@ -192,7 +193,7 @@ class InputAreaViewImpl : InputAreaView {
 
                 MentionSelector(inputAreaViewModel, focusRequester)
                 Row(
-                    Modifier.fillMaxWidth().wrapContentHeight().padding(8.dp),
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {

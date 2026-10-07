@@ -150,7 +150,7 @@ internal fun ImageMessageElementOverlay(element: Image) {
 internal fun ColumnScope.MessageImage(element: Image, showActionMenu: () -> Unit, onSave: () -> Unit) {
     val i18n = DI.get<I18nView>()
 
-    val thumbnail = rememberImagePainter(element)
+    val thumbnail = rememberImagePainter(element, thumbnailSize)
     val fallback = rememberFallbackPainter(element)
     val imagePainter = animateImage(thumbnail, fallback)
     val thumbnailLoading = element.thumbnailLoading.collectAsState().value
@@ -224,7 +224,7 @@ internal fun ImageReplyElement(
         modifier = modifier,
         interactionSource = interactionSource,
         content = {
-            val thumbnail = rememberImagePainter(element)
+            val thumbnail = rememberImagePainter(element, thumbnailSize)
             val fallback = rememberFallbackPainter(element)
             val imagePainter = animateImage(thumbnail, fallback)
             val thumbnailLoading = element.thumbnailLoading.collectAsState().value
@@ -275,11 +275,13 @@ private fun rememberFallbackPainter(element: Image): Painter? {
     return remember(bitmap) { BitmapPainter(bitmap) }
 }
 
+private val thumbnailSize = IntSize(800, 800)
+
 @OptIn(MSC2448::class)
 @Composable
-private fun rememberImagePainter(element: Image): Painter? {
+private fun rememberImagePainter(element: Image, maxSize: IntSize): Painter? {
     val thumbnail = element.thumbnail.collectAsState().value
-    val bitmap = rememberImageBitmapOrNull(thumbnail) ?: return null
+    val bitmap = rememberImageBitmapOrNull(thumbnail, maxSize) ?: return null
 
     return remember(bitmap) { BitmapPainter(bitmap) }
 }

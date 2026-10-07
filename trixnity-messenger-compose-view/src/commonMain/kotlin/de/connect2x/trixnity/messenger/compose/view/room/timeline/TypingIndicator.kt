@@ -97,6 +97,8 @@ private object NoopHolder : OutboxElementHolderViewModel {
     override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false)
     override val sendError: StateFlow<String?> = MutableStateFlow(null)
 
+    override fun openSenderProfile() {}
+
     override fun jumpTo() {}
 
     override val transactionId: String = ""

@@ -1741,8 +1741,17 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/Membe
         abstract fun <get-filterByMemberships>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.filterByMemberships.<get-filterByMemberships>|<get-filterByMemberships>(){}[0]
     abstract val membershipCounts // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.membershipCounts|{}membershipCounts[0]
         abstract fun <get-membershipCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.room/Membership, kotlin/Int>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.membershipCounts.<get-membershipCounts>|<get-membershipCounts>(){}[0]
+    abstract val searchTerm // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.searchTerm|{}searchTerm[0]
+        abstract fun <get-searchTerm>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
     abstract val showLoadingSpinner // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.showLoadingSpinner|{}showLoadingSpinner[0]
         abstract fun <get-showLoadingSpinner>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.showLoadingSpinner.<get-showLoadingSpinner>|<get-showLoadingSpinner>(){}[0]
+
+    open fun resetFilters() // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.resetFilters|resetFilters(){}[0]
+
+    final object Companion { // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.Companion|null[0]
+        final val defaultMemberships // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.Companion.defaultMemberships|{}defaultMemberships[0]
+            final fun <get-defaultMemberships>(): kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModel.Companion.defaultMemberships.<get-defaultMemberships>|<get-defaultMemberships>(){}[0]
+    }
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelFactory|null[0]
@@ -3420,6 +3429,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListEl
     abstract fun acceptInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel.acceptInvitation|acceptInvitation(){}[0]
     abstract fun clearError() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel.clearError|clearError(){}[0]
     abstract fun forgetRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel.forgetRoom|forgetRoom(){}[0]
+    abstract fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel.leaveRoom|leaveRoom(){}[0]
     abstract fun markRead() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel.markRead|markRead(){}[0]
     abstract fun markUnread() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel.markUnread|markUnread(){}[0]
     abstract fun rejectInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel.rejectInvitation|rejectInvitation(){}[0]
@@ -5760,6 +5770,7 @@ sealed interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.element
         abstract fun <get-showSender>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/BaseTimelineElementHolderViewModel.showSender.<get-showSender>|<get-showSender>(){}[0]
 
     abstract fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/BaseTimelineElementHolderViewModel.jumpTo|jumpTo(){}[0]
+    abstract fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/BaseTimelineElementHolderViewModel.openSenderProfile|openSenderProfile(){}[0]
 }
 
 sealed interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId { // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId|null[0]
@@ -8161,6 +8172,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMembe
         final fun <get-filterByMemberships>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.filterByMemberships.<get-filterByMemberships>|<get-filterByMemberships>(){}[0]
     final val membershipCounts // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.membershipCounts|{}membershipCounts[0]
         final fun <get-membershipCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.room/Membership, kotlin/Int>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.membershipCounts.<get-membershipCounts>|<get-membershipCounts>(){}[0]
+    final val searchTerm // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.searchTerm|{}searchTerm[0]
+        final fun <get-searchTerm>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
     final val showLoadingSpinner // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.showLoadingSpinner|{}showLoadingSpinner[0]
         final fun <get-showLoadingSpinner>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewMemberListViewModel.showLoadingSpinner.<get-showLoadingSpinner>|<get-showLoadingSpinner>(){}[0]
 }
@@ -9661,6 +9674,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Out
     final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.getKoin|getKoin(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.openSenderProfile|openSenderProfile(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     final fun retrySend() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/OutboxElementHolderViewModelImpl.retrySend|retrySend(){}[0]
 }
@@ -9737,6 +9751,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Pre
     final fun endReplace() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.endReplace|endReplace(){}[0]
     final fun endReply() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.endReply|endReply(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.openSenderProfile|openSenderProfile(){}[0]
     final fun openTimelineElementMetadata() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.openTimelineElementMetadata|openTimelineElementMetadata(){}[0]
     final fun redact() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.redact|redact(){}[0]
     final fun removeReaction(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel1.removeReaction|removeReaction(kotlin.String){}[0]
@@ -9817,6 +9832,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Pre
     final fun endReplace() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.endReplace|endReplace(){}[0]
     final fun endReply() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.endReply|endReply(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.openSenderProfile|openSenderProfile(){}[0]
     final fun openTimelineElementMetadata() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.openTimelineElementMetadata|openTimelineElementMetadata(){}[0]
     final fun redact() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.redact|redact(){}[0]
     final fun removeReaction(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/PreviewTimelineElementViewModel2.removeReaction|removeReaction(kotlin.String){}[0]
@@ -9978,6 +9994,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Tim
     final fun endReply() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.endReply|endReply(){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.getKoin|getKoin(){}[0]
     final fun jumpTo() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.jumpTo|jumpTo(){}[0]
+    final fun openSenderProfile() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.openSenderProfile|openSenderProfile(){}[0]
     final fun openTimelineElementMetadata() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.openTimelineElementMetadata|openTimelineElementMetadata(){}[0]
     final fun redact() // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.redact|redact(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementHolderViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
@@ -10771,6 +10788,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListEl
     final fun acceptInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1.acceptInvitation|acceptInvitation(){}[0]
     final fun clearError() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1.clearError|clearError(){}[0]
     final fun forgetRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1.forgetRoom|forgetRoom(){}[0]
+    final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1.leaveRoom|leaveRoom(){}[0]
     final fun markRead() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1.markRead|markRead(){}[0]
     final fun markUnread() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1.markUnread|markUnread(){}[0]
     final fun rejectInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1.rejectInvitation|rejectInvitation(){}[0]
@@ -10829,6 +10847,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListEl
     final fun acceptInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel2.acceptInvitation|acceptInvitation(){}[0]
     final fun clearError() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel2.clearError|clearError(){}[0]
     final fun forgetRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel2.forgetRoom|forgetRoom(){}[0]
+    final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel2.leaveRoom|leaveRoom(){}[0]
     final fun markRead() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel2.markRead|markRead(){}[0]
     final fun markUnread() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel2.markUnread|markUnread(){}[0]
     final fun rejectInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel2.rejectInvitation|rejectInvitation(){}[0]
@@ -10887,6 +10906,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListEl
     final fun acceptInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel3.acceptInvitation|acceptInvitation(){}[0]
     final fun clearError() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel3.clearError|clearError(){}[0]
     final fun forgetRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel3.forgetRoom|forgetRoom(){}[0]
+    final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel3.leaveRoom|leaveRoom(){}[0]
     final fun markRead() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel3.markRead|markRead(){}[0]
     final fun markUnread() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel3.markUnread|markUnread(){}[0]
     final fun rejectInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel3.rejectInvitation|rejectInvitation(){}[0]
@@ -10945,6 +10965,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListEl
     final fun acceptInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel4.acceptInvitation|acceptInvitation(){}[0]
     final fun clearError() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel4.clearError|clearError(){}[0]
     final fun forgetRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel4.forgetRoom|forgetRoom(){}[0]
+    final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel4.leaveRoom|leaveRoom(){}[0]
     final fun markRead() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel4.markRead|markRead(){}[0]
     final fun markUnread() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel4.markUnread|markUnread(){}[0]
     final fun rejectInvitation() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel4.rejectInvitation|rejectInvitation(){}[0]
@@ -15560,6 +15581,8 @@ open class de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListVie
         open fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
     open val membershipCounts // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.membershipCounts|{}membershipCounts[0]
         open fun <get-membershipCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.room/Membership, kotlin/Int>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.membershipCounts.<get-membershipCounts>|<get-membershipCounts>(){}[0]
+    open val searchTerm // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.searchTerm|{}searchTerm[0]
+        open fun <get-searchTerm>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
     open val showLoadingSpinner // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.showLoadingSpinner|{}showLoadingSpinner[0]
         open fun <get-showLoadingSpinner>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.showLoadingSpinner.<get-showLoadingSpinner>|<get-showLoadingSpinner>(){}[0]
     open val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/MemberListViewModelImpl.stateKeeper|{}stateKeeper[0]
@@ -16167,6 +16190,7 @@ open class de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementVie
     open fun clearError() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelImpl.clearError|clearError(){}[0]
     open fun forgetRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelImpl.forgetRoom|forgetRoom(){}[0]
     open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelImpl.getKoin|getKoin(){}[0]
+    open fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelImpl.leaveRoom|leaveRoom(){}[0]
     open fun markRead() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelImpl.markRead|markRead(){}[0]
     open fun markUnread() // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelImpl.markUnread|markUnread(){}[0]
     open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]

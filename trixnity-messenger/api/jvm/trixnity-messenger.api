@@ -6719,11 +6719,22 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/Membe
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel$Companion;
 	public abstract fun getElements ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getError ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getFilterByMemberships ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public abstract fun getMembershipCounts ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSearchTerm ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public abstract fun getShowLoadingSpinner ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun resetFilters ()V
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel$Companion {
+	public final fun getDefaultMemberships ()Ljava/util/Set;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel$DefaultImpls {
+	public static fun resetFilters (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel;)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModelFactory {
@@ -6762,11 +6773,13 @@ public class de/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListV
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
 	public fun getMembershipCounts ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchTerm ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public fun getShowLoadingSpinner ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun resetFilters ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/NotificationLevel {
@@ -7032,8 +7045,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/Previ
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getFilterByMemberships ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public fun getMembershipCounts ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchTerm ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public fun getShowLoadingSpinner ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getShowLoadingSpinner ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun resetFilters ()V
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/PreviewRoomSettingsAliasViewModel : de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsAliasViewModel {
@@ -8758,6 +8773,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun jumpTo ()V
+	public abstract fun openSenderProfile ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId {
@@ -8874,6 +8890,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun retrySend ()V
 }
@@ -8939,6 +8956,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public synthetic fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun openTimelineElementMetadata ()V
 	public fun redact ()V
 	public fun removeReaction (Ljava/lang/String;)V
@@ -9008,6 +9026,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public synthetic fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun openTimelineElementMetadata ()V
 	public fun redact ()V
 	public fun removeReaction (Ljava/lang/String;)V
@@ -9252,6 +9271,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun isReply ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSent ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun jumpTo ()V
+	public fun openSenderProfile ()V
 	public fun openTimelineElementMetadata ()V
 	public fun redact ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
@@ -10944,6 +10964,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -10994,6 +11015,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -11044,6 +11066,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -11094,6 +11117,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public synthetic fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun rejectInvitation ()V
@@ -11158,6 +11182,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomli
 	public abstract fun isLoaded ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun leaveRoom ()V
 	public abstract fun markRead ()V
 	public abstract fun markUnread ()V
 	public abstract fun rejectInvitation ()V
@@ -11226,6 +11251,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementV
 	public fun isLoaded ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isPublic ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isUnread ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun leaveRoom ()V
 	public fun markRead ()V
 	public fun markUnread ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V

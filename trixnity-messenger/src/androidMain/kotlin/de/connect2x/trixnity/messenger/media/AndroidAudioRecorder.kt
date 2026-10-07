@@ -2,12 +2,14 @@ package de.connect2x.trixnity.messenger.media
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.media.MediaMetadataRetriever
 import android.media.MediaRecorder
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresPermission
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate
 import de.connect2x.trixnity.messenger.util.ActivityGetter
@@ -17,6 +19,8 @@ import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.readByteArrayFlow
 import io.ktor.http.*
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.FileSystem
@@ -126,13 +130,15 @@ internal class AndroidAudioRecorder(
                         complete = {
                             try {
                                 recorder.stop()
+                                val elapsedDuration = clock.now() - start
+                                val duration = recordingDuration() ?: elapsedDuration
                                 val fileData = fileSystem.readByteArrayFlow(tempFilePath)
                                 if (fileData != null) {
                                     val media = intoMediaStore(fileData)
                                     Result.success(
                                         AudioRecorderImpl.State.Completed(
                                             media,
-                                            duration = clock.now() - start,
+                                            duration = duration,
                                             sizeBytes = fileSystem.metadata(tempFilePath).size,
                                             contentType = format.contentType,
                                             fileExtension = audioFileExtension,
@@ -158,4 +164,24 @@ internal class AndroidAudioRecorder(
             PlatformAudioRecorder.StartResult.Failure(i18n.genericRecordingError())
         }
     }
+
+    private suspend fun recordingDuration(): Duration? =
+        withContext(Dispatchers.IO) {
+            try {
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(tempFilePath.toString())
+                    retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull()
+                        ?.takeIf { it > 0 }
+                        ?.milliseconds
+                } finally {
+                    retriever.release()
+                }
+            } catch (e: Exception) {
+                log.warn(e) { "Reading recording duration failed; using elapsed recording time" }
+                null
+            }
+        }
 }

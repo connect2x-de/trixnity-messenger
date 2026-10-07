@@ -228,7 +228,12 @@ class AudioRecorderImpl(
                     stateImpl
                         .complete()
                         .fold(
-                            onSuccess = { state -> state },
+                            onSuccess = { state ->
+                                log.debug {
+                                    "Completed audio recording duration: ${state.duration} (${state.duration.inWholeNanoseconds} ns)"
+                                }
+                                state
+                            },
                             onFailure = { t ->
                                 log.warn { "Completing recording failed." }
                                 State.Failed(t.message ?: i18n.genericRecordingError())

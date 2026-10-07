@@ -61,8 +61,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificatio
 @Composable
 fun SelfVerificationSteps(viewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
-    val availableSelfVerificationMethods by viewModel.availableSelfVerificationMethods.collectAsState()
-
+    val availableSelfVerificationMethods = viewModel.availableSelfVerificationMethods.collectAsState().value
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         SelfVerificationExplanation()
         if (availableSelfVerificationMethods == null) {
@@ -71,9 +70,19 @@ fun SelfVerificationSteps(viewModel: SelfVerificationViewModel) {
                 Text(i18n.selfVerificationWaitingForMethods())
             }
         } else {
-            VerifyWithOtherDevice(viewModel)
-            RecoveryKey(viewModel)
-            PasswordPhrase(viewModel)
+            if (availableSelfVerificationMethods.any { it is SelfVerificationMethod.CrossSignedDeviceVerification }) {
+                VerifyWithOtherDevice(viewModel)
+            }
+            if (availableSelfVerificationMethods.any { it is SelfVerificationMethod.AesHmacSha2RecoveryKey }) {
+                RecoveryKey(viewModel)
+            }
+            if (
+                availableSelfVerificationMethods.any {
+                    it is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
+                }
+            ) {
+                PasswordPhrase(viewModel)
+            }
             ResetOptions(viewModel)
         }
     }
