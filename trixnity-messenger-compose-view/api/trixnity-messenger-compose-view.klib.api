@@ -4273,6 +4273,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun markRoomAsRead(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.markRoomAsRead|markRoomAsRead(){}[0]
     open fun markRoomAsUnread(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.markRoomAsUnread|markRoomAsUnread(){}[0]
     open fun matrixClientLogout(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.matrixClientLogout|matrixClientLogout(kotlin.String){}[0]
+    open fun mediaPlayerPlaybackError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.mediaPlayerPlaybackError|mediaPlayerPlaybackError(){}[0]
     open fun memberListChangeRole(kotlin/String, kotlin/String, kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.memberListChangeRole|memberListChangeRole(kotlin.String;kotlin.String;kotlin.String){}[0]
     open fun memberListChangeRoleWarning(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.memberListChangeRoleWarning|memberListChangeRoleWarning(){}[0]
     open fun memberListChangeTo(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.memberListChangeTo|memberListChangeTo(kotlin.String){}[0]

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.media
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSlider
@@ -52,17 +57,31 @@ class AudioPlayerViewImpl : AudioPlayerView {
         viewModel: MediaPlayerViewModel,
         fallbackView: @Composable () -> Unit,
     ) {
-        when (val state = viewModel.state.collectAsState().value) {
+        when (viewModel.state.collectAsState().value) {
             is MediaPlayerViewModel.State.Ready -> PlayableAudioMessage(audio, viewModel)
             is MediaPlayerViewModel.State.Playing -> PlayableAudioMessage(audio, viewModel)
             is MediaPlayerViewModel.State.NotReady -> fallbackView()
-            is MediaPlayerViewModel.State.Failure -> Text(state.cause)
+            is MediaPlayerViewModel.State.Failure -> AudioPlaybackError()
         }
     }
 
     @Composable
     override fun CreateWithViewModelDuration(viewModel: MediaPlayerViewModel, fallbackView: @Composable () -> Unit) {
         Create(null, viewModel, fallbackView)
+    }
+}
+
+@Composable
+private fun AudioPlaybackError() {
+    val i18n = DI.get<I18nView>()
+    Row(Modifier.width(IntrinsicSize.Max).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = Icons.Default.ErrorOutline,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(text = i18n.mediaPlayerPlaybackError(), style = MaterialTheme.typography.bodyMedium)
     }
 }
 
