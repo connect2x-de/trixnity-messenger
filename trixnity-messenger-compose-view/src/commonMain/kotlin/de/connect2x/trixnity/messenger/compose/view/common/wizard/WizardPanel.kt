@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,6 +41,10 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyl
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
+
+private val wizardMaxWidth = 800.dp
+private val wizardMinHeight = 1200.dp
+private val wizardSurfacePaddingThreshold = 500.dp
 
 data class WizardPanelContent(
     val title: @Composable () -> String,
@@ -84,12 +86,13 @@ fun WizardPanel(wizardStep: WizardPanelContent, wizardId: String?) {
 private fun BoxWithConstraintsScope.WizardContainer(wizardStep: WizardPanelContent) {
     val boxWithConstraints = this
     val scrollState = rememberScrollState()
+    val isUnderThreshold = boxWithConstraints.maxWidth < wizardSurfacePaddingThreshold
     ThemedSurface(
         modifier =
-            Modifier.widthIn(max = 800.dp)
-                .heightIn(min = max(1200.dp, this.maxHeight))
+            Modifier.widthIn(max = wizardMaxWidth)
+                .heightIn(min = max(wizardMinHeight, this.maxHeight))
                 .padding(
-                    if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.small
+                    if (isUnderThreshold) MaterialTheme.messengerDpConstants.small
                     else MaterialTheme.messengerDpConstants.large
                 )
                 .clip(RoundedCornerShape(MaterialTheme.messengerDpConstants.small)),
@@ -99,7 +102,7 @@ private fun BoxWithConstraintsScope.WizardContainer(wizardStep: WizardPanelConte
             Box(
                 Modifier.fillMaxSize()
                     .padding(
-                        if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.middle
+                        if (isUnderThreshold) MaterialTheme.messengerDpConstants.middle
                         else MaterialTheme.messengerDpConstants.large
                     ),
                 contentAlignment = Alignment.Center,
@@ -150,13 +153,11 @@ private fun ColumnScope.WizardButtons(wizardStep: WizardPanelContent) {
 }
 
 @Composable
-fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
+fun NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
     ThemedButton(
         style = MaterialTheme.components.primaryButton,
         onClick = nextAction,
-        modifier =
-            Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
         enabled = enabled,
     ) {
         Text(text ?: i18n.actionNext())
@@ -164,14 +165,12 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
 }
 
 @Composable
-fun RowScope.BackButton(enabled: Boolean = true, text: String? = null, onBack: () -> Unit) {
+fun BackButton(enabled: Boolean = true, text: String? = null, onBack: () -> Unit) {
     val i18n = DI.get<I18nView>()
     ThemedButton(
         style = MaterialTheme.components.commonButton,
         onClick = onBack,
         enabled = enabled,
-        modifier =
-            Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
     ) {
         Text(text ?: i18n.actionBack())
     }

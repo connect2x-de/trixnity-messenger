@@ -24,7 +24,7 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 
-// FIXME can be removed/refactored to better reflect its remaining usages once the old wizard framework is gone
+// TODO can be removed/refactored to better reflect its remaining usages once the old wizard framework is gone
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ColumnScope.MessengerModalButtonRow(
