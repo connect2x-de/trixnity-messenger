@@ -425,7 +425,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/Paragraph
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/PasswordFieldKt {
-	public static final fun PasswordField (Landroidx/compose/runtime/MutableState;ZLandroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PasswordField (Landroidx/compose/runtime/MutableState;ZLandroidx/compose/ui/Modifier;IZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/PlaceholderDefaults {
@@ -6907,7 +6907,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/Ver
 public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$SelfVerificationStepsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$SelfVerificationStepsKt;
 	public fun <init> ()V
-	public final fun getLambda$-107899124$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1662047360$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-1918331658$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-1980866655$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-708029081$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;

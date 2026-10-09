@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.connecting
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
@@ -50,7 +51,7 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             }
             PasswordField(
                 password = registerMatrixAccountViewModel.password.collectAsTextFieldValueState(),
-                modifier = tabToNextAndEnterSend,
+                modifier = tabToNextAndEnterSend.fillMaxWidth(),
             ) {
                 Text(i18n.registrationPassword())
             }

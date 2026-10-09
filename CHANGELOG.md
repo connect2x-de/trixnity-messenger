@@ -33,6 +33,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   if the homeserver allows it
 - UI: (**breaking change**) each timeline element metadata section implements new interface
   `TimelineElementMetadataListItemView` and moved to different package
+- UI: Hide the passphrase by default during self verification
+- UI: Confirm recovery key and passphrase by pressing enter
 
 ### Deprecated
 

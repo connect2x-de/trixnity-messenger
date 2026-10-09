@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.compose.view.verification.v2
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,8 +44,8 @@ import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.PasswordField
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
-import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingButton
 import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingIconButton
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.form.AutofillButton
@@ -155,7 +157,13 @@ fun RecoveryKey(viewModel: SelfVerificationViewModel) {
                     onValueChange = { recoveryKey = it },
                     label = { Text(i18n.commonRecoveryKey()) },
                     placeholder = { Text("#### ".repeat(11) + "####", color = Color.LightGray) },
-                    modifier = Modifier.weight(1.0f, fill = true),
+                    modifier =
+                        Modifier.weight(1.0f, fill = true).onPreviewKeyEvent { key ->
+                            if (key.key == Key.Enter) {
+                                viewModel.verifyWithRecoveryKey()
+                                true
+                            } else false
+                        },
                     keyboardOptions =
                         KeyboardOptions(
                             capitalization = KeyboardCapitalization.None,
@@ -197,75 +205,64 @@ fun RecoveryKey(viewModel: SelfVerificationViewModel) {
 @Composable
 fun PasswordPhrase(viewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
-    val selfVerificationMethods by viewModel.availableSelfVerificationMethods.collectAsState()
 
-    if (
-        selfVerificationMethods?.any { it is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase } == true
-    ) {
+    val passphrase = viewModel.passphrase.collectAsTextFieldValueState()
+    val passphraseWrong by viewModel.passphraseWrong.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val passphraseVerificationInProgress by viewModel.passphraseVerificationInProgress.collectAsState()
 
-        var passphrase by viewModel.passphrase.collectAsTextFieldValueState()
-        val passphraseWrong by viewModel.passphraseWrong.collectAsState()
-        val error by viewModel.error.collectAsState()
-        val passphraseVerificationInProgress by viewModel.passphraseVerificationInProgress.collectAsState()
-
-        WizardSection {
-            Text(
-                i18n.selfVerificationMethodsRecoveryPassphrase().capitalize(Locale.current),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
-            ) {
-                OutlinedTextFieldWithToolbar(
-                    passphrase,
-                    onValueChange = { passphrase = it },
-                    label = { Text(i18n.commonRecoveryPassphrase()) },
-                    modifier = Modifier.weight(1.0f, fill = true),
-                    keyboardOptions =
-                        KeyboardOptions(
-                            capitalization = KeyboardCapitalization.None,
-                            autoCorrectEnabled = false,
-                            keyboardType = KeyboardType.Password,
-                        ),
-                    maxLines = 2,
-                    isError = passphraseWrong,
-                    supportingText = {
-                        if (passphraseWrong)
-                            Text(
-                                i18n.selfVerificationMethodsRecoveryPassphraseWrong(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                            )
+    WizardSection {
+        Text(
+            i18n.selfVerificationMethodsRecoveryPassphrase().capitalize(Locale.current),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+        ) {
+            PasswordField(
+                passphrase,
+                lineCount = 2,
+                isError = passphraseWrong,
+                modifier =
+                    Modifier.weight(1.0f, fill = true).onPreviewKeyEvent { key ->
+                        if (key.key == Key.Enter) {
+                            viewModel.verifyWithPassphrase()
+                            true
+                        } else false
                     },
-                )
-                if (Platform.current.isWeb) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        AutofillButton(onUsernameChange = {}, onPasswordChange = { passphrase = TextFieldValue(it) })
-                    }
-                }
-                ThemedLoadingButton(
-                    onClick = {},
-                    isLoading = passphraseVerificationInProgress,
-                    enabled = passphraseVerificationInProgress.not(),
-                    style = MaterialTheme.components.primaryButton.copy(contentPadding = PaddingValues(0.dp)),
+                supportingText = {
+                    if (passphraseWrong)
+                        Text(
+                            i18n.selfVerificationMethodsRecoveryPassphraseWrong(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                },
+            ) {
+                Text(i18n.commonRecoveryPassphrase())
+            }
+            if (Platform.current.isWeb) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    FilledIconButton(
-                        onClick = { viewModel.verifyWithPassphrase() },
-                        modifier = Modifier.buttonPointerModifier(),
-                    ) {
-                        Icon(Icons.Outlined.Check, contentDescription = null)
-                    }
+                    AutofillButton(onUsernameChange = {}, onPasswordChange = { passphrase.value = TextFieldValue(it) })
                 }
             }
-            error?.let {
-                MiddleSpacer()
-                ErrorView(it)
+            ThemedLoadingIconButton(
+                onClick = { viewModel.verifyWithPassphrase() },
+                isLoading = passphraseVerificationInProgress,
+                enabled = passphraseVerificationInProgress.not(),
+                style = MaterialTheme.components.primaryIconButton,
+            ) {
+                Icon(Icons.Outlined.Check, contentDescription = null)
             }
+        }
+        error?.let {
+            MiddleSpacer()
+            ErrorView(it)
         }
     }
 }
