@@ -30,9 +30,10 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.chunked
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
@@ -123,10 +124,7 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
                 )
                 .takeWhile { !rangeStartCondition(it.first()) }
                 .onEach { progress.update { it.copy(total = (it.total ?: 0) + 1) } }
-                .last()
-                .first()
-                .eventId
-        log.debug { "start archiving of $roomId (start=$startFrom, total=${progress.value.total})" }
+                .lastOrNull()
 
         sink.start().onFailure {
             return ExportRoomResult.SinkError(it)
@@ -137,11 +135,18 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
         val mediaTooLarge = mutableListOf<ExportRoomResult.Success.MediaTooLarge>()
 
         try {
+            if (startFrom == null) {
+                log.warn { "Export is empty because of the start condition" }
+                return ExportRoomResult.Success()
+            }
+            val startFromEventId = startFrom.first().eventId
+            log.debug { "start archiving of $roomId (start=$startFromEventId, total=${progress.value.total})" }
+
             coroutineScope {
                 matrixClient.room
                     .getTimelineEvents(
                         roomId = roomId,
-                        startFrom = startFrom,
+                        startFrom = startFromEventId,
                         direction = GetEvents.Direction.FORWARDS,
                         config = { this.decryptionTimeout = decryptionTimeout },
                     )
@@ -155,6 +160,7 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
                         list.awaitAll().also { log.trace { "chunk fully processed (size=${list.size})" } }
                     }
                     .transform { list -> list.forEach { emit(it) } }
+                    .onEmpty { log.warn { "Export is empty because of the end condition" } }
                     .collect { timelineEvent ->
                         val content = timelineEvent.content?.getOrNull()
                         if (content is RoomMessageEventContent.FileBased) {
