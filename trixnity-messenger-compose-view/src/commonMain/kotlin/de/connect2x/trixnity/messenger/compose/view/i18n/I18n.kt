@@ -1406,6 +1406,11 @@ open class I18nView(
         DE - "Sprachnachricht aufnehmen"
     }
 
+    open fun mediaPlayerPlaybackError() = translate {
+        EN - "Unable to play this media."
+        DE - "Diese Mediendatei kann nicht abgespielt werden."
+    }
+
     open fun audioRecordingSend() = translate {
         EN - "send voice message"
         DE - "Sprachnachricht senden"

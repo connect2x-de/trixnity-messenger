@@ -20,6 +20,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- UI: Show a translated media playback error message with an error icon
 - UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
@@ -32,6 +33,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   if the homeserver allows it
 - UI: (**breaking change**) each timeline element metadata section implements new interface
   `TimelineElementMetadataListItemView` and moved to different package
+- UI: Hide the passphrase by default during self verification
+- UI: Confirm recovery key and passphrase by pressing enter
 - UI: Replace single, view model dependent step ConnectingWizard with UI-only WizardPanel, removing old navigation logic
 
 ### Deprecated
@@ -40,11 +43,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI: Render formatted message bodies in reply previews above the message input and in the timeline
 - UI: Keep file message bubbles a consistent width during downloads and truncate long filenames to a single line
 - SDK: Correct voice message recording duration on Android, iOS, and Web by using recording metadata or recorder
   timestamps and excluding time spent storing the recording
 - SDK: Report the actual browser voice recording MIME type and matching file extension instead of always Ogg/Opus
-- UI: input area box growing infinitely in size with multiline input
+- UI: input area box growing infinitely in size with multiline input; constrain the audio recorder's height separately
 - UI: SSO login wizard has shown empty box while SSO login is ongoing
 - SDK: room mention entry visible after click/fully typed out
 - SDK: rare initialization error in timeline viewmodel
@@ -52,6 +56,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
 - UI: Only display available verification methods in SelfVerificationWizard
+- SDK: When exporting a room then do not throw an exception when the start condition filters out all events 
 
 ### Security
 

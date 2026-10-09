@@ -558,7 +558,11 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         }
                     )
                     Spacer(Modifier.size(10.dp))
-                    PasswordField(password = passphrase, label = { Text(i18n.commonRecoveryPassphrase()) })
+                    PasswordField(
+                        password = passphrase,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(i18n.commonRecoveryPassphrase()) },
+                    )
                     if (passphraseWrong.value) {
                         Box(Modifier.fillMaxWidth()) {
                             Text(
