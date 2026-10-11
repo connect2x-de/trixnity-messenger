@@ -809,8 +809,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/Wi
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelKt {
-	public static final fun BackButton (Landroidx/compose/foundation/layout/RowScope;ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
-	public static final fun NextButton (Landroidx/compose/foundation/layout/RowScope;ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun BackButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun NextButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
 	public static final fun WizardPanel (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 	public static final fun WizardPanel (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
 }

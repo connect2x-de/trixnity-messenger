@@ -155,11 +155,7 @@ private fun ColumnScope.WizardButtons(wizardStep: WizardPanelContent) {
 @Composable
 fun NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    ThemedButton(
-        style = MaterialTheme.components.primaryButton,
-        onClick = nextAction,
-        enabled = enabled,
-    ) {
+    ThemedButton(style = MaterialTheme.components.primaryButton, onClick = nextAction, enabled = enabled) {
         Text(text ?: i18n.actionNext())
     }
 }
@@ -167,11 +163,7 @@ fun NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> 
 @Composable
 fun BackButton(enabled: Boolean = true, text: String? = null, onBack: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    ThemedButton(
-        style = MaterialTheme.components.commonButton,
-        onClick = onBack,
-        enabled = enabled,
-    ) {
+    ThemedButton(style = MaterialTheme.components.commonButton, onClick = onBack, enabled = enabled) {
         Text(text ?: i18n.actionBack())
     }
 }
