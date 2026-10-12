@@ -86,9 +86,7 @@ open class AddMatrixAccountViewModelImpl(
     private val config = get<MatrixMessengerConfiguration>()
 
     init {
-        val backCallback = BackCallback {
-            cancel()
-        }
+        val backCallback = BackCallback { cancel() }
         registerBackCallback(backCallback)
     }
 
