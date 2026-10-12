@@ -37,6 +37,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Confirm recovery key and passphrase by pressing enter
 - SDK: (**breaking change**) Split up RedactedTimelineElementViewModel into RedactedMessageTimelineElementViewModel and
   RedactedStateTimelineElementViewModel
+- UI: Replace single, view model dependent step ConnectingWizard with UI-only WizardPanel, removing old navigation logic
 
 ### Deprecated
 
@@ -57,7 +58,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
 - UI: Only display available verification methods in SelfVerificationWizard
-- SDK: When exporting a room then do not throw an exception when the start condition filters out all events 
+- SDK: When exporting a room then do not throw an exception when the start condition filters out all events
+- SDK,ANDROID: Correctly cancel account adding process via back button
 
 ### Security
 

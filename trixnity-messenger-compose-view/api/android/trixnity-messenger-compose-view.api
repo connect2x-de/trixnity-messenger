@@ -426,13 +426,9 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/MatrixUse
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/MessengerModalKt {
-	public static final fun BackButton (Landroidx/compose/foundation/layout/RowScope;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun CloseMessengerButton (Landroidx/compose/foundation/layout/RowScope;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun CloseModalButton (Landroidx/compose/foundation/layout/RowScope;Lkotlin/jvm/functions/Function0;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
-	public static final fun MessengerModal-942rkJo (Lkotlin/jvm/functions/Function0;Ljava/lang/String;FLkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun MessengerModalButtonRow (Landroidx/compose/foundation/layout/ColumnScope;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
-	public static final fun MessengerModalContent (Landroidx/compose/foundation/layout/ColumnScope;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
-	public static final fun NextButton (Landroidx/compose/foundation/layout/RowScope;ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/MoonShape : androidx/compose/ui/graphics/Shape {
@@ -818,6 +814,32 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/Wi
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent {
+	public static final field $stable I
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function2;
+	public final fun component2 ()Lkotlin/jvm/functions/Function2;
+	public final fun component3 ()Lkotlin/jvm/functions/Function3;
+	public final fun component4 ()Lkotlin/jvm/functions/Function3;
+	public final fun copy (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getButtons ()Lkotlin/jvm/functions/Function3;
+	public final fun getContent ()Lkotlin/jvm/functions/Function3;
+	public final fun getSubTitle ()Lkotlin/jvm/functions/Function2;
+	public final fun getTitle ()Lkotlin/jvm/functions/Function2;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelKt {
+	public static final fun BackButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun NextButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun WizardPanel (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+	public static final fun WizardPanel (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardSectionKt {
 	public static final fun WizardSection-Kz89ssw (FLandroidx/compose/foundation/layout/PaddingValues;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
@@ -851,6 +873,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/Wi
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/AddMatrixAccountKt {
 	public static final fun AddMatrixAccount (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun AddMatrixAccountWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/AddMatrixAccountView {
@@ -917,6 +940,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Matri
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthenticationCodeLoginKt {
 	public static final fun OAuth2AuthorizationCodeLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun OAuth2AuthorizationCodeLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthorizationCodeLoginView {
@@ -931,6 +955,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginKt {
 	public static final fun OAuth2DeviceAuthorizationLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun OAuth2DeviceAuthorizationLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginView {
@@ -946,6 +971,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/PasswordLoginKt {
 	public static final fun PasswordLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/PasswordLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PasswordLoginState (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountState;Landroidx/compose/runtime/Composer;I)V
+	public static final fun PasswordLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/PasswordLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/PasswordLoginView {
@@ -959,6 +985,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Passw
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/RegisterNewAccountKt {
+	public static final fun RegisterMatrixAccountWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RegisterMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RegisterNewAccount (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RegisterMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
@@ -984,6 +1011,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Remov
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/SSOLoginKt {
 	public static final fun SSOLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/SSOLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun SSOLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/SSOLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/SSOLoginView {

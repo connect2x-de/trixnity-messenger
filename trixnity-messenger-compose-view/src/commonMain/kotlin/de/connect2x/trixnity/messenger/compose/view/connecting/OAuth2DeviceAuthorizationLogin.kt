@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.LargeSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.BackButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.NextButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -85,4 +88,21 @@ class OAuth2DeviceAuthorizationLoginViewImpl : OAuth2DeviceAuthorizationLoginVie
             }
         }
     }
+}
+
+@Composable
+fun OAuth2DeviceAuthorizationLoginWizardPanel(viewModel: OAuth2DeviceAuthorizationLoginViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    return WizardPanel(
+        title = { i18n.loginWithOAuth2Device() },
+        content = { OAuth2DeviceAuthorizationLogin(viewModel) },
+        buttons = {
+            val state = viewModel.state.collectAsState().value
+            val canOpen = state is OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode
+            BackButton { viewModel.back() }
+
+            NextButton(text = i18n.openLoginPage(), enabled = canOpen) { viewModel.openLoginPage() }
+        },
+        wizardId = "ConnectingWizard",
+    )
 }

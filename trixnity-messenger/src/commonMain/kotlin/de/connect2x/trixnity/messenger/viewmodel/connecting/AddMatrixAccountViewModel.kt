@@ -10,6 +10,7 @@ import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptV
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -83,6 +84,11 @@ open class AddMatrixAccountViewModelImpl(
         TextFieldViewModelImpl(maxLength = 1_000, get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
 
     private val config = get<MatrixMessengerConfiguration>()
+
+    init {
+        val backCallback = BackCallback { cancel() }
+        registerBackCallback(backCallback)
+    }
 
     final override val serverDiscoveryState =
         serverUrl

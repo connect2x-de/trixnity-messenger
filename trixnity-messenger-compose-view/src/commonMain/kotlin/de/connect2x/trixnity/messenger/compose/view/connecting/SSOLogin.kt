@@ -7,6 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.BackButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.NextButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -48,4 +51,22 @@ class SSOLoginViewImpl : SSOLoginView {
             }
         }
     }
+}
+
+@Composable
+fun SSOLoginWizardPanel(viewModel: SSOLoginViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    return WizardPanel(
+        title = { i18n.loginAt(viewModel.serverUrl) },
+        content = { SSOLogin(viewModel) },
+        buttons = {
+            val state = viewModel.addMatrixAccountState.collectAsState().value
+            val waitForRedirect = viewModel.waitForRedirect.collectAsState().value
+            val canLogin = !waitForRedirect && state !is AddMatrixAccountState.Connecting
+            BackButton { viewModel.back() }
+
+            NextButton(text = i18n.login(), enabled = canLogin) { viewModel.tryLogin() }
+        },
+        wizardId = "ConnectingWizard",
+    )
 }
