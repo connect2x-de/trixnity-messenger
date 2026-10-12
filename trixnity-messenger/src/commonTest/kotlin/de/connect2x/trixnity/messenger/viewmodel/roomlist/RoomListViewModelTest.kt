@@ -7,12 +7,14 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.rtc.RtcService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -73,6 +75,7 @@ import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
+@OptIn(MSC4143::class)
 class RoomListViewModelTest {
 
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry()
@@ -114,6 +117,11 @@ class RoomListViewModelTest {
     val keyServiceMock = mock<KeyService>()
 
     val keyServiceMock2 = mock<KeyService>()
+
+    val rtcServiceMock = mock<RtcService>()
+
+    val rtcServiceMock2 = mock<RtcService>()
+
     val notificationService = mock<NotificationService>()
 
     private val onRoomSelectedMock = mock<Function2<UserId, RoomId, Unit>>()
@@ -141,6 +149,8 @@ class RoomListViewModelTest {
             profileManagerMock,
             keyServiceMock,
             keyServiceMock2,
+            rtcServiceMock,
+            rtcServiceMock2,
             onRoomSelectedMock,
             onAccountSelected,
             notificationService,
@@ -153,6 +163,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )
@@ -232,6 +243,9 @@ class RoomListViewModelTest {
 
         every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
         every { roomServiceMock2.getDraftMessage(any()) } returns flowOf(null)
+
+        every { rtcServiceMock.getMembers(any()) } returns flowOf(emptyMap())
+        every { rtcServiceMock2.getMembers(any()) } returns flowOf(emptyMap())
 
         every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
@@ -701,6 +715,7 @@ class RoomListViewModelTest {
                         module {
                             single { roomServiceMock2 }
                             single { userServiceMock2 }
+                            single { rtcServiceMock2 }
                             single { notificationService }
                         }
                     )
@@ -906,6 +921,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock2 }
                             single { userServiceMock2 }
                             single { keyServiceMock2 }
+                            single { rtcServiceMock2 }
                             single { notificationService }
                         }
                     )
@@ -941,6 +957,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )
@@ -968,6 +985,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )
@@ -996,6 +1014,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )

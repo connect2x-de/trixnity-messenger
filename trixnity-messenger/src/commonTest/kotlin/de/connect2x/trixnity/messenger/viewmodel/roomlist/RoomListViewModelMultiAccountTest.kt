@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.rtc.RtcService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.UserPresence
@@ -13,9 +14,11 @@ import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
@@ -26,7 +29,12 @@ import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventCont
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
@@ -65,10 +73,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonObject
 import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
+@OptIn(MSC4143::class)
 class RoomListViewModelMultiAccountTest {
 
     private var lifecycleRegistry = LifecycleRegistry()
@@ -107,6 +117,12 @@ class RoomListViewModelMultiAccountTest {
 
     val roomServiceMock3 = mock<RoomService>()
     val notificationService = mock<NotificationService>()
+
+    val rtcServiceMock1 = mock<RtcService>()
+
+    val rtcServiceMock2 = mock<RtcService>()
+
+    val rtcServiceMock3 = mock<RtcService>()
 
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
@@ -148,6 +164,9 @@ class RoomListViewModelMultiAccountTest {
             profileManagerMock,
             onRoomSelectedMock,
             notificationService,
+            rtcServiceMock1,
+            rtcServiceMock2,
+            rtcServiceMock3,
         )
 
         // MatrixClient1: room1, room2, space1
@@ -160,6 +179,7 @@ class RoomListViewModelMultiAccountTest {
                             single { roomServiceMock1 }
                             single { userServiceMock1 }
                             single { notificationService }
+                            single { rtcServiceMock1 }
                         }
                     )
                 }
@@ -171,6 +191,7 @@ class RoomListViewModelMultiAccountTest {
                             single { roomServiceMock2 }
                             single { userServiceMock2 }
                             single { notificationService }
+                            single { rtcServiceMock2 }
                         }
                     )
                 }
@@ -182,6 +203,7 @@ class RoomListViewModelMultiAccountTest {
                             single { roomServiceMock3 }
                             single { userServiceMock3 }
                             single { notificationService }
+                            single { rtcServiceMock3 }
                         }
                     )
                 }
@@ -394,6 +416,9 @@ class RoomListViewModelMultiAccountTest {
         every { profileManagerMock.closeProfile() } returns Unit
         every { notificationService.getCount(any()) } returns flowOf(0)
         every { notificationService.isUnread(any()) } returns flowOf(false)
+        every { rtcServiceMock1.getMembers(any()) } returns flowOf(emptyMap())
+        every { rtcServiceMock2.getMembers(any()) } returns flowOf(emptyMap())
+        every { rtcServiceMock3.getMembers(any()) } returns flowOf(emptyMap())
     }
 
     @BeforeTest
@@ -705,6 +730,48 @@ class RoomListViewModelMultiAccountTest {
         matrixClients.value = mapOf(UserId("test1", "server") to matrixClientMock1)
         delay(10)
         cut.elements.value shouldHaveSize 2
+    }
+
+    @OptIn(TrixnityMessengerCallApi::class)
+    @Test
+    fun `use the room account to determine a running call`() = runTest {
+        val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+        val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+        every { roomServiceMock1.getAll() } returns MutableStateFlow(mapOf(roomId1 to MutableStateFlow(room1)))
+        every { roomServiceMock2.getAll() } returns MutableStateFlow(mapOf(roomId3 to MutableStateFlow(room3)))
+        every { roomServiceMock3.getAll() } returns MutableStateFlow(emptyMap())
+        every { roomServiceMock1.getById(roomId1) } returns MutableStateFlow(room1)
+        every { roomServiceMock2.getById(roomId3) } returns MutableStateFlow(room3)
+
+        val slotId = RtcSlotId("slot")
+        val memberId = RtcMemberId("member")
+        val member = RtcMemberEventContent.Member(memberId)
+        val joinEvent: MessageEvent<RtcMemberEventContent> =
+            MessageEvent(
+                content =
+                    RtcMemberEventContent.Join(
+                        slotId = slotId,
+                        member = member,
+                        application = RtcApplicationMember.Unknown("call", JsonObject(emptyMap())),
+                        stickyKey = "sticky",
+                    ),
+                id = EventId("\$join"),
+                sender = user3,
+                roomId = roomId3,
+                originTimestamp = 0L,
+            )
+        every { rtcServiceMock2.getMembers(roomId3) } returns
+            flowOf(mapOf(slotId to mapOf((user3 to memberId) to joinEvent)))
+
+        val cut = roomListViewModel()
+        subscribe(cut)
+
+        val elements = cut.elements.first { elements -> elements.size == 2 }
+        val room1Element = elements.first { element -> element.roomId == roomId1 }
+        val room3Element = elements.first { element -> element.roomId == roomId3 }
+
+        room1Element.hasRunningCall.first { hasRunningCall -> hasRunningCall.not() } shouldBe false
+        room3Element.hasRunningCall.first { hasRunningCall -> hasRunningCall } shouldBe true
     }
 
     private fun TestScope.subscribe(cut: RoomListViewModel) = backgroundScope.launch {

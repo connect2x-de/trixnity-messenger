@@ -1629,6 +1629,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun roomListNoRoom ()Ljava/lang/String;
 	public fun roomListNoSearchResults ()Ljava/lang/String;
 	public fun roomListRemoveRoom ()Ljava/lang/String;
+	public fun roomListRunningCall ()Ljava/lang/String;
 	public fun roomListSearch ()Ljava/lang/String;
 	public fun roomListSyncErrorAccounts (Ljava/lang/String;)Ljava/lang/String;
 	public fun roomListSyncErrorNoConnection ()Ljava/lang/String;
