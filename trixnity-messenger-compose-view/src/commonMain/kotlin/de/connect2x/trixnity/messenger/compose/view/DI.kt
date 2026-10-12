@@ -136,8 +136,10 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.Messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedTimelineElementView
-import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedTimelineElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedMessageTimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedMessageTimelineElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedStateTimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedStateTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementHolderView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementHolderViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -622,7 +624,8 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<EmptyTimelineElementView> { EmptyTimelineElementView }
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementViewImpl() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementViewImpl() }
-    timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementViewImpl() }
+    timelineElementView<RedactedMessageTimelineElementView> { RedactedMessageTimelineElementViewImpl() }
+    timelineElementView<RedactedStateTimelineElementView> { RedactedStateTimelineElementViewImpl() }
     timelineElementView<AudioRoomMessageTimelineElementView> { AudioRoomMessageTimelineElementViewImpl() }
     timelineElementView<EmoteRoomMessageTimelineElementView> { EmoteRoomMessageTimelineElementViewImpl() }
     timelineElementView<FileRoomMessageTimelineElementView> { FileRoomMessageTimelineElementViewImpl() }

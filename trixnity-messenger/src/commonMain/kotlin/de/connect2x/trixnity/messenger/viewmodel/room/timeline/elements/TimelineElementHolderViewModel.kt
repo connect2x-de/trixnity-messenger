@@ -24,7 +24,10 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContentImpl
+import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
@@ -293,7 +296,7 @@ class TimelineElementHolderViewModelImpl(
         timelineEventFlow
             .flatMapLatest { timelineEvent ->
                 val redactionEventId =
-                    if (timelineEvent.event.content is RedactedEventContent)
+                    if (timelineEvent.event.content is RedactedRoomEventContent)
                         timelineEvent.event.unsigned?.redactedBecause?.id
                     else null
                 when {
@@ -309,20 +312,29 @@ class TimelineElementHolderViewModelImpl(
             }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
-    private val newContentIfReplacedOrRedacted: SharedFlow<MessageEventContent?> =
+    private val newContentIfReplacedOrRedacted: SharedFlow<RoomEventContent?> =
         combine(timelineEventFlow, outboxElementIfReplacedOrRedacted) { timelineEvent, newContent ->
                 if (newContent?.content is RedactionEventContent) {
-                    val timelineEventType =
+                    val messageType =
                         matrixClient.di
                             .get<EventContentSerializerMappings>()
-                            .let { it.message + it.state }
+                            .message
                             .find { it.kClass.isInstance(timelineEvent.event.content) }
                             ?.type
-                    if (timelineEventType == null) {
-                        log.warn { "timeline event type for ${timelineEvent.event.content::class} not found" }
-                        return@combine null
+                    if (messageType != null) {
+                        return@combine RedactedMessageEventContentImpl(messageType)
                     }
-                    RedactedEventContent(timelineEventType)
+                    val stateType =
+                        matrixClient.di
+                            .get<EventContentSerializerMappings>()
+                            .state
+                            .find { it.kClass.isInstance(timelineEvent.event.content) }
+                            ?.type
+                    if (stateType != null) {
+                        return@combine RedactedStateEventContentImpl(stateType)
+                    }
+                    log.warn { "timeline event type for ${timelineEvent.event.content::class} not found" }
+                    null
                 } else {
                     (newContent?.content?.relatesTo as? RelatesTo.Replace)?.newContent
                 }
@@ -340,7 +352,7 @@ class TimelineElementHolderViewModelImpl(
                 newContentIfReplacedOrRedacted,
                 matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId),
             ) { newContentIfReplaced, replaceAggregation ->
-                newContentIfReplaced != null && newContentIfReplaced !is RedactedEventContent ||
+                newContentIfReplaced != null && newContentIfReplaced !is RedactedRoomEventContent ||
                     replaceAggregation.replacedBy != null
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
@@ -349,7 +361,7 @@ class TimelineElementHolderViewModelImpl(
         combine(timelineEventFlow, matrixClient.user.canSendEvent<ReactionEventContent>(roomId)) {
                 timelineEvent,
                 canSendReactEvent ->
-                timelineEvent.content?.getOrNull() !is RedactedEventContent && canSendReactEvent
+                timelineEvent.content?.getOrNull() !is RedactedRoomEventContent && canSendReactEvent
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
@@ -392,7 +404,7 @@ class TimelineElementHolderViewModelImpl(
                 log.trace { "compute element (timelineEvent=$timelineEvent, newContent=$newContent)" }
                 val content =
                     when {
-                        timelineEvent.event.content is RedactedEventContent -> timelineEvent.content
+                        timelineEvent.event.content is RedactedRoomEventContent -> timelineEvent.content
                         newContent != null -> Result.success(newContent)
                         else ->
                             timelineEvent.content?.map { content ->
@@ -544,7 +556,7 @@ class TimelineElementHolderViewModelImpl(
         timelineEventFlow
             .flatMapLatest { timelineEvent ->
                 val redactionEventId =
-                    if (timelineEvent.event.content is RedactedEventContent)
+                    if (timelineEvent.event.content is RedactedRoomEventContent)
                         timelineEvent.event.unsigned?.redactedBecause?.id
                     else null
                 when {
