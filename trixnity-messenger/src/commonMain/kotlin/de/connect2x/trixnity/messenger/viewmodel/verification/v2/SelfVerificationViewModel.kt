@@ -75,6 +75,9 @@ interface SelfVerificationViewModel {
     /** `null` if no error occurred, else the error message. */
     val error: StateFlow<String?>
 
+    /** Whether the user is already verified. If `null`, evaluation is ongoing */
+    val isVerified: StateFlow<Boolean?>
+
     /** Use the recovery key to verify the current device. */
     fun verifyWithRecoveryKey()
 
@@ -109,7 +112,7 @@ class SelfVerificationViewModelImpl(
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val isVerified: StateFlow<Boolean?> =
+    override val isVerified: StateFlow<Boolean?> =
         matrixClients
             .mapNotNull { it[userId] }
             .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }
