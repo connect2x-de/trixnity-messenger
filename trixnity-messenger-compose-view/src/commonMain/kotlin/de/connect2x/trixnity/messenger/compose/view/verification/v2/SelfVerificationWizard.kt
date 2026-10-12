@@ -2,11 +2,9 @@ package de.connect2x.trixnity.messenger.compose.view.verification.v2
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.Wizard
-import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.form.LocalHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
@@ -51,22 +49,6 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         CompositionLocalProvider(LocalHiddenRegistrationForm provides hiddenRegistrationForm) {
             Wizard(wizardSteps = wizardSteps, wizardId = "SelfVerificationWizard")
         }
-    }
-}
-
-@Composable
-fun SelfVerificationWizardPanel(selfVerificationViewModel: SelfVerificationViewModel) {
-    val i18n = DI.get<I18nView>()
-    val isVerified = selfVerificationViewModel.isVerified.collectAsState().value
-    if (isVerified == false) {
-        WizardPanel(
-            title = { i18n.deviceVerification() },
-            subTitle = { "${i18n.commonAccount()}: ${selfVerificationViewModel.userId.full}" },
-            content = {
-                SelfVerificationSteps(selfVerificationViewModel)
-            },
-            wizardId = "SelfVerificationWizard",
-        )
     }
 }
 

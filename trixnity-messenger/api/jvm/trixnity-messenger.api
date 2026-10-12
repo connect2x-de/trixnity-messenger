@@ -15971,6 +15971,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verifi
 	public abstract fun getRecoveryKeyVerificationInProgress ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getRecoveryKeyWrong ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public abstract fun isVerified ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun resetRecovery ()V
 	public abstract fun verifyWithOtherDevice ()V
 	public abstract fun verifyWithPassphrase ()V
@@ -16025,6 +16026,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/Sel
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isVerified ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun resetRecovery ()V
 	public fun verifyWithOtherDevice ()V

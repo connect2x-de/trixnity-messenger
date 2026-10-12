@@ -64,6 +64,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK, UI: Replace DeviceVerificationWizard with UI-only WizardPanels based on v2 of the VerificationViewModel, removing
   old navigation logic
 - SDK: (**breaking change**) Use Trixnity MatrixUri and replace messenger Reference.toLink with the SDK version
+- UI: Replace single, view model dependent step SelfVerificationWizard with UI-only WizardPanel, removing old navigation
+  logic
 
 ### Deprecated
 
