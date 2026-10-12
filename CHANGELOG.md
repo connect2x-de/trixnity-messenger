@@ -25,7 +25,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
-- DEPENDENCY: Update Trixnity to 5.10.0-SNAPSHOT.CI-20260929.090055
+- DEPENDENCY: Update Trixnity to 5.10.0-SNAPSHOT.CI-20261009.191601
 - DEPENDENCY: Update SQLitenity to 0.0.8
 - SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
@@ -35,6 +35,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   `TimelineElementMetadataListItemView` and moved to different package
 - UI: Hide the passphrase by default during self verification
 - UI: Confirm recovery key and passphrase by pressing enter
+- SDK: (**breaking change**) Split up RedactedTimelineElementViewModel into RedactedMessageTimelineElementViewModel and
+  RedactedStateTimelineElementViewModel
 
 ### Deprecated
 

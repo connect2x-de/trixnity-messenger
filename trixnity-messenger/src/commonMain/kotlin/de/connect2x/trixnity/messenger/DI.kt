@@ -107,7 +107,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
@@ -603,7 +604,12 @@ private fun timelineElementViewModels() = module {
     }
 
     // Common:
-    timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<RedactedMessageTimelineElementViewModelFactory> {
+        RedactedMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<RedactedStateTimelineElementViewModelFactory> {
+        RedactedStateTimelineElementViewModelFactory
+    }
 
     // Select from timelineElementViewModelFactory:
     single<EncryptedWaitTimelineElementViewModelFactory> { EncryptedWaitTimelineElementViewModelFactory }

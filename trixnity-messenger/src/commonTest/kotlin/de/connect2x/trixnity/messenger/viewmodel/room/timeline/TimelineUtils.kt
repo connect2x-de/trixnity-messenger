@@ -21,7 +21,8 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
@@ -410,8 +411,8 @@ class MessageEventBuilder {
         return result
     }
 
-    fun redacted(): RedactedEventContent {
-        val result = RedactedEventContent(eventType = "m.room.encrypted")
+    fun redacted(): RedactedRoomEventContent {
+        val result = RedactedMessageEventContentImpl(eventType = "m.room.encrypted")
         content = result
         return result
     }

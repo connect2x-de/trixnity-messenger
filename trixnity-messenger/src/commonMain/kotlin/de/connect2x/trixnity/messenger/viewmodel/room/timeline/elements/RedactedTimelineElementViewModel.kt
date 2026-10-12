@@ -5,7 +5,9 @@ import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.originTimestampOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -28,35 +30,53 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.core.component.get
 
-interface RedactedTimelineElementViewModelFactory : TimelineElementViewModelFactory<RedactedEventContent> {
+interface RedactedMessageTimelineElementViewModelFactory :
+    TimelineElementViewModelFactory<RedactedMessageEventContent> {
     override fun create(
         viewModelContext: MatrixClientViewModelContext,
-        content: RedactedEventContent,
+        content: RedactedMessageEventContent,
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): RedactedTimelineElementViewModel? =
+    ): RedactedMessageTimelineElementViewModel? =
         if (
             eventIdOrTransactionId is EventIdOrTransactionId.EventId &&
                 content.eventType in setOf("m.room.encrypted", "m.room.message")
         )
-            RedactedTimelineElementViewModelImpl(viewModelContext, roomId, eventIdOrTransactionId.eventId)
+            RedactedMessageTimelineElementViewModelImpl(viewModelContext, roomId, eventIdOrTransactionId.eventId)
         else null
 
-    override val supports: KClass<RedactedEventContent>
-        get() = RedactedEventContent::class
+    override val supports: KClass<RedactedMessageEventContent>
+        get() = RedactedMessageEventContent::class
 
-    companion object : RedactedTimelineElementViewModelFactory
+    companion object : RedactedMessageTimelineElementViewModelFactory
 }
 
-interface RedactedTimelineElementViewModel :
-    TimelineElementViewModel.Message<RedactedEventContent>, TimelineElementViewModel.State<RedactedEventContent> {
+interface RedactedStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<RedactedStateEventContent> {
+    override fun create(
+        viewModelContext: MatrixClientViewModelContext,
+        content: RedactedStateEventContent,
+        roomId: RoomId,
+        eventIdOrTransactionId: EventIdOrTransactionId,
+        onOpenMention: OpenMentionCallback,
+    ): RedactedStateTimelineElementViewModel? =
+        if (eventIdOrTransactionId is EventIdOrTransactionId.EventId)
+            RedactedStateTimelineElementViewModelImpl(viewModelContext, roomId, eventIdOrTransactionId.eventId)
+        else null
+
+    override val supports: KClass<RedactedStateEventContent>
+        get() = RedactedStateEventContent::class
+
+    companion object : RedactedStateTimelineElementViewModelFactory
+}
+
+interface RedactedTimelineElementViewModel {
     val message: StateFlow<String?>
     val redactedAt: StateFlow<String?>
     val reason: StateFlow<String?>
 }
 
-class RedactedTimelineElementViewModelImpl(
+abstract class RedactedTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     roomId: RoomId,
     eventId: EventId,
@@ -67,7 +87,7 @@ class RedactedTimelineElementViewModelImpl(
 
     private val redactionData = coroutineScope.async {
         val timelineEvent = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first().event
-        if (timelineEvent.content is RedactedEventContent) {
+        if (timelineEvent.content is RedactedRoomEventContent) {
             val redactedBecause = timelineEvent.unsigned?.redactedBecause ?: return@async null
             RedactionData(
                 sender = redactedBecause.sender,
@@ -118,6 +138,24 @@ class RedactedTimelineElementViewModelImpl(
 
     override val reason: StateFlow<String?> =
         flow { emit(redactionData.await()?.reason) }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+}
 
+interface RedactedMessageTimelineElementViewModel :
+    RedactedTimelineElementViewModel, TimelineElementViewModel.Message<RedactedMessageEventContent>
+
+class RedactedMessageTimelineElementViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    roomId: RoomId,
+    eventId: EventId,
+) : RedactedMessageTimelineElementViewModel, RedactedTimelineElementViewModelImpl(viewModelContext, roomId, eventId) {
     override val isMentioned: Boolean = false
 }
+
+interface RedactedStateTimelineElementViewModel :
+    RedactedTimelineElementViewModel, TimelineElementViewModel.State<RedactedStateEventContent>
+
+class RedactedStateTimelineElementViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    roomId: RoomId,
+    eventId: EventId,
+) : RedactedStateTimelineElementViewModel, RedactedTimelineElementViewModelImpl(viewModelContext, roomId, eventId)
