@@ -9,7 +9,7 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -101,7 +101,7 @@ class RedactedTimelineElementViewModelTest {
         val di =
             koinApplication { modules(createTestDefaultTrixnityMessengerModules(mapOf(ourUserId to matrixClientMock))) }
                 .koin
-        return RedactedTimelineElementViewModelImpl(
+        return RedactedMessageTimelineElementViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(di = di, userId = ourUserId),
             roomId = roomId,
             eventId = eventId,
@@ -113,7 +113,7 @@ class RedactedTimelineElementViewModelTest {
             TimelineEvent(
                 event =
                     ClientEvent.RoomEvent.MessageEvent(
-                        RedactedEventContent("m.room.message"),
+                        RedactedMessageEventContentImpl("m.room.message"),
                         id = EventId("event"),
                         sender = sender,
                         roomId = roomId,

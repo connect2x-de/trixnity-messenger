@@ -13,7 +13,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
@@ -110,7 +110,7 @@ class GetEventReactionsTest {
     @Test
     fun `should return no reactions if event is redacted`() = runTest {
         every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
-            MutableStateFlow(timelineEvent(user1, eventId, RedactedEventContent("m.room.message")))
+            MutableStateFlow(timelineEvent(user1, eventId, RedactedMessageEventContentImpl("m.room.message")))
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(mapOf())
         getEventReactions() shouldBe EventReactions.Empty
     }
@@ -427,7 +427,11 @@ class GetEventReactionsTest {
             )
         every { roomServiceMock.getTimelineEvent(roomId, reaction1) } returns
             MutableStateFlow(
-                timelineEvent(content = RedactedEventContent("m.annotation"), sender = user1, eventId = reaction1)
+                timelineEvent(
+                    content = RedactedMessageEventContentImpl("m.annotation"),
+                    sender = user1,
+                    eventId = reaction1,
+                )
             )
 
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns

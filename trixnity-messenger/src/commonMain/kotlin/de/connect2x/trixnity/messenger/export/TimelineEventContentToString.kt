@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.export
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.core.model.events.EmptyEventContent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
@@ -114,7 +114,7 @@ class TimelineEventContentToStringImpl(private val i18n: I18n) : TimelineEventCo
                                     else -> null
                                 }?.let { i18n.exportRoomState(it) }
 
-                            is RedactedEventContent ->
+                            is RedactedRoomEventContent ->
                                 i18n.exportRoomRedacted(
                                     timelineEvent.event.unsigned?.redactedBecause?.sender,
                                     (timelineEvent.event.unsigned?.redactedBecause?.content as? RedactionEventContent)

@@ -2747,31 +2747,59 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView$DefaultImpls {
-	public static fun a11yLabel (Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView$DefaultImpls {
+	public static fun a11yLabel (Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView {
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
 	public synthetic fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
-	public fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
 	public synthetic fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
-	public fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
 	public synthetic fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
-	public fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
 	public synthetic fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
-	public fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
 	public synthetic fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
-	public fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
 	public synthetic fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
 	public fun getSupports ()Lkotlin/reflect/KClass;
 	public fun isFocusable ()Z
-	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView$DefaultImpls {
+	public static fun a11yLabel (Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public synthetic fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public synthetic fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public synthetic fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public synthetic fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public synthetic fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public synthetic fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+	public fun isFocusable ()Z
+	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

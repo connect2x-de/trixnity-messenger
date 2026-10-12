@@ -13,7 +13,7 @@ import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.getErrorMessage
@@ -55,7 +55,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
         matrixClient.room.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
             when (timelineEvent?.content?.getOrNull()) {
                 null,
-                is RedactedEventContent -> flowOf(EventReactions(emptySet()))
+                is RedactedRoomEventContent -> flowOf(EventReactions(emptySet()))
                 else -> {
                     val timelineReactions =
                         getReactionsFromTimeline(matrixClient, roomId, eventId, initials, maxMediaSizeInMemory)
@@ -176,7 +176,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                                     val outboxEventId = outboxEvent.eventId
                                     if (outboxEventId != null) {
                                         matrixClient.room.getTimelineEvent(roomId, outboxEventId).map {
-                                            if (it?.content?.getOrNull() is RedactedEventContent) {
+                                            if (it?.content?.getOrNull() is RedactedRoomEventContent) {
                                                 null
                                             } else
                                                 this@scopedFlatMapLatest.getEventReactionFromOutboxEvent(

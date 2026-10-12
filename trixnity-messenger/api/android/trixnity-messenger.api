@@ -9090,31 +9090,64 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun report ()V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$Message, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$State {
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$Message {
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelFactory$Companion;
+	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;
+	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelFactory {
+	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;
+	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelFactory$DefaultImpls {
+	public static fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;
+	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun isMentioned ()Z
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$State {
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelFactory$Companion;
+	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedStateEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;
+	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelFactory {
+	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedStateEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;
+	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelFactory$DefaultImpls {
+	public static fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedStateEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;
+	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel {
 	public abstract fun getMessage ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getReason ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getRedactedAt ()Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
-	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelFactory$Companion;
-	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;
-	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
-	public fun getSupports ()Lkotlin/reflect/KClass;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelFactory {
-	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;
-	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
-	public fun getSupports ()Lkotlin/reflect/KClass;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelFactory$DefaultImpls {
-	public static fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RedactedEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;
-	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel {
+public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel {
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
@@ -9138,7 +9171,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
-	public fun isMentioned ()Z
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
