@@ -154,6 +154,8 @@ data class MatrixMessengerConfiguration(
         val enableRoom3ForNewAccountsOnWeb: Boolean = true,
         /** Historic room keys will be shared when a user is invited. */
         val enableHistoricRoomKeySharing: Boolean = true,
+        /** If true, the user can use MatrixRTC-based videos calls * */
+        val enableVideoCalls: Boolean = true,
     )
 
     enum class CryptoDriver {

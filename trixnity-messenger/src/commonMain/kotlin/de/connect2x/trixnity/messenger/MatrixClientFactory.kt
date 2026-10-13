@@ -8,6 +8,7 @@ import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
@@ -144,6 +145,11 @@ class MatrixClientFactoryImpl(
         httpClientConfig = messengerConfiguration.httpClientConfig
         @OptIn(MSC3814::class)
         experimentalFeatures.enableMSC3814 = true
+        if (messengerConfiguration.features.enableVideoCalls) {
+            @OptIn(MSC4354::class)
+            experimentalFeatures.enableMSC4354 = true
+        }
+
         lastRelevantEventFilter = {
             val content = it.content
             val isReplace = content is MessageEventContent && content.relatesTo is RelatesTo.Replace

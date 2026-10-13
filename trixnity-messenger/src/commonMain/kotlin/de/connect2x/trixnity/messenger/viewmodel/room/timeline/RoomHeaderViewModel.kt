@@ -18,8 +18,12 @@ import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.call.PreviewCallViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
@@ -45,6 +49,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
+import org.koin.core.component.inject
 
 interface RoomHeaderViewModelFactory {
     fun create(
@@ -116,6 +121,8 @@ interface RoomHeaderViewModel {
     val canVerifyUser: StateFlow<Boolean>
     val knockingMembersCount: StateFlow<Int>
 
+    @TrixnityMessengerCallApi val call: CallViewModel?
+
     /** Is true if this is a direct room and only 2 users are present and not already blocked. */
     val canBlockUser: StateFlow<Boolean>
 
@@ -138,7 +145,7 @@ interface RoomHeaderViewModel {
     fun back()
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, TrixnityMessengerCallApi::class)
 open class RoomHeaderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
@@ -153,8 +160,10 @@ open class RoomHeaderViewModelImpl(
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
     private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
+    private val callViewModelFactory: CallViewModelFactory by inject()
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val call: CallViewModel? = callViewModelFactory.create(viewModelContext, selectedRoomId)
 
     private val matrixClientStateInfo =
         combine(
@@ -334,6 +343,7 @@ open class RoomHeaderViewModelImpl(
 
 class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    @TrixnityMessengerCallApi override val call: CallViewModel = PreviewCallViewModel()
     override val roomHeaderInfo: MutableStateFlow<RoomHeaderInfo> =
         MutableStateFlow(
             RoomHeaderInfo(

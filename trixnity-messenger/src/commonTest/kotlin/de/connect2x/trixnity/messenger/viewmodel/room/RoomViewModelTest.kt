@@ -32,6 +32,7 @@ import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventCont
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
@@ -41,6 +42,7 @@ import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.AddMember
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.ExportRoom
@@ -393,6 +395,8 @@ class RoomViewModelTest {
                                                                         false,
                                                                     )
                                                                 )
+                                                            @OptIn(TrixnityMessengerCallApi::class)
+                                                            override val call: CallViewModel? = null
                                                             override val usersTyping: StateFlow<String?> =
                                                                 MutableStateFlow(null)
                                                             override val userTrustLevel: StateFlow<UserTrustLevel?> =
