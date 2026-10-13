@@ -48,6 +48,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI: Show the room name reliably when opening room settings
 - UI: Render formatted message bodies in reply previews above the message input and in the timeline
 - UI: Keep file message bubbles a consistent width during downloads and truncate long filenames to a single line
 - SDK: Correct voice message recording duration on Android, iOS, and Web by using recording metadata or recorder
