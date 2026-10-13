@@ -41,7 +41,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(MSC4143::class, TrixnityMessengerCallApi::class, ExperimentalCoroutinesApi::class)
-class CallViewModelTest {
+class CallControlViewModelTest {
     private val roomId = RoomId("!room:localhost")
     private val ownUserId = UserId("me", "localhost")
     private val aliceId = UserId("alice", "localhost")
@@ -87,7 +87,7 @@ class CallViewModelTest {
     fun `state flows have their documented initial values`() = runTest {
         val viewModel = callViewModel()
 
-        viewModel.state.value shouldBe CallViewModel.State.Inactive
+        viewModel.state.value shouldBe CallControlViewModel.State.Inactive
         viewModel.canJoinCall.value shouldBe false
     }
 
@@ -98,18 +98,18 @@ class CallViewModelTest {
         backgroundScope.launch { viewModel.state.collect() }
         runCurrent()
 
-        viewModel.state.value shouldBe CallViewModel.State.Inactive
+        viewModel.state.value shouldBe CallControlViewModel.State.Inactive
 
         val aliceMemberId = RtcMemberId("alice-device")
         members.value = mapOf((aliceId to aliceMemberId) to rtcMemberEvent(aliceId, aliceMemberId))
         runCurrent()
 
-        viewModel.state.value shouldBe CallViewModel.State.Active
+        viewModel.state.value shouldBe CallControlViewModel.State.Active
 
         members.value = emptyMap()
         runCurrent()
 
-        viewModel.state.value shouldBe CallViewModel.State.Inactive
+        viewModel.state.value shouldBe CallControlViewModel.State.Inactive
     }
 
     @Test
@@ -178,9 +178,9 @@ class CallViewModelTest {
 
     @Test
     fun `preview state flows expose their fixed values`() {
-        val viewModel = PreviewCallViewModel()
+        val viewModel = PreviewCallControlViewModel()
 
-        viewModel.state.value shouldBe CallViewModel.State.Inactive
+        viewModel.state.value shouldBe CallControlViewModel.State.Inactive
         viewModel.canJoinCall.value shouldBe true
     }
 
@@ -233,7 +233,7 @@ class CallViewModelTest {
         )
 
     private fun TestScope.callViewModel() =
-        CallViewModelImpl(
+        CallControlViewModelImpl(
             viewModelContext =
                 testMatrixClientViewModelContext(
                     di =

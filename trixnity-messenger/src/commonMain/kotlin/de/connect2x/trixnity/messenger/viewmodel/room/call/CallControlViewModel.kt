@@ -27,24 +27,24 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.inject
 
 @TrixnityMessengerCallApi
-interface CallViewModelFactory {
-    fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallViewModel?
+interface CallControlViewModelFactory {
+    fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallControlViewModel?
 }
 
 @TrixnityMessengerCallApi
-class CallViewModelFactoryImpl(private val messengerConfiguration: MatrixMessengerConfiguration) :
-    CallViewModelFactory {
-    override fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallViewModel? {
+class CallControlViewModelFactoryImpl(private val messengerConfiguration: MatrixMessengerConfiguration) :
+    CallControlViewModelFactory {
+    override fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallControlViewModel? {
         if (!messengerConfiguration.features.enableVideoCalls) {
             return null
         }
 
-        return CallViewModelImpl(viewModelContext, roomId)
+        return CallControlViewModelImpl(viewModelContext, roomId)
     }
 }
 
 @TrixnityMessengerCallApi
-interface CallViewModel {
+interface CallControlViewModel {
     val state: StateFlow<State>
     val canJoinCall: StateFlow<Boolean>
 
@@ -65,8 +65,8 @@ interface CallViewModel {
 
 @OptIn(MSC4143::class)
 @TrixnityMessengerCallApi
-class CallViewModelImpl(viewModelContext: MatrixClientViewModelContext, roomId: RoomId) :
-    CallViewModel, MatrixClientViewModelContext by viewModelContext {
+class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, roomId: RoomId) :
+    CallControlViewModel, MatrixClientViewModelContext by viewModelContext {
     private val initials: Initials by inject()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -82,10 +82,10 @@ class CallViewModelImpl(viewModelContext: MatrixClientViewModelContext, roomId: 
                 }
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
-    override val state: StateFlow<CallViewModel.State> =
+    override val state: StateFlow<CallControlViewModel.State> =
         participants
-            .map { if (it.isEmpty()) CallViewModel.State.Inactive else CallViewModel.State.Active }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), CallViewModel.State.Inactive)
+            .map { if (it.isEmpty()) CallControlViewModel.State.Inactive else CallControlViewModel.State.Active }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), CallControlViewModel.State.Inactive)
     override val canJoinCall: StateFlow<Boolean> =
         combine(
                 matrixClient.serverData.map { it?.rtcTransports },
@@ -108,8 +108,8 @@ class CallViewModelImpl(viewModelContext: MatrixClientViewModelContext, roomId: 
 }
 
 @TrixnityMessengerCallApi
-class PreviewCallViewModel : CallViewModel {
-    override val state: StateFlow<CallViewModel.State> = MutableStateFlow(CallViewModel.State.Inactive)
+class PreviewCallControlViewModel : CallControlViewModel {
+    override val state: StateFlow<CallControlViewModel.State> = MutableStateFlow(CallControlViewModel.State.Inactive)
     override val canJoinCall: StateFlow<Boolean> = MutableStateFlow(true)
 
     override fun join() = Unit
