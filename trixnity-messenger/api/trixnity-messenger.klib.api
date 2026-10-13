@@ -7,6 +7,10 @@
 // - Show declarations: true
 
 // Library unique name: <de.connect2x.trixnity.messenger:trixnity-messenger>
+open annotation class de.connect2x.trixnity.messenger.abi/TrixnityMessengerCallApi : kotlin/Annotation { // de.connect2x.trixnity.messenger.abi/TrixnityMessengerCallApi|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.abi/TrixnityMessengerCallApi.<init>|<init>(){}[0]
+}
+
 open annotation class de.connect2x.trixnity.messenger.abi/TrixnityMessengerPrivateApi : kotlin/Annotation { // de.connect2x.trixnity.messenger.abi/TrixnityMessengerPrivateApi|null[0]
     constructor <init>() // de.connect2x.trixnity.messenger.abi/TrixnityMessengerPrivateApi.<init>|<init>(){}[0]
 }
@@ -1144,6 +1148,53 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerVi
     open fun create(kotlin/String, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/String, kotlin.time/Duration?, kotlin.coroutines/SuspendFunction0<kotlin/Result<de.connect2x.trixnity.client.media/PlatformMedia>>): de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModel? // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory.create|create(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.String;kotlin.time.Duration?;kotlin.coroutines.SuspendFunction0<kotlin.Result<de.connect2x.trixnity.client.media.PlatformMedia>>){}[0]
 
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel|null[0]
+    abstract val canJoinCall // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.canJoinCall|{}canJoinCall[0]
+        abstract fun <get-canJoinCall>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.canJoinCall.<get-canJoinCall>|<get-canJoinCall>(){}[0]
+    abstract val state // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun join() // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.join|join(){}[0]
+    abstract fun leave() // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.leave|leave(){}[0]
+
+    sealed interface State { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State|null[0]
+        final class Error : de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error|null[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.<init>|<init>(kotlin.String){}[0]
+
+            final val error // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.error|{}error[0]
+                final fun <get-error>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.component1|component1(){}[0]
+            final fun copy(kotlin/String = ...): de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.copy|copy(kotlin.String){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Error.toString|toString(){}[0]
+        }
+
+        final object Active : de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Active|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Active.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Active.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Active.toString|toString(){}[0]
+        }
+
+        final object Inactive : de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Inactive|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Inactive.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Inactive.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Inactive.toString|toString(){}[0]
+        }
+
+        final object Joined : de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Joined|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Joined.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Joined.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State.Joined.toString|toString(){}[0]
+        }
+    }
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactory|null[0]
+    abstract fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel? // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel : de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel|null[0]
@@ -2787,6 +2838,8 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/Repor
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel|null[0]
+    abstract val call // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel.call|{}call[0]
+        abstract fun <get-call>(): de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel? // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel.call.<get-call>|<get-call>(){}[0]
     abstract val canBlockUser // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel.canBlockUser|{}canBlockUser[0]
         abstract fun <get-canBlockUser>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel.canBlockUser.<get-canBlockUser>|<get-canBlockUser>(){}[0]
     abstract val canUnblockUser // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel.canUnblockUser|{}canUnblockUser[0]
@@ -7727,6 +7780,64 @@ final class de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModel
     final fun seekTo(kotlin.time/Duration) // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelImpl.seekTo|seekTo(kotlin.time.Duration){}[0]
 }
 
+final class de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactoryImpl : de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactoryImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger/MatrixMessengerConfiguration) // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactoryImpl.<init>|<init>(de.connect2x.trixnity.messenger.MatrixMessengerConfiguration){}[0]
+
+    final fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel? // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelFactoryImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId){}[0]
+
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val canJoinCall // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.canJoinCall|{}canJoinCall[0]
+        final fun <get-canJoinCall>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.canJoinCall.<get-canJoinCall>|<get-canJoinCall>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val state // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.state|{}state[0]
+        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.state.<get-state>|<get-state>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.getKoin|getKoin(){}[0]
+    final fun join() // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.join|join(){}[0]
+    final fun leave() // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.leave|leave(){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel : de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel.<init>|<init>(){}[0]
+
+    final val canJoinCall // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel.canJoinCall|{}canJoinCall[0]
+        final fun <get-canJoinCall>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel.canJoinCall.<get-canJoinCall>|<get-canJoinCall>(){}[0]
+    final val state // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel.state|{}state[0]
+        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel.state.<get-state>|<get-state>(){}[0]
+
+    final fun join() // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel.join|join(){}[0]
+    final fun leave() // de.connect2x.trixnity.messenger.viewmodel.room.call/PreviewCallViewModel.leave|leave(){}[0]
+}
+
 final class de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl|null[0]
     constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId, kotlin/Function0<kotlin/Unit>, de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId;kotlin.Function0<kotlin.Unit>;de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel;de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersNewSearchViewModel){}[0]
 
@@ -10148,6 +10259,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRepor
 final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel : de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel|null[0]
     constructor <init>() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel.<init>|<init>(){}[0]
 
+    final val call // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel.call|{}call[0]
+        final fun <get-call>(): de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel.call.<get-call>|<get-call>(){}[0]
     final val canBlockUser // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel.canBlockUser|{}canBlockUser[0]
         final fun <get-canBlockUser>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel.canBlockUser.<get-canBlockUser>|<get-canBlockUser>(){}[0]
     final val canUnblockUser // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewRoomHeaderViewModel.canUnblockUser|{}canUnblockUser[0]
@@ -14445,12 +14558,14 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 
     final class Features { // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features|null[0]
-        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
 
         final val enableHistoricRoomKeySharing // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableHistoricRoomKeySharing|{}enableHistoricRoomKeySharing[0]
             final fun <get-enableHistoricRoomKeySharing>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableHistoricRoomKeySharing.<get-enableHistoricRoomKeySharing>|<get-enableHistoricRoomKeySharing>(){}[0]
         final val enableRoom3ForNewAccountsOnWeb // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableRoom3ForNewAccountsOnWeb|{}enableRoom3ForNewAccountsOnWeb[0]
             final fun <get-enableRoom3ForNewAccountsOnWeb>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableRoom3ForNewAccountsOnWeb.<get-enableRoom3ForNewAccountsOnWeb>|<get-enableRoom3ForNewAccountsOnWeb>(){}[0]
+        final val enableVideoCalls // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableVideoCalls|{}enableVideoCalls[0]
+            final fun <get-enableVideoCalls>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableVideoCalls.<get-enableVideoCalls>|<get-enableVideoCalls>(){}[0]
 
         final var enableAudioRecorder // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder|{}enableAudioRecorder[0]
             final fun <get-enableAudioRecorder>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder.<get-enableAudioRecorder>|<get-enableAudioRecorder>(){}[0]
@@ -14475,6 +14590,7 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
             final fun <set-enablePowerlevelEventConfigurationInRoomSettings>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePowerlevelEventConfigurationInRoomSettings.<set-enablePowerlevelEventConfigurationInRoomSettings>|<set-enablePowerlevelEventConfigurationInRoomSettings>(kotlin.Boolean){}[0]
 
         final fun component1(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component1|component1(){}[0]
+        final fun component10(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component10|component10(){}[0]
         final fun component2(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component2|component2(){}[0]
         final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component3|component3(){}[0]
         final fun component4(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component4|component4(){}[0]
@@ -14483,7 +14599,7 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final fun component7(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component7|component7(){}[0]
         final fun component8(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component8|component8(){}[0]
         final fun component9(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component9|component9(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.toString|toString(){}[0]
@@ -15821,6 +15937,8 @@ open class de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderVie
 
     open val backHandler // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModelImpl.backHandler|{}backHandler[0]
         open fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    open val call // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModelImpl.call|{}call[0]
+        open fun <get-call>(): de.connect2x.trixnity.messenger.viewmodel.room.call/CallViewModel? // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModelImpl.call.<get-call>|<get-call>(){}[0]
     open val canBlockUser // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModelImpl.canBlockUser|{}canBlockUser[0]
         open fun <get-canBlockUser>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModelImpl.canBlockUser.<get-canBlockUser>|<get-canBlockUser>(){}[0]
     open val canUnblockUser // de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModelImpl.canUnblockUser|{}canUnblockUser[0]

@@ -15,7 +15,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
 - SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
 - SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
+- SDK: MatrixRTC support introduced; disable by setting `features.enableVideoCalls = false`
 - UI: Allow for extending `TimelineElementMetadata` with more items via DI
+- UI: Add button in room header for joining and leaving calls
 - UI: Downscale images in the timeline
 
 ### Changed

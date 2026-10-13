@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -74,6 +75,8 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactoryImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSearchViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
@@ -228,6 +231,7 @@ import org.koin.dsl.module
 
 private val log = Logger("de.connect2x.trixnity.messenger.createTrixnityMessengerDefaultModuleFactories")
 
+@OptIn(TrixnityMessengerCallApi::class)
 fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
     listOf(
         {
@@ -303,6 +307,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
 
                 single<BackHandler> { BackHandlerImpl() }
                 single<GetAccountProfileDisplayName> { GetAccountProfileDisplayNameImpl(get()) }
+                single<CallViewModelFactory> { CallViewModelFactoryImpl(get()) }
             }
         },
         ::connectingViewModels,
@@ -630,6 +635,7 @@ private fun roomViewModels() = module {
     single<GetEventReactions> { GetEventReactionsImpl(get()) }
     single<GetEventReaders> { GetEventReadersImpl() }
     single<JoinRoomActionViewModelFactory> { JoinRoomActionViewModelFactory }
+    @OptIn(TrixnityMessengerCallApi::class) single<CallViewModelFactory> { CallViewModelFactoryImpl(get()) }
 }
 
 private fun roomSettingsViewModels() = module {
