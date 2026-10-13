@@ -216,6 +216,37 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         maxDownloadSize: Long,
     ): ByteArray?
 
+    suspend fun loadThumbnail(
+        coroutineScope: CoroutineScope,
+        matrixClient: MatrixClient,
+        thumbnailFile: EncryptedFile?,
+        thumbnailUrl: String?,
+        thumbnailInfo: ThumbnailInfo?,
+        file: EncryptedFile?,
+        fileUrl: String?,
+        fileInfo: FileBasedInfo?,
+        sizeInBytes: Long,
+        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxMediaSizeInMemory: Long,
+        maxDownloadSize: Long,
+        width: Long,
+        height: Long,
+    ): ByteArray? =
+        loadThumbnail(
+            coroutineScope,
+            matrixClient,
+            thumbnailFile,
+            thumbnailUrl,
+            thumbnailInfo,
+            file,
+            fileUrl,
+            fileInfo,
+            sizeInBytes,
+            thumbnailProgressFlow,
+            maxMediaSizeInMemory,
+            maxDownloadSize,
+        )
+
     fun mapProgressToProgressElement(
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>
     ): Flow<FileTransferProgressElement?>
@@ -240,6 +271,39 @@ class ThumbnailsImpl : Thumbnails {
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
+    ): ByteArray? =
+        loadThumbnail(
+            coroutineScope,
+            matrixClient,
+            thumbnailFile,
+            thumbnailUrl,
+            thumbnailInfo,
+            file,
+            fileUrl,
+            fileInfo,
+            sizeInBytes,
+            thumbnailProgressFlow,
+            maxMediaSizeInMemory,
+            maxDownloadSize,
+            400L,
+            300L,
+        )
+
+    override suspend fun loadThumbnail(
+        coroutineScope: CoroutineScope,
+        matrixClient: MatrixClient,
+        thumbnailFile: EncryptedFile?,
+        thumbnailUrl: String?,
+        thumbnailInfo: ThumbnailInfo?,
+        file: EncryptedFile?,
+        fileUrl: String?,
+        fileInfo: FileBasedInfo?,
+        sizeInBytes: Long,
+        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxMediaSizeInMemory: Long,
+        maxDownloadSize: Long,
+        width: Long,
+        height: Long,
     ): ByteArray? {
         log.debug {
             "thumbnail encrypted: ${thumbnailFile?.url}, unencrypted: $thumbnailUrl, encrypted file: ${file?.url}, unencrypted file: $fileUrl"
@@ -291,8 +355,8 @@ class ThumbnailsImpl : Thumbnails {
                     matrixClient.media
                         .getThumbnail(
                             thumbnailUrl,
-                            400L,
-                            300L,
+                            width,
+                            height,
                             maxDownloadSize,
                             sizeInBytes,
                             ThumbnailResizingMethod.SCALE,
@@ -372,8 +436,8 @@ class ThumbnailsImpl : Thumbnails {
                     matrixClient.media
                         .getThumbnail(
                             fileUrl,
-                            400L,
-                            300L,
+                            width,
+                            height,
                             maxDownloadSize,
                             sizeInBytes,
                             ThumbnailResizingMethod.SCALE,

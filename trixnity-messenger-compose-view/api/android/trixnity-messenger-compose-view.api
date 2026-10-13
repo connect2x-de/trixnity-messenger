@@ -2147,7 +2147,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/richtext/RichTex
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/RichTextDisplayKt {
-	public static final fun RichTextDisplay (Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;Lkotlinx/coroutines/flow/StateFlow;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/richtext/RichTextColors;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun RichTextDisplay (Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;Lkotlinx/coroutines/flow/StateFlow;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/richtext/RichTextColors;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/table/ComposableSingletons$DataTableKt {
