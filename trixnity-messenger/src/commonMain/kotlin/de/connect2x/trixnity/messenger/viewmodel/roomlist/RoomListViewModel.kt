@@ -345,7 +345,7 @@ class RoomListViewModelImpl(
                         .mapNotNull { (key, wrapper) ->
                             if (
                                 relevantRooms[key] == null ||
-                                    !selectedClients.any { relevantRooms[key] == wrapper.viewModel.account }
+                                    selectedClients.none { relevantRooms[key] == wrapper.viewModel.account }
                             ) {
                                 wrapper.lifecycle.destroy()
                                 key
