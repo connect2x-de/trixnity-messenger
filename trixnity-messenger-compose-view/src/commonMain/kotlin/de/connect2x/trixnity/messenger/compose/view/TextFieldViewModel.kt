@@ -82,14 +82,22 @@ private fun <T> TextFieldViewModel.collectAndSync(
     focusRequester: FocusRequester? = null,
 ): T {
     val uiEpoch = remember { mutableStateOf(0UL) }
+    val syncedUiState = remember { mutableStateOf(uiState.toSanitizedState()) }
 
     // UI -> VM
     LaunchedEffect(Unit) {
         snapshotFlow { uiState.toSanitizedState() }
             .collectLatest { sanitizedState ->
-                uiEpoch.value++
-                if (uiEpoch.value > value.epoch) {
-                    update(sanitizedState.text, sanitizedState.selection.run { IntRange(start, end) }, uiEpoch.value)
+                if (sanitizedState != syncedUiState.value) {
+                    syncedUiState.value = sanitizedState
+                    uiEpoch.value++
+                    if (uiEpoch.value > value.epoch) {
+                        update(
+                            sanitizedState.text,
+                            sanitizedState.selection.run { IntRange(start, end) },
+                            uiEpoch.value,
+                        )
+                    }
                 }
             }
     }
@@ -101,13 +109,9 @@ private fun <T> TextFieldViewModel.collectAndSync(
                 val newState = vmState.sanitize(maxLength)
                 val currentState = uiState.toSanitizedState()
 
-                if (newState == currentState) {
-                    // If the state is the same, the UI -> VM sync won't run, so we must set the epoch directly
-                    uiEpoch.value = vmState.epoch
-                } else {
-                    // If the state has changed, the UI -> VM sync will increment the epoch, so we need to compensate
-                    // for that
-                    uiEpoch.value = vmState.epoch - 1u
+                uiEpoch.value = vmState.epoch
+                syncedUiState.value = newState
+                if (newState != currentState) {
                     uiState.updateUiState(newState)
                 }
                 focusRequester?.requestFocus()
