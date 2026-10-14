@@ -9,7 +9,6 @@ import de.connect2x.trixnity.client.user.canSendEvent
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4195
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
@@ -29,8 +28,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -148,16 +149,21 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
                         }
                 }
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, Eagerly, null)
 
     override fun join() {
         if (!joining.compareAndSet(expect = false, update = true)) return
         coroutineScope.launch {
             error.value = null
+            if (state.filterNotNull().first() !is CallControlViewModel.State.CallAvailable) {
+                log.warn { "cannot join with wrong state" }
+                return@launch
+            }
             val existingJoinedMembership = getExistingJoinedMembership()
             if (existingJoinedMembership != null) return@launch
 
-            val slotEventId = getSlotEventId() ?: return@launch
+            val hasOrCreateSlot = hasOrCreateSlot()
+            if (!hasOrCreateSlot) return@launch
             val transport =
                 matrixClient.api.rtc
                     .getTransports()
@@ -180,7 +186,6 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
                 .joinSlot(
                     roomId = roomId,
                     slotId = slotId,
-                    slotEventId = slotEventId,
                     application = CallRtcApplication.Member(),
                     transports =
                         RtcMemberEventContent.Join.RtcTransports(
@@ -229,7 +234,7 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
             }
         }
 
-    private suspend fun getSlotEventId(): EventId? {
+    private suspend fun hasOrCreateSlot(): Boolean {
         val slotEvent = matrixClient.rtc.getSlot(roomId, slotId).first()
         val slot = slotEvent?.content as? RtcSlotEventContent.Open
         if (slot != null) {
@@ -238,41 +243,38 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
                     slot.encryption == null && slot.encryption != null ||
                     slot.encryption != null && slot.encryption !is PerMemberRtcEncryption
             ) {
-                log.warn { "the room has an incompatible slot" }
-                error.value = i18n.callJoinError()
-                return null
-            }
-            return slotEvent.id
+                log.info { "the room has an incompatible slot" }
+            } else return true
+        }
+        if (!matrixClient.user.canSendEvent<RtcSlotEventContent>(roomId).first()) {
+            log.warn { "cannot create or repair slot" }
+            return false
         }
         val encryption =
             if (matrixClient.room.getById(roomId).first()?.encrypted == true) PerMemberRtcEncryption else null
-        val eventId =
-            matrixClient.api.room
-                .sendStateEvent(
-                    roomId = roomId,
-                    eventContent =
-                        RtcSlotEventContent.Open(application = CallRtcApplication.Slot, encryption = encryption),
-                    stateKey = slotId.value,
-                )
-                .fold(
-                    onSuccess = {
-                        withTimeoutOrNull(5.seconds) {
-                                matrixClient.rtc.getSlot(roomId, slotId).first { it != null }?.id
+        matrixClient.api.room
+            .sendStateEvent(
+                roomId = roomId,
+                eventContent = RtcSlotEventContent.Open(application = CallRtcApplication.Slot, encryption = encryption),
+                stateKey = slotId.value,
+            )
+            .fold(
+                onSuccess = {
+                    withTimeoutOrNull(5.seconds) { matrixClient.rtc.getSlot(roomId, slotId).first { it != null }?.id }
+                        .also {
+                            if (it == null) {
+                                log.warn { "slot did not exist after waiting" }
                             }
-                            .also {
-                                if (it == null) {
-                                    log.warn { "slot did not exist after waiting" }
-                                }
-                            }
-                    },
-                    onFailure = {
-                        if (it is CancellationException) throw it
-                        log.warn(it) { "failed to create slot" }
-                        error.value = i18n.callJoinError()
-                        null
-                    },
-                )
-        return eventId
+                        }
+                },
+                onFailure = {
+                    if (it is CancellationException) throw it
+                    log.warn(it) { "failed to create slot" }
+                    error.value = i18n.callJoinError()
+                    return false
+                },
+            )
+        return true
     }
 }
 
