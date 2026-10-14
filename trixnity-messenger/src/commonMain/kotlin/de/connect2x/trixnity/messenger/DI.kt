@@ -75,8 +75,8 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactoryImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModelFactoryImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSearchViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
@@ -307,7 +307,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
 
                 single<BackHandler> { BackHandlerImpl() }
                 single<GetAccountProfileDisplayName> { GetAccountProfileDisplayNameImpl(get()) }
-                single<CallViewModelFactory> { CallViewModelFactoryImpl(get()) }
+                single<CallControlViewModelFactory> { CallControlViewModelFactoryImpl(get()) }
             }
         },
         ::connectingViewModels,
@@ -635,7 +635,8 @@ private fun roomViewModels() = module {
     single<GetEventReactions> { GetEventReactionsImpl(get()) }
     single<GetEventReaders> { GetEventReadersImpl() }
     single<JoinRoomActionViewModelFactory> { JoinRoomActionViewModelFactory }
-    @OptIn(TrixnityMessengerCallApi::class) single<CallViewModelFactory> { CallViewModelFactoryImpl(get()) }
+    @OptIn(TrixnityMessengerCallApi::class)
+    single<CallControlViewModelFactory> { CallControlViewModelFactoryImpl(get()) }
 }
 
 private fun roomSettingsViewModels() = module {

@@ -1778,6 +1778,11 @@ open class I18n(
         DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."
     }
 
+    open fun callJoinError() = translate {
+        EN - "Could not join the call."
+        DE - "Dem Anruf konnte nicht beigetreten werden."
+    }
+
     open fun userSearchHomeserver() = translate {
         EN - "Homeserver"
         DE - "Homeserver"

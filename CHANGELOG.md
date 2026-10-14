@@ -18,7 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
 - SDK: MatrixRTC support introduced; disable by setting `features.enableVideoCalls = false`
 - UI: Allow for extending `TimelineElementMetadata` with more items via DI
-- UI: Add button in room header for joining and leaving calls
+- UI: Add button in room header for joining and leaving matrix rtc calls
 - UI: Downscale images in the timeline
 
 ### Changed
