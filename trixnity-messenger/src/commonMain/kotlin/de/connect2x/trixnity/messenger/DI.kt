@@ -166,6 +166,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelF
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ExperimentalSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.InitialSettingsSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModelFactory
@@ -531,6 +532,7 @@ private fun settingsViewModels() = module {
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }
     single<AppearanceSettingsViewModelFactory> { AppearanceSettingsViewModelFactory }
+    single<ExperimentalSettingsViewModelFactory> { ExperimentalSettingsViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
     single<NotificationSettingsSingleAccountViewModelFactory> { NotificationSettingsSingleAccountViewModelFactory }
     single<InitialSettingsSetupViewModelFactory> { InitialSettingsSetupViewModelFactory }

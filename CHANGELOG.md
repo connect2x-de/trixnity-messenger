@@ -20,6 +20,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Allow for extending `TimelineElementMetadata` with more items via DI
 - UI: Add button in room header for joining and leaving matrix rtc calls
 - UI: Downscale images in the timeline
+- UI: Add menu for enabling experimental messenger settings
 
 ### Changed
 

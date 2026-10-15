@@ -3922,6 +3922,20 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSett
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSettingsSingleAccountViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSettingsSingleAccountViewModelFactory.Companion|null[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel { // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel|null[0]
+    abstract val videoCallsEnabled // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel.videoCallsEnabled|{}videoCallsEnabled[0]
+        abstract fun <get-videoCallsEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel.videoCallsEnabled.<get-videoCallsEnabled>|<get-videoCallsEnabled>(){}[0]
+
+    abstract fun back() // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel.back|back(){}[0]
+    abstract fun toggleVideoCallsEnabled() // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel.toggleVideoCallsEnabled|toggleVideoCallsEnabled(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelFactory.Companion|null[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/InitialSettingsSetupViewModel { // de.connect2x.trixnity.messenger.viewmodel.settings/InitialSettingsSetupViewModel|null[0]
     abstract val account // de.connect2x.trixnity.messenger.viewmodel.settings/InitialSettingsSetupViewModel.account|{}account[0]
         abstract fun <get-account>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.settings/InitialSettingsSetupViewModel.account.<get-account>|<get-account>(){}[0]
@@ -4126,10 +4140,12 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/UserSettin
     abstract fun showNotificationsSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModel.showNotificationsSettings|showNotificationsSettings(){}[0]
     abstract fun showPrivacySettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModel.showPrivacySettings|showPrivacySettings(){}[0]
     abstract fun showProfilesSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModel.showProfilesSettings|showProfilesSettings(){}[0]
+    open fun showExperimentalSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModel.showExperimentalSettings|showExperimentalSettings(){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelFactory|null[0]
     open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModel // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModel // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
 
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelFactory.Companion|null[0]
 }
@@ -11319,6 +11335,14 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter { 
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.DeviceSettings.toString|toString(){}[0]
         }
 
+        final object ExperimentalSettings : de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.ExperimentalSettings|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.ExperimentalSettings.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.ExperimentalSettings.hashCode|hashCode(){}[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.ExperimentalSettings> // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.ExperimentalSettings.serializer|serializer(){}[0]
+            final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.ExperimentalSettings.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.ExperimentalSettings.toString|toString(){}[0]
+        }
+
         final object None : de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.None|null[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.None.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Config.None.hashCode|hashCode(){}[0]
@@ -11416,6 +11440,13 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter { 
 
             final val viewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper.DeviceSettings.viewModel|{}viewModel[0]
                 final fun <get-viewModel>(): de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSettingsAllAccountsViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper.DeviceSettings.viewModel.<get-viewModel>|<get-viewModel>(){}[0]
+        }
+
+        final class ExperimentalSettings : de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper.ExperimentalSettings|null[0]
+            constructor <init>(de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel) // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper.ExperimentalSettings.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.settings.ExperimentalSettingsViewModel){}[0]
+
+            final val viewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper.ExperimentalSettings.viewModel|{}viewModel[0]
+                final fun <get-viewModel>(): de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper.ExperimentalSettings.viewModel.<get-viewModel>|<get-viewModel>(){}[0]
         }
 
         final class List : de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter.Wrapper.List|null[0]
@@ -12243,6 +12274,39 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSettingsAll
     final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSettingsAllAccountsViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSettingsAllAccountsViewModelImpl.getKoin|getKoin(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.settings/DeviceSettingsAllAccountsViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val videoCallsEnabled // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.videoCallsEnabled|{}videoCallsEnabled[0]
+        final fun <get-videoCallsEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.videoCallsEnabled.<get-videoCallsEnabled>|<get-videoCallsEnabled>(){}[0]
+
+    final fun back() // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.back|back(){}[0]
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.getKoin|getKoin(){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    final fun toggleVideoCallsEnabled() // de.connect2x.trixnity.messenger.viewmodel.settings/ExperimentalSettingsViewModelImpl.toggleVideoCallsEnabled|toggleVideoCallsEnabled(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.settings/InitialSettingsSetupViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.settings/InitialSettingsSetupViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.settings/InitialSettingsSetupViewModelImpl|null[0]
@@ -14664,6 +14728,32 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 }
 
+final class de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings : de.connect2x.trixnity.messenger.settings/SettingsView<de.connect2x.trixnity.messenger/MatrixMessengerSettings> { // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings|null[0]
+    constructor <init>(kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.<init>|<init>(kotlin.Boolean){}[0]
+
+    final val enableVideoCalls // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.enableVideoCalls|{}enableVideoCalls[0]
+        final fun <get-enableVideoCalls>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.enableVideoCalls.<get-enableVideoCalls>|<get-enableVideoCalls>(){}[0]
+
+    final fun component1(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.component1|component1(){}[0]
+    final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.copy|copy(kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings> { // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings) // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.MatrixMessengerExperimentalSettings){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings> // de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final class de.connect2x.trixnity.messenger/MatrixMessengerImpl : de.connect2x.trixnity.messenger/MatrixMessenger { // de.connect2x.trixnity.messenger/MatrixMessengerImpl|null[0]
     final val di // de.connect2x.trixnity.messenger/MatrixMessengerImpl.di|{}di[0]
         final fun <get-di>(): org.koin.core/Koin // de.connect2x.trixnity.messenger/MatrixMessengerImpl.di.<get-di>|<get-di>(){}[0]
@@ -14683,6 +14773,8 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerSettings : de.connect
 
     final val base // de.connect2x.trixnity.messenger/MatrixMessengerSettings.base|{}base[0]
         final fun <get-base>(): de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase // de.connect2x.trixnity.messenger/MatrixMessengerSettings.base.<get-base>|<get-base>(){}[0]
+    final val experimental // de.connect2x.trixnity.messenger/MatrixMessengerSettings.experimental|{}experimental[0]
+        final fun <get-experimental>(): de.connect2x.trixnity.messenger/MatrixMessengerExperimentalSettings // de.connect2x.trixnity.messenger/MatrixMessengerSettings.experimental.<get-experimental>|<get-experimental>(){}[0]
     final val secretByteArrays // de.connect2x.trixnity.messenger/MatrixMessengerSettings.secretByteArrays|{}secretByteArrays[0]
         final fun <get-secretByteArrays>(): de.connect2x.trixnity.messenger/SecretByteArraySettings // de.connect2x.trixnity.messenger/MatrixMessengerSettings.secretByteArrays.<get-secretByteArrays>|<get-secretByteArrays>(){}[0]
 
@@ -16560,6 +16652,7 @@ open class de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSin
 
 open class de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl|null[0]
     constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
 
     open val backHandler // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.backHandler|{}backHandler[0]
         open fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
@@ -16591,6 +16684,7 @@ open class de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewMo
     open fun showAccounts() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.showAccounts|showAccounts(){}[0]
     open fun showAppearanceSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.showAppearanceSettings|showAppearanceSettings(){}[0]
     open fun showDeviceSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.showDeviceSettings|showDeviceSettings(){}[0]
+    open fun showExperimentalSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.showExperimentalSettings|showExperimentalSettings(){}[0]
     open fun showNotificationsSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.showNotificationsSettings|showNotificationsSettings(){}[0]
     open fun showPrivacySettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.showPrivacySettings|showPrivacySettings(){}[0]
     open fun showProfilesSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/UserSettingsViewModelImpl.showProfilesSettings|showProfilesSettings(){}[0]

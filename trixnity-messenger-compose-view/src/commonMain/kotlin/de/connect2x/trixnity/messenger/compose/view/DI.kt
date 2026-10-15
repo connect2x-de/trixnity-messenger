@@ -315,6 +315,8 @@ import de.connect2x.trixnity.messenger.compose.view.settings.BlockedContactsSett
 import de.connect2x.trixnity.messenger.compose.view.settings.BlockedContactsSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.DeviceSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.DeviceSettingsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.settings.ExperimentalSettingsView
+import de.connect2x.trixnity.messenger.compose.view.settings.ExperimentalSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooterView
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooterViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettingsView
@@ -708,6 +710,7 @@ fun settingsViewModule() = module {
     single<AvatarCutterView> { AvatarCutterViewImpl() }
     single<BlockedContactsSettingsView> { BlockedContactsSettingsViewImpl() }
     single<DeviceSettingsView> { DeviceSettingsViewImpl() }
+    single<ExperimentalSettingsView> { ExperimentalSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<AccountsSettingsView> { AccountsSettingsViewImpl() }

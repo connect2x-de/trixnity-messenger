@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.settings
 
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerExperimentalSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -44,6 +45,25 @@ class SettingsTest {
     }
 
     @Test fun `read base settings`() = runTest { cut.value.base shouldBe MatrixMessengerSettingsBase() }
+
+    @Test
+    fun `video calls are disabled by default`() = runTest { cut.value.experimental.enableVideoCalls shouldBe false }
+
+    @Test
+    fun `update experimental settings`() = runTest {
+        cut.update<MatrixMessengerExperimentalSettings> { it.copy(enableVideoCalls = true) }
+
+        cut.value.experimental.enableVideoCalls shouldBe true
+        settingsStorage.value shouldBe
+            """
+            {
+                "experimental": {
+                    "enableVideoCalls": true
+                }
+            }
+            """
+                .trimIndent()
+    }
 
     @Test
     fun `update base settings`() = runTest {

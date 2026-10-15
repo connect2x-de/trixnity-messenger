@@ -27,6 +27,8 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSetting
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ExperimentalSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.ExperimentalSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
@@ -164,6 +166,7 @@ class RoomListRouter(
                             onShowNotificationsSettings = ::onShowNotificationsSettings,
                             onShowPrivacySettings = ::onShowPrivacySettings,
                             onShowAppearanceSettings = ::onShowAppearanceSettings,
+                            onShowExperimentalSettings = ::onShowExperimentalSettings,
                         )
                 )
 
@@ -232,6 +235,17 @@ class RoomListRouter(
                             viewModelContext =
                                 viewModelContext.childContext(name = "AppearanceSettings", componentContext),
                             onCloseAppearanceSettings = ::onCloseAppearanceSettings,
+                        )
+                )
+
+            is Config.ExperimentalSettings ->
+                Wrapper.ExperimentalSettings(
+                    viewModelContext
+                        .get<ExperimentalSettingsViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext(name = "ExperimentalSettings", componentContext),
+                            onCloseExperimentalSettings = ::onCloseExperimentalSettings,
                         )
                 )
 
@@ -397,6 +411,16 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
+    private fun onShowExperimentalSettings() {
+        log.debug { "show experimental settings" }
+        navigation.launchPush(viewModelContext.coroutineScope, Config.ExperimentalSettings)
+    }
+
+    private fun onCloseExperimentalSettings() {
+        log.debug { "close experimental settings" }
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
     private fun onShowBlockedContactsSettings(account: UserId) {
         log.debug { "show blocked contacts settings for account $account" }
         navigation.launchPush(viewModelContext.coroutineScope, Config.BlockedContactsSettings(account))
@@ -454,6 +478,8 @@ class RoomListRouter(
 
         @Serializable data object AppearanceSettings : Config()
 
+        @Serializable data object ExperimentalSettings : Config()
+
         @Serializable data class BlockedContactsSettings(val account: UserId) : Config()
 
         @Serializable data object AppInfo : Config()
@@ -483,6 +509,8 @@ class RoomListRouter(
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
 
         class AppearanceSettings(val viewModel: AppearanceSettingsViewModel) : Wrapper()
+
+        class ExperimentalSettings(val viewModel: ExperimentalSettingsViewModel) : Wrapper()
 
         class BlockedContactsSettings(val viewModel: BlockedContactsSettingsViewModel) : Wrapper()
 
