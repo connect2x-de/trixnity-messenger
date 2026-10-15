@@ -20,6 +20,7 @@ import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -31,7 +32,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -41,6 +42,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.component.get
+import org.koin.core.component.inject
 
 @TrixnityMessengerCallApi
 interface CallControlViewModelFactory {
@@ -94,6 +96,7 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     }
 
     private val slotId = CallRtcApplication.SLOT_ID
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val joining = MutableStateFlow(false)
     private val error = MutableStateFlow<String?>(null)
 
@@ -122,43 +125,68 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
             }
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
+    private val configuration: MatrixMessengerConfiguration by inject()
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val state: StateFlow<CallControlViewModel.State?> =
-        combine(
-                getExistingMembership().flatMapLatest { it?.state ?: flowOf(null) },
-                canCreateOrJoin,
-                joinedParticipants,
-                error,
-                joining,
-            ) { existingMembershipState, canCreateOrJoin, participants, error, joining ->
-                when (existingMembershipState) {
-                    is RtcSlotMembership.State.Join -> CallControlViewModel.State.Join
-                    is RtcSlotMembership.State.Joining -> CallControlViewModel.State.Joining
-                    is RtcSlotMembership.State.JoiningError -> CallControlViewModel.State.Error(i18n.callJoinError())
-                    is RtcSlotMembership.State.Leave ->
-                        CallControlViewModel.State.CallAvailable(hasParticipants = participants.isNotEmpty())
-                    is RtcSlotMembership.State.Leaving -> CallControlViewModel.State.Leaving
-                    is RtcSlotMembership.State.LeavingError -> CallControlViewModel.State.Error(i18n.callJoinError())
-                    null ->
-                        when {
-                            error != null -> CallControlViewModel.State.Error(error)
-                            joining -> CallControlViewModel.State.Joining
-                            canCreateOrJoin ->
-                                CallControlViewModel.State.CallAvailable(hasParticipants = participants.isNotEmpty())
-                            else -> CallControlViewModel.State.NoCall
-                        }
+    override val state: StateFlow<CallControlViewModel.State?> = let {
+        if (configuration.features.enableVideoCalls) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
+
+        messengerSettings
+            .map { it.experimental.enableVideoCalls }
+            .distinctUntilChanged()
+            .flatMapLatest { enabled ->
+                if (!enabled) return@flatMapLatest flowOf(CallControlViewModel.State.NoCall)
+
+                combine(
+                    getExistingMembership().flatMapLatest { it?.state ?: flowOf(null) },
+                    canCreateOrJoin,
+                    joinedParticipants,
+                    error,
+                    joining,
+                ) { existingMembershipState, canCreateOrJoin, participants, error, joining ->
+                    val hasParticipants = participants.isNotEmpty()
+                    when (existingMembershipState) {
+                        is RtcSlotMembership.State.Join -> CallControlViewModel.State.Join
+                        is RtcSlotMembership.State.Joining -> CallControlViewModel.State.Joining
+                        is RtcSlotMembership.State.JoiningError ->
+                            CallControlViewModel.State.Error(i18n.callJoinError())
+                        is RtcSlotMembership.State.Leave ->
+                            if (hasParticipants) {
+                                CallControlViewModel.State.CallAvailable(hasParticipants = hasParticipants)
+                            } else {
+                                CallControlViewModel.State.NoCall
+                            }
+                        is RtcSlotMembership.State.Leaving -> CallControlViewModel.State.Leaving
+                        is RtcSlotMembership.State.LeavingError ->
+                            CallControlViewModel.State.Error(i18n.callJoinError())
+                        null ->
+                            when {
+                                error != null -> CallControlViewModel.State.Error(error)
+                                joining -> CallControlViewModel.State.Joining
+                                canCreateOrJoin && hasParticipants ->
+                                    CallControlViewModel.State.CallAvailable(hasParticipants = hasParticipants)
+                                else -> CallControlViewModel.State.NoCall
+                            }
+                    }
                 }
             }
             .stateIn(coroutineScope, Eagerly, null)
+    }
 
     override fun join() {
+        val currentState = state.value
+        if (currentState !is CallControlViewModel.State.CallAvailable) {
+            log.warn { "cannot join with wrong state" }
+            return
+        }
+        if (!messengerSettings.value.experimental.enableVideoCalls) {
+            log.warn { "cannot start a call while experimental video calls are disabled" }
+            return
+        }
         if (!joining.compareAndSet(expect = false, update = true)) return
+
         coroutineScope.launch {
             error.value = null
-            if (state.filterNotNull().first() !is CallControlViewModel.State.CallAvailable) {
-                log.warn { "cannot join with wrong state" }
-                return@launch
-            }
             val existingJoinedMembership = getExistingJoinedMembership()
             if (existingJoinedMembership != null) return@launch
 

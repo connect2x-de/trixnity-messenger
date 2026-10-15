@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.internal.navigation.navigationCallback
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.AccountsRoute
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.AppearanceSettingsRoute
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.DeviceSettingsRoute
+import de.connect2x.trixnity.messenger.internal.routes.roomlist.ExperimentalSettingsRoute
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.NotificationSettingsRoute
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.PrivacySettingsRoute
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.ProfilesSettingsRoute
@@ -32,6 +33,7 @@ internal class UserSettingsViewModelFactoryAdapter(
             onShowNotificationsSettings = routeNavigation.navigationCallback { push(NotificationSettingsRoute) },
             onShowPrivacySettings = routeNavigation.navigationCallback { push(PrivacySettingsRoute) },
             onShowAppearanceSettings = routeNavigation.navigationCallback { push(AppearanceSettingsRoute) },
+            onShowExperimentalSettings = routeNavigation.navigationCallback { push(ExperimentalSettingsRoute) },
         )
     }
 }

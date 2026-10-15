@@ -18,6 +18,7 @@ import de.connect2x.trixnity.messenger.internal.adapters.CreateNewChatViewModelF
 import de.connect2x.trixnity.messenger.internal.adapters.CreateNewGroupViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.CrossSigningBootstrapViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.DeviceSettingsViewModelFactoryAdapter
+import de.connect2x.trixnity.messenger.internal.adapters.ExperimentalSettingsViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.ExportRoomViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.JoinRoomActionViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.MatrixClientInitializationFailureViewModelFactoryAdapter
@@ -156,6 +157,7 @@ private fun nav3ViewModelModuleFactory(): Module {
         viewModelFactoryAdapterOf(::CrossSigningBootstrapViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::DeviceSettingsViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::ExportRoomViewModelFactoryAdapter)
+        viewModelFactoryAdapterOf(::ExperimentalSettingsViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::JoinRoomActionViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::MatrixClientInitializationFailureViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::MatrixClientInitializationViewModelFactoryAdapter)

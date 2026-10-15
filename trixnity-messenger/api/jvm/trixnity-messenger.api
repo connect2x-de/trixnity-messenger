@@ -717,6 +717,35 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnableVideoCalls ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/messenger/MatrixMessengerImpl : de/connect2x/trixnity/messenger/MatrixMessenger {
 	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixMessengerImpl$Companion;
 	public synthetic fun <init> (Lorg/koin/core/Koin;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -742,6 +771,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerSettings : de/
 	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerSettings;Ljava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerSettings;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBase ()Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsBase;
+	public final fun getExperimental ()Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
 	public final fun getSecretByteArrays ()Lde/connect2x/trixnity/messenger/SecretByteArraySettings;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -11599,6 +11629,14 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRo
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$ExperimentalSettings : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$ExperimentalSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$None : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$None;
 	public fun equals (Ljava/lang/Object;)Z
@@ -11710,6 +11748,11 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRo
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper$DeviceSettings : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;)V
 	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper$ExperimentalSettings : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;)V
+	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper$List : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper {
@@ -12891,6 +12934,47 @@ public class de/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSi
 	public fun verify (Ljava/lang/String;)V
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel {
+	public abstract fun back ()V
+	public abstract fun getVideoCallsEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun toggleVideoCallsEnabled ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory$Companion;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)V
+	public fun back ()V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getVideoCallsEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun toggleVideoCallsEnabled ()V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel {
 	public abstract fun getAccount-hu1aZbM ()Ljava/lang/String;
 	public abstract fun getAvailableProviders ()Ljava/util/List;
@@ -13325,26 +13409,35 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun showAccounts ()V
 	public abstract fun showAppearanceSettings ()V
 	public abstract fun showDeviceSettings ()V
+	public fun showExperimentalSettings ()V
 	public abstract fun showNotificationsSettings ()V
 	public abstract fun showPrivacySettings ()V
 	public abstract fun showProfilesSettings ()V
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel$DefaultImpls {
+	public static fun showExperimentalSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;)V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory$Companion;
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory {
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory$DefaultImpls {
 	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
 }
 
 public class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -13365,6 +13458,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsView
 	public fun showAccounts ()V
 	public fun showAppearanceSettings ()V
 	public fun showDeviceSettings ()V
+	public fun showExperimentalSettings ()V
 	public fun showNotificationsSettings ()V
 	public fun showPrivacySettings ()V
 	public fun showProfilesSettings ()V

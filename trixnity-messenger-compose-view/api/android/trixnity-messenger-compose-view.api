@@ -1353,6 +1353,10 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun editRoomTopic ()Ljava/lang/String;
 	public fun errorDetails ()Ljava/lang/String;
 	public fun eventMentionPile (Ljava/lang/String;)Ljava/lang/String;
+	public fun experimentalSettingsCallsTitle ()Ljava/lang/String;
+	public fun experimentalSettingsTitle ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCalls ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCallsExplanation ()Ljava/lang/String;
 	public fun exportRoom (Ljava/lang/String;)Ljava/lang/String;
 	public fun exportRoomAbort ()Ljava/lang/String;
 	public fun exportRoomBodyLabel (Ljava/lang/String;)Ljava/lang/String;
@@ -5201,6 +5205,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Composa
 public final class de/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$UserSettingsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$UserSettingsKt;
 	public fun <init> ()V
+	public final fun getLambda$-234515533$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-278407967$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-835105995$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$1555589593$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
@@ -5223,6 +5228,20 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Devices
 	public static final fun DeviceItem (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel$DeviceInfo;ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettingsSingleAccount (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsKt {
+	public static final fun ExperimentalSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsViewImpl : de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/LegalFooterKt {
@@ -5382,6 +5401,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/UserSet
 	public static final fun AccountsInfoButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun AppearanceSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ExperimentalSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun NotificationsSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun ProfilesSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V

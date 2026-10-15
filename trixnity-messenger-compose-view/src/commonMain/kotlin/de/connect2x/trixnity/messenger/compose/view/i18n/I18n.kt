@@ -2905,6 +2905,27 @@ open class I18nView(
         DE - "Erscheinungsbild"
     }
 
+    open fun experimentalSettingsTitle() = translate {
+        EN - "Experimental features"
+        DE - "Experimentelle Funktionen"
+    }
+
+    open fun experimentalSettingsCallsTitle() = translate {
+        EN - "Calls"
+        DE - "Anrufe"
+    }
+
+    open fun experimentalSettingsVideoCalls() = translate {
+        EN - "Video calls"
+        DE - "Videoanrufe"
+    }
+
+    open fun experimentalSettingsVideoCallsExplanation() = translate {
+        EN - "This feature may not be compatible with clients running older MatrixRTC versions."
+        DE -
+            "Diese Funktion ist möglicherweise nicht mit Clients kompatibel, die ältere MatrixRTC-Versionen unterstützen."
+    }
+
     open fun appearanceColorsTitle() = translate {
         EN - "Colors"
         DE - "Farben"
