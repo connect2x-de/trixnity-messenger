@@ -18,11 +18,13 @@ import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
@@ -53,6 +55,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @Suppress("NonAsciiCharacters")
+@OptIn(TrixnityMessengerCallApi::class)
 class RoomHeaderViewModelTest {
     private val roomId = RoomId("!room1")
 
@@ -114,6 +117,7 @@ class RoomHeaderViewModelTest {
     private val initialsMock = mock<Initials>()
     private val roomPresenceMock = mock<RoomPresence>()
     private val userBlockingMock = mock<UserBlocking>()
+    private val callControlViewModelFactoryMock = mock<CallControlViewModelFactory>()
 
     private var roomNameElement: BlockingAnsweringScope<Flow<String>>
     private var roomTopicElement: BlockingAnsweringScope<Flow<String>>
@@ -132,6 +136,7 @@ class RoomHeaderViewModelTest {
             initialsMock,
             roomPresenceMock,
             userBlockingMock,
+            callControlViewModelFactoryMock,
         )
         every { matrixClientMock.di } returns
             koinApplication {
@@ -165,6 +170,7 @@ class RoomHeaderViewModelTest {
         ignoredUsers returns flowOf(IgnoredUserListEventContent(emptyMap()))
 
         every { initialsMock.compute(any()) } returns "MR"
+        every { callControlViewModelFactoryMock.create(any(), any()) } returns null
         room.value = Room(roomId, avatarUrl = "mxc://localhost/123456")
         every { roomServiceMock.getById(roomId) } returns room
         everySuspend {
@@ -471,6 +477,7 @@ class RoomHeaderViewModelTest {
                                                 single { roomPresenceMock }
                                                 single { initialsMock }
                                                 single { userBlockingMock }
+                                                single { callControlViewModelFactoryMock }
                                             }
                                     )
                                 }

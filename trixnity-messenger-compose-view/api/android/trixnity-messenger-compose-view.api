@@ -206,6 +206,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/SharedIntentData
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/TextFieldViewModelKt {
+	public static final fun collectAsTextFieldState (Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/Composer;II)Landroidx/compose/foundation/text/input/TextFieldState;
 	public static final fun collectAsTextFieldValueState (Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/Composer;II)Landroidx/compose/runtime/MutableState;
 }
 
@@ -425,13 +426,9 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/MatrixUse
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/MessengerModalKt {
-	public static final fun BackButton (Landroidx/compose/foundation/layout/RowScope;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun CloseMessengerButton (Landroidx/compose/foundation/layout/RowScope;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun CloseModalButton (Landroidx/compose/foundation/layout/RowScope;Lkotlin/jvm/functions/Function0;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
-	public static final fun MessengerModal-942rkJo (Lkotlin/jvm/functions/Function0;Ljava/lang/String;FLkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun MessengerModalButtonRow (Landroidx/compose/foundation/layout/ColumnScope;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
-	public static final fun MessengerModalContent (Landroidx/compose/foundation/layout/ColumnScope;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
-	public static final fun NextButton (Landroidx/compose/foundation/layout/RowScope;ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/MoonShape : androidx/compose/ui/graphics/Shape {
@@ -449,7 +446,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/Paragraph
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/PasswordFieldKt {
-	public static final fun PasswordField (Landroidx/compose/runtime/MutableState;ZLandroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PasswordField (Landroidx/compose/runtime/MutableState;ZLandroidx/compose/ui/Modifier;IZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/PlaceholderDefaults {
@@ -817,6 +814,32 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/Wi
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent {
+	public static final field $stable I
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function2;
+	public final fun component2 ()Lkotlin/jvm/functions/Function2;
+	public final fun component3 ()Lkotlin/jvm/functions/Function3;
+	public final fun component4 ()Lkotlin/jvm/functions/Function3;
+	public final fun copy (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getButtons ()Lkotlin/jvm/functions/Function3;
+	public final fun getContent ()Lkotlin/jvm/functions/Function3;
+	public final fun getSubTitle ()Lkotlin/jvm/functions/Function2;
+	public final fun getTitle ()Lkotlin/jvm/functions/Function2;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelKt {
+	public static final fun BackButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun NextButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun WizardPanel (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+	public static final fun WizardPanel (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardSectionKt {
 	public static final fun WizardSection-Kz89ssw (FLandroidx/compose/foundation/layout/PaddingValues;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
@@ -850,6 +873,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/Wi
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/AddMatrixAccountKt {
 	public static final fun AddMatrixAccount (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun AddMatrixAccountWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/AddMatrixAccountView {
@@ -916,6 +940,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Matri
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthenticationCodeLoginKt {
 	public static final fun OAuth2AuthorizationCodeLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun OAuth2AuthorizationCodeLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthorizationCodeLoginView {
@@ -930,6 +955,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginKt {
 	public static final fun OAuth2DeviceAuthorizationLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun OAuth2DeviceAuthorizationLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginView {
@@ -945,6 +971,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/PasswordLoginKt {
 	public static final fun PasswordLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/PasswordLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PasswordLoginState (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountState;Landroidx/compose/runtime/Composer;I)V
+	public static final fun PasswordLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/PasswordLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/PasswordLoginView {
@@ -958,6 +985,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Passw
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/RegisterNewAccountKt {
+	public static final fun RegisterMatrixAccountWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RegisterMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RegisterNewAccount (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RegisterMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
@@ -983,6 +1011,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Remov
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/SSOLoginKt {
 	public static final fun SSOLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/SSOLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun SSOLoginWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/connecting/SSOLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/SSOLoginView {
@@ -1201,6 +1230,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun bootstrapRecoveryKeyVaultCreation ()Ljava/lang/String;
 	public fun bootstrapRecoveryKeyWarning ()Ljava/lang/String;
 	public fun bootstrapVault ()Ljava/lang/String;
+	public fun callStartWithError (Ljava/lang/String;)Ljava/lang/String;
 	public fun cameraDialogAlertNoPermission ()Ljava/lang/String;
 	public fun cannotChangePowerLevels ()Ljava/lang/String;
 	public fun cannotDisableMultiProfileMode ()Ljava/lang/String;
@@ -1323,6 +1353,10 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun editRoomTopic ()Ljava/lang/String;
 	public fun errorDetails ()Ljava/lang/String;
 	public fun eventMentionPile (Ljava/lang/String;)Ljava/lang/String;
+	public fun experimentalSettingsCallsTitle ()Ljava/lang/String;
+	public fun experimentalSettingsTitle ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCalls ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCallsExplanation ()Ljava/lang/String;
 	public fun exportRoom (Ljava/lang/String;)Ljava/lang/String;
 	public fun exportRoomAbort ()Ljava/lang/String;
 	public fun exportRoomBodyLabel (Ljava/lang/String;)Ljava/lang/String;
@@ -1402,6 +1436,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun knockLabel ()Ljava/lang/String;
 	public fun knockRequest ()Ljava/lang/String;
 	public fun labelMessages ()Ljava/lang/String;
+	public fun leaveAndForgetRoom ()Ljava/lang/String;
 	public fun loading ()Ljava/lang/String;
 	public fun locationClickText (Lkotlin/Pair;)Ljava/lang/String;
 	public fun login ()Ljava/lang/String;
@@ -1467,6 +1502,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun markRoomAsRead ()Ljava/lang/String;
 	public fun markRoomAsUnread ()Ljava/lang/String;
 	public fun matrixClientLogout (Ljava/lang/String;)Ljava/lang/String;
+	public fun mediaPlayerPlaybackError ()Ljava/lang/String;
 	public fun memberListChangeRole (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public fun memberListChangeRoleWarning ()Ljava/lang/String;
 	public fun memberListChangeTo (Ljava/lang/String;)Ljava/lang/String;
@@ -1631,6 +1667,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun roomListNoRoom ()Ljava/lang/String;
 	public fun roomListNoSearchResults ()Ljava/lang/String;
 	public fun roomListRemoveRoom ()Ljava/lang/String;
+	public fun roomListRunningCall ()Ljava/lang/String;
 	public fun roomListSearch ()Ljava/lang/String;
 	public fun roomListSyncErrorAccounts (Ljava/lang/String;)Ljava/lang/String;
 	public fun roomListSyncErrorNoConnection ()Ljava/lang/String;
@@ -1700,6 +1737,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun selfVerificationWaitingForMethods ()Ljava/lang/String;
 	public fun sendAttachmentTitle ()Ljava/lang/String;
 	public fun settingsRoomMemberListBanned ()Ljava/lang/String;
+	public fun settingsRoomMemberListHideFilters ()Ljava/lang/String;
 	public fun settingsRoomMemberListInvited ()Ljava/lang/String;
 	public fun settingsRoomMemberListJoined ()Ljava/lang/String;
 	public fun settingsRoomMemberListKickUserWarningMessageChat ()Ljava/lang/String;
@@ -1707,6 +1745,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun settingsRoomMemberListKickUserWarningTitleChat (Ljava/lang/String;)Ljava/lang/String;
 	public fun settingsRoomMemberListKickUserWarningTitleGroup (Ljava/lang/String;)Ljava/lang/String;
 	public fun settingsRoomMemberListKnocking ()Ljava/lang/String;
+	public fun settingsRoomMemberListShowFilters ()Ljava/lang/String;
 	public fun shareDataTitle (Lde/connect2x/trixnity/messenger/util/SharedData;)Ljava/lang/String;
 	public fun shareFilesCancel ()Ljava/lang/String;
 	public fun shareFilesTitle (I)Ljava/lang/String;
@@ -2112,7 +2151,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/richtext/RichTex
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/RichTextDisplayKt {
-	public static final fun RichTextDisplay (Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;Lkotlinx/coroutines/flow/StateFlow;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/richtext/RichTextColors;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun RichTextDisplay (Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;Lkotlinx/coroutines/flow/StateFlow;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/richtext/RichTextColors;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/table/ComposableSingletons$DataTableKt {
@@ -2162,6 +2201,16 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/RoomViewImp
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/room/call/CallControlButtonKt {
+	public static final fun CallControlButton (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$CallControlButtonKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$CallControlButtonKt;
+	public fun <init> ()V
+	public final fun getLambda$-250584730$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ChangePowerLevelKt {
 	public static final fun ChangePowerLevel (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PowerlevelViewModel;Landroidx/compose/runtime/Composer;I)V
 }
@@ -2199,7 +2248,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Co
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ComposableSingletons$RoomSettingsMemberListKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/settings/ComposableSingletons$RoomSettingsMemberListKt;
 	public fun <init> ()V
-	public final fun getLambda$1224139425$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-673937458$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ComposableSingletons$UserProfileKt {
@@ -2343,7 +2392,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ro
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsMemberListKt {
-	public static final fun MemberList (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public static final fun MemberList (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/MemberListViewModel;Landroidx/compose/foundation/lazy/LazyListState;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 	public static final fun RoomSettingsMemberList (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
@@ -2470,22 +2519,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ti
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementDevInfoViewModel;Landroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataKt {
-	public static final fun ReadersAndReactions (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;Ljava/util/List;Landroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
-	public static final fun SubHeading (Landroidx/compose/foundation/layout/ColumnScope;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
-	public static final fun TimelineElementMetadata (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/TimelineElementMetadataView {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/UserProfileKt {
@@ -2618,7 +2651,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/In
 	public static final fun EditButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun EmojiButton (Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
 	public static final fun InputArea (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun InputAreaTextField (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/ui/focus/FocusRequester;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;ZLandroidx/compose/runtime/Composer;II)V
+	public static final fun InputAreaTextField (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/foundation/text/input/TextFieldState;Landroidx/compose/ui/focus/FocusRequester;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;ZLandroidx/compose/runtime/Composer;II)V
 	public static final fun MentionSelector (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RoomSelectorRow (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Landroidx/compose/runtime/Composer;I)V
 	public static final fun SendButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
@@ -2925,31 +2958,59 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView$DefaultImpls {
-	public static fun a11yLabel (Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView$DefaultImpls {
+	public static fun a11yLabel (Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedTimelineElementView {
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedMessageTimelineElementView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
 	public synthetic fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
-	public fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
 	public synthetic fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
-	public fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
 	public synthetic fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
-	public fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
 	public synthetic fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
-	public fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
 	public synthetic fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
-	public fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
 	public synthetic fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
 	public fun getSupports ()Lkotlin/reflect/KClass;
 	public fun isFocusable ()Z
-	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedTimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedMessageTimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView$DefaultImpls {
+	public static fun a11yLabel (Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/RedactedStateTimelineElementView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public synthetic fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public synthetic fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public synthetic fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public synthetic fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public synthetic fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public synthetic fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+	public fun isFocusable ()Z
+	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/RedactedStateTimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -3676,6 +3737,53 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/bubble/RepliedElementKt {
 	public static final fun RepliedElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataKt {
+	public static final fun SubHeading (Landroidx/compose/foundation/layout/ColumnScope;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+	public static final fun TimelineElementMetadata (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
+	public static final fun UserInfo (Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Landroidx/compose/ui/Modifier;Ljava/util/Set;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+	public abstract fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataMessageHistoryListItemView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataMessageHistoryListItemViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataMessageHistoryListItemView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataReadersAndReactionsListItemView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataReadersAndReactionsListItemViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataReadersAndReactionsListItemView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataSenderListItemView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataListItemView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataSenderListItemViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataSenderListItemView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;Ljava/util/List;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Landroidx/compose/foundation/ScrollState;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/metadata/TimelineElementMetadataView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/TimelineElementMetadataViewModel;ZZLandroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/state/AvatarStateTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
@@ -5098,6 +5206,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Composa
 public final class de/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$UserSettingsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$UserSettingsKt;
 	public fun <init> ()V
+	public final fun getLambda$-234515533$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-278407967$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-835105995$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$1555589593$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
@@ -5120,6 +5229,20 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Devices
 	public static final fun DeviceItem (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel$DeviceInfo;ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettingsSingleAccount (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsKt {
+	public static final fun ExperimentalSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsViewImpl : de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/LegalFooterKt {
@@ -5279,6 +5402,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/UserSet
 	public static final fun AccountsInfoButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun AppearanceSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ExperimentalSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun NotificationsSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun ProfilesSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
@@ -5311,20 +5435,20 @@ public final class de/connect2x/trixnity/messenger/compose/view/sharing/ShareDat
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/ComponentStyles {
 	public static final field $stable I
-	public fun <init> (Lde/connect2x/trixnity/messenger/compose/view/theme/components/SystemUiStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/compose/view/theme/components/SystemUiStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;)V
 	public final fun component1 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SystemUiStyle;
 	public final fun component10 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
 	public final fun component11 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;
 	public final fun component12 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;
 	public final fun component13 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun component14 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
-	public final fun component15 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
-	public final fun component16 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;
-	public final fun component17 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;
-	public final fun component18 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;
-	public final fun component19 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component15 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
+	public final fun component16 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
+	public final fun component17 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
+	public final fun component18 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;
+	public final fun component19 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;
 	public final fun component2 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
-	public final fun component20 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component20 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;
 	public final fun component21 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun component22 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun component23 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
@@ -5335,51 +5459,53 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/ComponentS
 	public final fun component28 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun component29 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun component3 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
-	public final fun component30 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;
-	public final fun component31 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;
-	public final fun component32 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;
-	public final fun component33 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;
-	public final fun component34 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
-	public final fun component35 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
-	public final fun component36 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;
-	public final fun component37 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
-	public final fun component38 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
-	public final fun component39 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;
+	public final fun component30 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component31 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component32 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;
+	public final fun component33 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;
+	public final fun component34 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;
+	public final fun component35 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;
+	public final fun component36 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component37 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component38 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;
+	public final fun component39 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun component4 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun component40 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
-	public final fun component41 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
+	public final fun component41 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;
 	public final fun component42 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
-	public final fun component43 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component43 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
 	public final fun component44 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun component45 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
-	public final fun component46 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;
-	public final fun component47 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;
-	public final fun component48 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;
+	public final fun component46 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component47 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component48 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;
 	public final fun component49 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;
 	public final fun component5 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun component50 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;
-	public final fun component51 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;
-	public final fun component52 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;
-	public final fun component53 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;
-	public final fun component54 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
-	public final fun component55 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
+	public final fun component51 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;
+	public final fun component52 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;
+	public final fun component53 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;
+	public final fun component54 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;
+	public final fun component55 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;
 	public final fun component56 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
 	public final fun component57 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
 	public final fun component58 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
-	public final fun component59 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component59 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
 	public final fun component6 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
-	public final fun component60 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;
+	public final fun component60 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
 	public final fun component61 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
-	public final fun component62 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;
-	public final fun component63 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;
-	public final fun component64 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;
-	public final fun component65 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
-	public final fun component66 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;
+	public final fun component62 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;
+	public final fun component63 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun component64 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;
+	public final fun component65 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;
+	public final fun component66 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;
+	public final fun component67 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;
+	public final fun component68 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;
 	public final fun component7 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
 	public final fun component8 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
 	public final fun component9 ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
-	public final fun copy (Lde/connect2x/trixnity/messenger/compose/view/theme/components/SystemUiStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;)Lde/connect2x/trixnity/messenger/compose/view/theme/ComponentStyles;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/theme/ComponentStyles;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SystemUiStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;IIILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/theme/ComponentStyles;
+	public final fun copy (Lde/connect2x/trixnity/messenger/compose/view/theme/components/SystemUiStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;)Lde/connect2x/trixnity/messenger/compose/view/theme/ComponentStyles;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/theme/ComponentStyles;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SystemUiStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/FloatingActionButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/CheckboxStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/RadioButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DividerStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/TooltipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$LinearProgressIndicatorStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SliderStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectionStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/LibraryStyle;IIILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/theme/ComponentStyles;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccountSelector ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun getAdaptiveDialog ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;
@@ -5401,6 +5527,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/ComponentS
 	public final fun getDropdownMenu ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun getDropdownMenuItem ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DropdownMenuItemStyle;
 	public final fun getErrorBanner ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
+	public final fun getErrorReactionButton ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun getExtraSmallCircularProgressIndicator ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ProgressIndicatorStyle$CircularProgressIndicatorStyle;
 	public final fun getFileViewerIconButton ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/IconButtonStyle;
 	public final fun getFileViewerSurface ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
@@ -5420,6 +5547,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/ComponentS
 	public final fun getMessageBubbleOwn ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun getMessageReference ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun getModalDialog ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;
+	public final fun getPendingReactionButton ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun getPopup ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;
 	public final fun getPrimaryButton ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;
 	public final fun getPrimaryChip ()Lde/connect2x/trixnity/messenger/compose/view/theme/components/ChipStyle;
@@ -6437,7 +6565,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 
 public class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedActionMenuItem {
 	public static final field $stable I
-	public fun <init> (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/graphics/Color;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/graphics/Color;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getIcon ()Landroidx/compose/ui/graphics/vector/ImageVector;
 	public fun getLabel ()Ljava/lang/String;
 	public final fun invoke ()V
@@ -7061,7 +7190,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/Ver
 public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$SelfVerificationStepsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$SelfVerificationStepsKt;
 	public fun <init> ()V
-	public final fun getLambda$-107899124$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1662047360$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-1918331658$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-1980866655$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-708029081$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;

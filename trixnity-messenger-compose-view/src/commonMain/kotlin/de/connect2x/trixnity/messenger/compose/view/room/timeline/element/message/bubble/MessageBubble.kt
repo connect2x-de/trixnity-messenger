@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -80,22 +79,25 @@ class MessageBubbleViewImpl : MessageBubbleView {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = if (holder.isByMe) Alignment.End else Alignment.Start,
             ) {
-                Row {
-                    MessageBubbleContainer(
-                        holder = holder,
-                        needsMaxWidth = needsMaxWidth,
-                        reactionsOpen = reactionsOpen,
-                        additionalContextActions = additionalContextActions,
-                        isPreview = isPreview,
-                        isMentioned = isMentioned,
-                        interactionSource = interactionSource,
-                        index = index,
-                        onRedact = { timelineElementHolder?.redact() },
-                        content = content,
-                    )
-                }
+                MessageBubbleContainer(
+                    holder = holder,
+                    needsMaxWidth = needsMaxWidth,
+                    reactionsOpen = reactionsOpen,
+                    additionalContextActions = additionalContextActions,
+                    isPreview = isPreview,
+                    isMentioned = isMentioned,
+                    interactionSource = interactionSource,
+                    index = index,
+                    onRedact = { timelineElementHolder?.redact() },
+                    content = content,
+                )
                 if (isPreview.not()) {
-                    MessageReactions(holder, reactionsOpen, modifier = Modifier.padding(start = 8.dp))
+                    val reactionModifier =
+                        Modifier.padding(
+                            end = if (holder.isByMe) 8.dp else 0.dp,
+                            start = if (holder.isByMe) 0.dp else 8.dp,
+                        )
+                    MessageReactions(holder, reactionsOpen, modifier = reactionModifier)
                     if (showRedactionWarning) {
                         RedactionWarning(holder)
                     }

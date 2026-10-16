@@ -20,6 +20,7 @@ import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventCont
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.InviteUser
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.calls
@@ -69,6 +70,7 @@ class AddMembersViewModelTest {
     val userServiceMock = mock<UserService>()
 
     val roomServiceMock = mock<RoomService>()
+    val inviteUserMock = mock<InviteUser>()
 
     private val onBackMock = mock<Function0<Unit>>()
 
@@ -80,6 +82,7 @@ class AddMembersViewModelTest {
             roomsApiClientMock,
             userServiceMock,
             onBackMock,
+            inviteUserMock,
         )
         every { matrixClientMock.di } returns
             koinApplication { modules(module { single { userServiceMock } }, module { single { roomServiceMock } }) }
@@ -149,8 +152,8 @@ class AddMembersViewModelTest {
     fun `select user - should add Members with all selected users and go back to room settings`() = runTest {
         every { onBackMock.invoke() } returns Unit
 
-        everySuspend { roomsApiClientMock.inviteUser(roomId, userId2, null) } returns Result.success(Unit)
-        everySuspend { roomsApiClientMock.inviteUser(roomId, userId3, null) } returns Result.success(Unit)
+        everySuspend { inviteUserMock(matrixClientMock, roomId, userId2, null) } returns Result.success(Unit)
+        everySuspend { inviteUserMock(matrixClientMock, roomId, userId3, null) } returns Result.success(Unit)
         everySuspend { usersApiClientMock.searchUsers("u", any(), any()) } returns
             Result.success(
                 SearchUsers.Response(
@@ -184,9 +187,9 @@ class AddMembersViewModelTest {
         var onBackWasCalled = false
         every { onBackMock.invoke() } calls { onBackWasCalled = true }
 
-        everySuspend { roomsApiClientMock.inviteUser(roomId, userId2, null) } returns
+        everySuspend { inviteUserMock(matrixClientMock, roomId, userId2, null) } returns
             Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("403")))
-        everySuspend { roomsApiClientMock.inviteUser(roomId, userId3, null) } returns
+        everySuspend { inviteUserMock(matrixClientMock, roomId, userId3, null) } returns
             Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("403")))
         everySuspend { usersApiClientMock.searchUsers("u", any(), any()) } returns
             Result.success(
@@ -299,7 +302,7 @@ class AddMembersViewModelTest {
                                 modules(
                                     createTestDefaultTrixnityMessengerModules(
                                         mapOf(UserId("test", "server") to matrixClientMock)
-                                    )
+                                    ) + module { single<InviteUser> { inviteUserMock } }
                                 )
                             }
                             .koin,
@@ -323,7 +326,7 @@ class AddMembersViewModelTest {
                                 modules(
                                     createTestDefaultTrixnityMessengerModules(
                                         mapOf(UserId("test", "server") to matrixClientMock)
-                                    )
+                                    ) + module { single<InviteUser> { inviteUserMock } }
                                 )
                             }
                             .koin,

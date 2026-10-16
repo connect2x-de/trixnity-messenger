@@ -5,10 +5,12 @@ import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.notification
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.rtc
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
@@ -28,8 +30,10 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Te
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.getNotificationDisplayCount
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -48,6 +52,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +71,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.TimeZone
 import org.koin.core.component.get
+import org.koin.core.component.inject
 
 interface RoomListElementViewModelFactory {
     fun create(
@@ -90,6 +96,7 @@ interface RoomListElementViewModel {
     val inviterUserInfo: StateFlow<UserInfoElement?>
     val isEncrypted: StateFlow<Boolean?>
     val isPublic: StateFlow<Boolean?>
+    @TrixnityMessengerCallApi val hasRunningCall: StateFlow<Boolean>
     val roomName: StateFlow<String?>
     val roomImageInitials: StateFlow<String?>
     val roomImage: StateFlow<ByteArray?>
@@ -110,6 +117,8 @@ interface RoomListElementViewModel {
 
     fun rejectInvitationAndBlockInviter()
 
+    fun leaveRoom()
+
     fun forgetRoom()
 
     fun clearError()
@@ -119,13 +128,14 @@ interface RoomListElementViewModel {
     fun markRead()
 }
 
-@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class, MSC4143::class)
 open class RoomListElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val roomId: RoomId,
     private val onRoomSelected: () -> Unit,
     private val onRoomClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomListElementViewModel {
+    private val messengerConfiguration by inject<MatrixMessengerConfiguration>()
     private val roomInviter = get<RoomInviter>()
     private val roomPresence = get<RoomPresence>()
     private val roomNameCalculations = get<RoomName>()
@@ -157,7 +167,7 @@ open class RoomListElementViewModelImpl(
     override val isLeave: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.LEAVE }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
+    private val maxThumbnailSize = messengerConfiguration.downloadLimits.thumbnail
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
@@ -201,6 +211,19 @@ open class RoomListElementViewModelImpl(
                 a || b
             }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+
+    @TrixnityMessengerCallApi
+    override val hasRunningCall: StateFlow<Boolean> =
+        if (messengerConfiguration.features.enableVideoCalls) {
+            matrixClient.rtc
+                .getMembers(roomId)
+                .map { slots ->
+                    slots.values.any { members ->
+                        members.values.any { event -> event.content is RtcMemberEventContent.Join }
+                    }
+                }
+                .stateIn(coroutineScope, WhileSubscribed(), false)
+        } else MutableStateFlow(false)
 
     override val roomName: StateFlow<String?> =
         roomNameCalculations.getRoomName(roomId, matrixClient).stateIn(coroutineScope, WhileSubscribed(), null)
@@ -398,6 +421,25 @@ open class RoomListElementViewModelImpl(
         }
     }
 
+    override fun leaveRoom() {
+        coroutineScope.launch {
+            if (!matrixClient.syncState.value.hasConnection()) {
+                error.value = i18n.settingsRoomLeaveRoomErrorOffline()
+                return@launch
+            }
+
+            leaveRoom(matrixClient, roomId, forget = false)
+                .onSuccess { log.info { "successfully left room" } }
+                .onFailure {
+                    if (it is CancellationException) throw it
+                    log.error(it) { "cannot leave room $roomId" }
+                    val groupOrChat =
+                        if (isDirect.value == true) i18n.eventChangeChatGenitive() else i18n.eventChangeGroupGenitive()
+                    error.value = i18n.settingsRoomLeaveRoomError(groupOrChat)
+                }
+        }
+    }
+
     override fun forgetRoom() {
         coroutineScope.launch {
             if (!matrixClient.syncState.value.hasConnection()) {
@@ -568,6 +610,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val inviterUserInfo: StateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(false)
+    @TrixnityMessengerCallApi override val hasRunningCall: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Benedict")
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("B")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
@@ -585,6 +628,8 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override fun acceptInvitation() {}
 
     override fun rejectInvitation() {}
+
+    override fun leaveRoom() {}
 
     override fun forgetRoom() {}
 
@@ -611,6 +656,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val inviterUserInfo: StateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    @TrixnityMessengerCallApi override val hasRunningCall: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Allgemein")
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("A")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
@@ -631,6 +677,8 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override fun acceptInvitation() {}
 
     override fun rejectInvitation() {}
+
+    override fun leaveRoom() {}
 
     override fun forgetRoom() {}
 
@@ -656,6 +704,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val isKnock: StateFlow<Boolean?> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    @TrixnityMessengerCallApi override val hasRunningCall: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val inviterUserInfo: StateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Martin")
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("M")
@@ -677,6 +726,8 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override fun acceptInvitation() {}
 
     override fun rejectInvitation() {}
+
+    override fun leaveRoom() {}
 
     override fun forgetRoom() {}
 
@@ -703,6 +754,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val inviterUserInfo: StateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    @TrixnityMessengerCallApi override val hasRunningCall: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Martin")
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("M")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
@@ -723,6 +775,8 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override fun acceptInvitation() {}
 
     override fun rejectInvitation() {}
+
+    override fun leaveRoom() {}
 
     override fun forgetRoom() {}
 

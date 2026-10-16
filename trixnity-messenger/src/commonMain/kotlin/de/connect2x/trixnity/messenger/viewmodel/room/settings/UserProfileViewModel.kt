@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.key
 import de.connect2x.trixnity.client.media
@@ -26,6 +27,7 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.InviteUser
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -191,6 +193,7 @@ class UserProfileViewModelImpl(
 
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
+    private val inviteUser = get<InviteUser>()
 
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
@@ -503,16 +506,14 @@ class UserProfileViewModelImpl(
 
         coroutineScope
             .launch {
-                matrixClient.api.room
-                    .inviteUser(selectedRoomId, userId)
+                inviteUser(matrixClient, selectedRoomId, userId, null)
                     .fold(
                         onSuccess = {
                             log.debug { "user ${userId.full} was invited" }
                             error.value = null
                         },
                         onFailure = {
-                            log.error(it) { "Failed to invite user ${userId.full}" }
-                            log.error { it.stackTraceToString() }
+                            log.warn(it) { "Failed to invite user ${userId.full}" }
                             error.value = i18n.acceptKnockFailed()
                         },
                     )

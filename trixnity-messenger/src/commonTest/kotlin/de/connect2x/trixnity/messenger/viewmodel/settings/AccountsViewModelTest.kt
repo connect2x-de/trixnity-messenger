@@ -8,9 +8,9 @@ import de.connect2x.trixnity.clientserverapi.model.server.Capabilities
 import de.connect2x.trixnity.clientserverapi.model.server.Capability
 import de.connect2x.trixnity.clientserverapi.model.server.GetCapabilities
 import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.MSC4143
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules

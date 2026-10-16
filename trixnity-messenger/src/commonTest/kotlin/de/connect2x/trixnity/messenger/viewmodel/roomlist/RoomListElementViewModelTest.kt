@@ -6,6 +6,7 @@ import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.text
+import de.connect2x.trixnity.client.rtc.RtcService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
@@ -18,11 +19,12 @@ import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.UserApiClient
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
@@ -39,8 +41,13 @@ import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId
 import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -62,7 +69,7 @@ import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -89,6 +96,7 @@ import kotlinx.serialization.json.JsonObject
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
+@OptIn(MSC4143::class)
 class RoomListElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
 
@@ -98,6 +106,8 @@ class RoomListElementViewModelTest {
 
     val mediaServiceMock = mock<MediaService>()
     val notificationService = mock<NotificationService>()
+
+    val rtcServiceMock = mock<RtcService>()
 
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
@@ -148,6 +158,7 @@ class RoomListElementViewModelTest {
             clock,
             onRoomSelectedMock,
             notificationService,
+            rtcServiceMock,
         )
         every { matrixClientMock.di } returns
             koinApplication {
@@ -156,6 +167,7 @@ class RoomListElementViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { notificationService }
+                            single { rtcServiceMock }
                         }
                     )
                 }
@@ -169,6 +181,7 @@ class RoomListElementViewModelTest {
         everySuspend { userBlockingMock.blockUser(any(), any(), any(), any()) } returns Unit
 
         every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
+        every { rtcServiceMock.getMembers(any()) } returns flowOf(emptyMap())
         every { roomServiceMock.getState(roomId, CreateEventContent::class, any()) } returns flowOf(null)
         every { roomServiceMock.getState(roomId, MemberEventContent::class, any()) } returns flowOf(null)
         every { roomServiceMock.getTimelineEvent(roomId, any()) } returns MutableStateFlow(null)
@@ -720,6 +733,53 @@ class RoomListElementViewModelTest {
         delay(10.milliseconds)
 
         cut.isEncrypted.value shouldBe true
+    }
+
+    @OptIn(TrixnityMessengerCallApi::class)
+    @Test
+    fun `running call should follow joined rtc members`() = runTest {
+        val slotId = RtcSlotId("slot")
+        val memberId = RtcMemberId("member")
+        val members =
+            MutableStateFlow<Map<RtcSlotId, Map<Pair<UserId, RtcMemberId>, MessageEvent<RtcMemberEventContent>>>>(
+                emptyMap()
+            )
+        every { rtcServiceMock.getMembers(roomId) } returns members
+
+        val cut = roomListElementViewModel(roomId)
+
+        cut.hasRunningCall.first { hasRunningCall -> hasRunningCall.not() }
+
+        val member = RtcMemberEventContent.Member(memberId)
+        val joinEvent: MessageEvent<RtcMemberEventContent> =
+            MessageEvent(
+                content =
+                    RtcMemberEventContent.Join(
+                        slotId = slotId,
+                        member = member,
+                        application = RtcApplicationMember.Unknown("call", JsonObject(emptyMap())),
+                        stickyKey = "sticky",
+                    ),
+                id = EventId("\$join"),
+                sender = user2,
+                roomId = roomId,
+                originTimestamp = 0L,
+            )
+        members.value = mapOf(slotId to mapOf((user2 to memberId) to joinEvent))
+
+        cut.hasRunningCall.first { hasRunningCall -> hasRunningCall } shouldBe true
+
+        val leaveEvent: MessageEvent<RtcMemberEventContent> =
+            MessageEvent(
+                content = RtcMemberEventContent.Leave(slotId = slotId, member = member, stickyKey = "sticky"),
+                id = EventId("\$leave"),
+                sender = user2,
+                roomId = roomId,
+                originTimestamp = 1L,
+            )
+        members.value = mapOf(slotId to mapOf((user2 to memberId) to leaveEvent))
+
+        cut.hasRunningCall.first { hasRunningCall -> hasRunningCall.not() } shouldBe false
     }
 
     @Test

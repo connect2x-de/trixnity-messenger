@@ -18,9 +18,13 @@ import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.common.MatrixUsername
 import de.connect2x.trixnity.messenger.compose.view.common.PasswordField
 import de.connect2x.trixnity.messenger.compose.view.common.TabInTextField
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.BackButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.NextButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.form.AutofillButton
 import de.connect2x.trixnity.messenger.compose.view.form.LocalHiddenRegistrationForm
+import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.isWeb
@@ -67,7 +71,7 @@ class PasswordLoginViewImpl : PasswordLoginView {
             PasswordField(
                 password = password,
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
-                modifier = tabToNextAndEnterSend,
+                modifier = tabToNextAndEnterSend.fillMaxWidth(),
             ) {
                 Text(i18n.addMatrixClientPassword())
             }
@@ -101,4 +105,28 @@ fun PasswordLoginState(state: AddMatrixAccountState) {
             AddMatrixAccountState.Success -> {}
         }
     }
+}
+
+@Composable
+fun PasswordLoginWizardPanel(viewModel: PasswordLoginViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    WizardPanel(
+        title = { i18n.loginAt(viewModel.serverUrl) },
+        content = { PasswordLogin(viewModel) },
+        buttons = {
+            val state = viewModel.addMatrixAccountState.collectAsState().value
+            val canLogin = viewModel.canLogin.collectAsState().value
+            val hiddenRegistrationForm = rememberHiddenRegistrationForm()
+            BackButton { viewModel.back() }
+
+            NextButton(text = i18n.login(), enabled = canLogin && state !is AddMatrixAccountState.Connecting) {
+                hiddenRegistrationForm.submit(
+                    username = viewModel.username.value.text,
+                    password = viewModel.password.value.text,
+                )
+                viewModel.tryLogin()
+            }
+        },
+        wizardId = "ConnectingWizard",
+    )
 }

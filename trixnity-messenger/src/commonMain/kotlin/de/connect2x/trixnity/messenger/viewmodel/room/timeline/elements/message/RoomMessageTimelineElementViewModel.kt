@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.util.MatrixReferences
 import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
+import de.connect2x.trixnity.messenger.util.isMatrixMediaUri
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
@@ -21,16 +22,22 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMentioned
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import kotlin.time.Duration
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
-sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
+interface InlineImageLoader {
+    suspend fun loadInlineImage(uri: String, size: Int): ByteArray? = null
+}
+
+sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C>, InlineImageLoader {
     /** This event's message (stripped of any fallbacks for rich replies). */
     val body: String
 
@@ -148,7 +155,9 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
     content: C,
     private val roomId: RoomId,
     private val onOpenMention: OpenMentionCallback,
-) : MatrixClientViewModelContext by viewModelContext { // Do not inherit from RoomMessageTimelineElementViewModel to
+) :
+    InlineImageLoader,
+    MatrixClientViewModelContext by viewModelContext { // Do not inherit from RoomMessageTimelineElementViewModel to
     // simplify pattern matching, etc.
     private val mentionHelper =
         MentionHelper(
@@ -175,6 +184,28 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
         mentionHelper.processMentions(formattedBodyContent).stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     val isMentioned: Boolean = content.isUserMentioned(userId)
+
+    override suspend fun loadInlineImage(uri: String, size: Int): ByteArray? {
+        if (!isMatrixMediaUri(uri)) return null
+        val maxSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
+        return get<Thumbnails>()
+            .loadThumbnail(
+                coroutineScope,
+                matrixClient,
+                thumbnailFile = null,
+                thumbnailUrl = null,
+                thumbnailInfo = null,
+                file = null,
+                fileUrl = uri,
+                fileInfo = null,
+                sizeInBytes = maxSize,
+                thumbnailProgressFlow = MutableStateFlow(null),
+                maxMediaSizeInMemory = maxSize,
+                maxDownloadSize = maxSize,
+                width = size.toLong(),
+                height = size.toLong(),
+            )
+    }
 
     fun openMention(mention: TimelineElementMention) {
         onOpenMention(userId, mention)

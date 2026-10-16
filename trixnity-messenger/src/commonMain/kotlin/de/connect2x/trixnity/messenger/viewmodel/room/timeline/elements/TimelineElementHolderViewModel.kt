@@ -24,7 +24,10 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContentImpl
+import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
@@ -293,7 +296,7 @@ class TimelineElementHolderViewModelImpl(
         timelineEventFlow
             .flatMapLatest { timelineEvent ->
                 val redactionEventId =
-                    if (timelineEvent.event.content is RedactedEventContent)
+                    if (timelineEvent.event.content is RedactedRoomEventContent)
                         timelineEvent.event.unsigned?.redactedBecause?.id
                     else null
                 when {
@@ -309,20 +312,29 @@ class TimelineElementHolderViewModelImpl(
             }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
-    private val newContentIfReplacedOrRedacted: SharedFlow<MessageEventContent?> =
+    private val newContentIfReplacedOrRedacted: SharedFlow<RoomEventContent?> =
         combine(timelineEventFlow, outboxElementIfReplacedOrRedacted) { timelineEvent, newContent ->
                 if (newContent?.content is RedactionEventContent) {
-                    val timelineEventType =
+                    val messageType =
                         matrixClient.di
                             .get<EventContentSerializerMappings>()
-                            .let { it.message + it.state }
+                            .message
                             .find { it.kClass.isInstance(timelineEvent.event.content) }
                             ?.type
-                    if (timelineEventType == null) {
-                        log.warn { "timeline event type for ${timelineEvent.event.content::class} not found" }
-                        return@combine null
+                    if (messageType != null) {
+                        return@combine RedactedMessageEventContentImpl(messageType)
                     }
-                    RedactedEventContent(timelineEventType)
+                    val stateType =
+                        matrixClient.di
+                            .get<EventContentSerializerMappings>()
+                            .state
+                            .find { it.kClass.isInstance(timelineEvent.event.content) }
+                            ?.type
+                    if (stateType != null) {
+                        return@combine RedactedStateEventContentImpl(stateType)
+                    }
+                    log.warn { "timeline event type for ${timelineEvent.event.content::class} not found" }
+                    null
                 } else {
                     (newContent?.content?.relatesTo as? RelatesTo.Replace)?.newContent
                 }
@@ -340,7 +352,7 @@ class TimelineElementHolderViewModelImpl(
                 newContentIfReplacedOrRedacted,
                 matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId),
             ) { newContentIfReplaced, replaceAggregation ->
-                newContentIfReplaced != null && newContentIfReplaced !is RedactedEventContent ||
+                newContentIfReplaced != null && newContentIfReplaced !is RedactedRoomEventContent ||
                     replaceAggregation.replacedBy != null
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
@@ -349,7 +361,7 @@ class TimelineElementHolderViewModelImpl(
         combine(timelineEventFlow, matrixClient.user.canSendEvent<ReactionEventContent>(roomId)) {
                 timelineEvent,
                 canSendReactEvent ->
-                timelineEvent.content?.getOrNull() !is RedactedEventContent && canSendReactEvent
+                timelineEvent.content?.getOrNull() !is RedactedRoomEventContent && canSendReactEvent
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
@@ -392,7 +404,7 @@ class TimelineElementHolderViewModelImpl(
                 log.trace { "compute element (timelineEvent=$timelineEvent, newContent=$newContent)" }
                 val content =
                     when {
-                        timelineEvent.event.content is RedactedEventContent -> timelineEvent.content
+                        timelineEvent.event.content is RedactedRoomEventContent -> timelineEvent.content
                         newContent != null -> Result.success(newContent)
                         else ->
                             timelineEvent.content?.map { content ->
@@ -544,7 +556,7 @@ class TimelineElementHolderViewModelImpl(
         timelineEventFlow
             .flatMapLatest { timelineEvent ->
                 val redactionEventId =
-                    if (timelineEvent.event.content is RedactedEventContent)
+                    if (timelineEvent.event.content is RedactedRoomEventContent)
                         timelineEvent.event.unsigned?.redactedBecause?.id
                     else null
                 when {
@@ -633,30 +645,14 @@ class TimelineElementHolderViewModelImpl(
                 timelineEventFlow.first().let { timelineEvent ->
                     if (matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId).first()) {
                         redactionError.value = null
-                        if (
-                            matrixClient.serverData.value?.versions?.let {
-                                it.versions.contains("v1.18") || it.unstableFeatures["com.beeper.msc4169"] == true
-                            } == true
-                        ) {
-                            if (
-                                matrixClient.room.getOutbox(roomId).first().none {
-                                    val content = it.first()?.content
-                                    content is RedactionEventContent && content.redacts == eventId
-                                }
-                            ) {
-                                matrixClient.room.sendMessage(roomId) { redact(eventId) }
-                            } else {
-                                log.debug { "Already redacted event $eventId." }
-                            }
-                        } else {
-                            matrixClient.api.room
-                                .redactEvent(roomId, timelineEvent.eventId, txnId = Uuid.random().toString())
-                                .onSuccess { log.debug { "successfully redacted event ${timelineEvent.eventId}" } }
-                                .onFailure {
-                                    log.error(it) { "could not redact event ${timelineEvent.eventId}" }
+                        redactEvent(timelineEvent.eventId)
+                            ?.fold(
+                                onSuccess = { log.debug { "successfully redacted event $eventId" } },
+                                onFailure = {
+                                    log.error(it) { "could not redact event $eventId" }
                                     redactionError.value = i18n.timelineElementRedactError()
-                                }
-                        }
+                                },
+                            )
                     } else
                         log.warn {
                             "try to redact timeline event $eventId," +
@@ -703,6 +699,7 @@ class TimelineElementHolderViewModelImpl(
     }
 
     override fun removeReaction(reaction: String) {
+        log.debug { "removing reaction $reaction" }
         coroutineScope.launch {
             when (
                 val eventOrTransactionId = reactions.value?.byUser?.get(matrixClient.userId)?.reactions?.get(reaction)
@@ -711,23 +708,49 @@ class TimelineElementHolderViewModelImpl(
                     log.warn { "could not remove reaction, because not present in loaded reactions" }
                 }
                 is TransactionId -> {
+                    log.debug {
+                        "reaction $reaction with id $eventOrTransactionId isn't sent yet, removing from outbox"
+                    }
                     matrixClient.room.cancelSendMessage(roomId, eventOrTransactionId.transactionId)
                 }
                 is EventIdOrTransactionId.EventId -> {
-                    if (matrixClient.serverData.value?.versions?.versions?.contains("v1.18") == true) {
-                        matrixClient.room.sendMessage(roomId) { redact(eventOrTransactionId.eventId) }
-                    } else {
-                        matrixClient.api.room
-                            .redactEvent(roomId, eventOrTransactionId.eventId, txnId = Uuid.random().toString())
-                            .onFailure { log.error(it) { "could not redact event ${eventOrTransactionId.eventId}" } }
+                    log.debug { "sending redaction for reaction $reaction with id $eventOrTransactionId" }
+                    redactEvent(eventOrTransactionId.eventId)?.onFailure {
+                        log.error(it) { "could not redact event ${eventOrTransactionId.eventId}" }
                     }
                 }
             }
         }
     }
 
+    private suspend fun redactEvent(eventId: EventId): Result<EventId>? {
+        if (
+            matrixClient.serverData.value?.versions?.let {
+                it.versions.contains("v1.18") || it.unstableFeatures["com.beeper.msc4169"] == true
+            } == true
+        ) {
+            if (
+                matrixClient.room.getOutbox(roomId).first().none {
+                    val content = it.first()?.content
+                    content is RedactionEventContent && content.redacts == eventId
+                }
+            ) {
+                matrixClient.room.sendMessage(roomId) { redact(eventId) }
+            } else {
+                log.debug { "Already redacted event $eventId." }
+            }
+            return null
+        } else {
+            return matrixClient.api.room.redactEvent(roomId, eventId, txnId = Uuid.random().toString())
+        }
+    }
+
     override fun openTimelineElementMetadata() {
         onOpenMetadata(this.eventId)
+    }
+
+    override fun openSenderProfile() {
+        sender.value?.let { onOpenMention(userId, TimelineElementMention.User(it)) }
     }
 
     override fun jumpTo() {
@@ -805,6 +828,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
 
     override fun openTimelineElementMetadata() {}
 
+    override fun openSenderProfile() {}
+
     override fun jumpTo() {}
 }
 
@@ -877,6 +902,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
 
     override fun openTimelineElementMetadata() {}
+
+    override fun openSenderProfile() {}
 
     override fun jumpTo() {}
 }

@@ -43,11 +43,21 @@ interface MemberListViewModelFactory {
 }
 
 interface MemberListViewModel {
+    val searchTerm: MutableStateFlow<String>
     val filterByMemberships: MutableStateFlow<Set<Membership>>
     val elements: StateFlow<List<MemberListElementViewModel>>
     val membershipCounts: StateFlow<Map<Membership, Int>>
     val showLoadingSpinner: StateFlow<Boolean>
     val error: StateFlow<String?>
+
+    fun resetFilters() {
+        searchTerm.value = ""
+        filterByMemberships.value = defaultMemberships
+    }
+
+    companion object {
+        val defaultMemberships = setOf(Membership.JOIN, Membership.KNOCK, Membership.INVITE, Membership.BAN)
+    }
 }
 
 open class MemberListViewModelImpl(
@@ -77,8 +87,10 @@ open class MemberListViewModelImpl(
             .map { it.values }
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
+    override val searchTerm = MutableStateFlow("")
+
     override val filterByMemberships: MutableStateFlow<Set<Membership>> =
-        MutableStateFlow(setOf(Membership.JOIN, Membership.KNOCK, Membership.INVITE, Membership.BAN))
+        MutableStateFlow(MemberListViewModel.defaultMemberships)
 
     override val elements: StateFlow<List<MemberListElementViewModel>> =
         combine(
@@ -86,10 +98,16 @@ open class MemberListViewModelImpl(
                 matrixClient.room.getState<CreateEventContent>(selectedRoomId).filterNotNull(),
                 allUsers,
                 filterByMemberships,
-            ) { powerLevels, createEvent, roomUsers, filterByMemberships ->
+                searchTerm,
+            ) { powerLevels, createEvent, roomUsers, filterByMemberships, searchTerm ->
+                val query = searchTerm.trim()
                 val relevantRoomUsers =
                     roomUsers
-                        .filter { roomUser -> filterByMemberships.contains(roomUser.membership) }
+                        .filter { roomUser ->
+                            filterByMemberships.contains(roomUser.membership) &&
+                                (roomUser.name.contains(query, ignoreCase = true) ||
+                                    roomUser.userId.full.contains(query, ignoreCase = true))
+                        }
                         .sortedWith(
                             compareBy<RoomUser> { roomUser ->
                                     when (roomUser.membership) {
@@ -144,6 +162,8 @@ open class MemberListViewModelImpl(
 }
 
 class PreviewMemberListViewModel : MemberListViewModel {
+    override val searchTerm = MutableStateFlow("")
+
     override val filterByMemberships: MutableStateFlow<Set<Membership>> = MutableStateFlow(emptySet())
     override val elements: MutableStateFlow<List<MemberListElementViewModel>> = MutableStateFlow(emptyList())
     override val membershipCounts: StateFlow<Map<Membership, Int>> = MutableStateFlow(emptyMap())

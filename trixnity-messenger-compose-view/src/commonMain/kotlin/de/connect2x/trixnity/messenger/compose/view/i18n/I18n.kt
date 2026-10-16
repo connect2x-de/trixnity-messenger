@@ -1131,6 +1131,16 @@ open class I18nView(
         DE - "Beigetreten"
     }
 
+    open fun settingsRoomMemberListShowFilters() = translate {
+        EN - "Show member filters"
+        DE - "Mitgliederfilter anzeigen"
+    }
+
+    open fun settingsRoomMemberListHideFilters() = translate {
+        EN - "Hide member filters"
+        DE - "Mitgliederfilter ausblenden"
+    }
+
     open fun settingsRoomMemberListKnocking() = translate {
         EN - "Knocking"
         DE - "Klopfend"
@@ -1394,6 +1404,11 @@ open class I18nView(
     open fun inputAreaStartAudioRecording() = translate {
         EN - "record voice message"
         DE - "Sprachnachricht aufnehmen"
+    }
+
+    open fun mediaPlayerPlaybackError() = translate {
+        EN - "Unable to play this media."
+        DE - "Diese Mediendatei kann nicht abgespielt werden."
     }
 
     open fun audioRecordingSend() = translate {
@@ -1744,6 +1759,11 @@ open class I18nView(
     open fun roomListJoin() = translate {
         EN - "Join"
         DE - "Beitreten"
+    }
+
+    open fun roomListRunningCall() = translate {
+        EN - "Running call"
+        DE - "Laufender Anruf"
     }
 
     open fun roomListAccountNotVerifiedIcon() = translate {
@@ -2890,6 +2910,27 @@ open class I18nView(
         DE - "Erscheinungsbild"
     }
 
+    open fun experimentalSettingsTitle() = translate {
+        EN - "Experimental features"
+        DE - "Experimentelle Funktionen"
+    }
+
+    open fun experimentalSettingsCallsTitle() = translate {
+        EN - "Calls"
+        DE - "Anrufe"
+    }
+
+    open fun experimentalSettingsVideoCalls() = translate {
+        EN - "Video calls"
+        DE - "Videoanrufe"
+    }
+
+    open fun experimentalSettingsVideoCallsExplanation() = translate {
+        EN - "This feature may not be compatible with clients running older MatrixRTC versions."
+        DE -
+            "Diese Funktion ist möglicherweise nicht mit Clients kompatibel, die ältere MatrixRTC-Versionen unterstützen."
+    }
+
     open fun appearanceColorsTitle() = translate {
         EN - "Colors"
         DE - "Farben"
@@ -3066,6 +3107,11 @@ open class I18nView(
     open fun appearanceAccentColorDefault() = translate {
         EN - "Default"
         DE - "Standard"
+    }
+
+    open fun leaveAndForgetRoom() = translate {
+        EN - "Leave and forget"
+        DE - "Verlassen und vergessen"
     }
 
     open fun forgetRoomWarningHeader() = translate {
@@ -3859,6 +3905,11 @@ open class I18nView(
             "If you have disabled notifications, you have to check manually in the app whether you have received new messages."
         DE -
             "Falls Benachrichtigungen deaktiviert sind, müssen Sie manuell prüfen, ob Sie neue Nachrichten erhalten haben."
+    }
+
+    open fun callStartWithError(error: String) = translate {
+        EN - "Call failed: $error (Click to retry)"
+        DE - "Anruf fehlgeschlagen: $error (Drücke um neu zu versuchen)"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

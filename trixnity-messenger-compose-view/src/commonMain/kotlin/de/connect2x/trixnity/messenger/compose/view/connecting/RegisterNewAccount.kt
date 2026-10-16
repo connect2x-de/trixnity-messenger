@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.connecting
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
@@ -14,6 +15,9 @@ import de.connect2x.trixnity.messenger.compose.view.common.MatrixUsername
 import de.connect2x.trixnity.messenger.compose.view.common.PasswordField
 import de.connect2x.trixnity.messenger.compose.view.common.TabInTextField
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.BackButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.NextButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -50,10 +54,26 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             }
             PasswordField(
                 password = registerMatrixAccountViewModel.password.collectAsTextFieldValueState(),
-                modifier = tabToNextAndEnterSend,
+                modifier = tabToNextAndEnterSend.fillMaxWidth(),
             ) {
                 Text(i18n.registrationPassword())
             }
         }
     }
+}
+
+@Composable
+fun RegisterMatrixAccountWizardPanel(viewModel: RegisterMatrixAccountViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    return WizardPanel(
+        title = { i18n.registrationHeader() },
+        content = { RegisterNewAccount(viewModel) },
+        buttons = {
+            val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
+
+            BackButton { viewModel.back() }
+            NextButton(enabled = canRegisterNewUser, text = i18n.registerNewAccount()) { viewModel.register() }
+        },
+        wizardId = "ConnectingWizard",
+    )
 }

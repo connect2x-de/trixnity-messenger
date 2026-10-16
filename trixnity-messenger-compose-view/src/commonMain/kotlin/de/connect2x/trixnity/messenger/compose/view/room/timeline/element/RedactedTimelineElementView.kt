@@ -17,26 +17,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedStateTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 
-interface RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementViewModel>
+interface RedactedMessageTimelineElementView : TimelineElementView<RedactedMessageTimelineElementViewModel>
 
-class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
-    override val supports: KClass<RedactedTimelineElementViewModel> = RedactedTimelineElementViewModel::class
+interface RedactedStateTimelineElementView : TimelineElementView<RedactedStateTimelineElementViewModel>
 
-    override suspend fun waitFor(element: RedactedTimelineElementViewModel) {
+class RedactedMessageTimelineElementViewImpl : RedactedMessageTimelineElementView {
+    override val supports: KClass<RedactedMessageTimelineElementViewModel> =
+        RedactedMessageTimelineElementViewModel::class
+
+    override suspend fun waitFor(element: RedactedMessageTimelineElementViewModel) {
         element.message.filterNotNull().first()
     }
 
@@ -45,29 +52,95 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel,
+        element: RedactedMessageTimelineElementViewModel,
         index: Int,
     ) {
         MessageBubble(holder, needsMaxWidth = false, isPreview = false, isMentioned = false, index = index) { _ ->
-            RedactedMessageElement(element)
+            RedactedMessageElement(element, 10.dp)
         }
     }
 
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel,
+        element: RedactedMessageTimelineElementViewModel,
         index: Int,
     ) {
         MessageBubble(holder, needsMaxWidth = false, isPreview = true, isMentioned = false, index = index) { _ ->
-            RedactedMessageElement(element)
+            RedactedMessageElement(element, 10.dp)
         }
     }
 
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel,
+        element: RedactedMessageTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            element = element,
+            modifier = modifier,
+            interactionSource = interactionSource,
+            content = { RedactedMessageElement(element, 10.dp) },
+        )
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: RedactedMessageTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            element = element,
+            modifier = modifier,
+            interactionSource = interactionSource,
+            content = { RedactedMessageElement(element, 10.dp) },
+        )
+    }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RedactedMessageTimelineElementViewModel,
+    ): ClipEntry? = null
+}
+
+class RedactedStateTimelineElementViewImpl : RedactedStateTimelineElementView {
+    override val supports: KClass<RedactedStateTimelineElementViewModel> = RedactedStateTimelineElementViewModel::class
+
+    override suspend fun waitFor(element: RedactedStateTimelineElementViewModel) {
+        element.message.filterNotNull().first()
+    }
+
+    override fun isFocusable(): Boolean = true
+
+    @Composable
+    override fun createInTimeline(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RedactedStateTimelineElementViewModel,
+        index: Int,
+    ) {
+        Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) { RedactedMessageElement(element) }
+    }
+
+    @Composable
+    override fun createAsPreview(
+        holder: TimelineElementHolderViewModel,
+        element: RedactedStateTimelineElementViewModel,
+        index: Int,
+    ) {
+        Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) { RedactedMessageElement(element) }
+    }
+
+    @Composable
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: RedactedStateTimelineElementViewModel,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
     ) {
@@ -83,7 +156,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel,
+        element: RedactedStateTimelineElementViewModel,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
     ) {
@@ -99,17 +172,18 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel,
+        element: RedactedStateTimelineElementViewModel,
     ): ClipEntry? = null
 }
 
 @Composable
-internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
+internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel, padding: Dp? = null) {
     val i18n = DI.get<I18nView>()
     val formattedMessage = element.message.collectAsState().value
     val redactedAt = element.redactedAt.collectAsState().value
     val reason = element.reason.collectAsState().value
-    Row(Modifier.padding(10.dp)) {
+    val modifier = if (padding != null) Modifier.padding(padding) else Modifier
+    Row(modifier) {
         Icon(
             Icons.Outlined.Delete,
             i18n.commonDeleted(),

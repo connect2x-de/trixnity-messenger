@@ -1,8 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.search.user.UserSearchResult
+import de.connect2x.trixnity.messenger.util.InviteUser
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.component.get
 
 interface AddMembersNewSearchViewModel : AddMembersViewModel, PotentialMembersNewSearchViewModel {
     val groupUsersNewSearch: StateFlow<List<UserSearchResult>>
@@ -37,6 +39,8 @@ class AddMembersNewSearchViewModelImpl(
     AddMembersViewModel by addMembersViewModel,
     PotentialMembersNewSearchViewModel by potentialMembersNewSearchViewModel,
     AddMembersNewSearchViewModel {
+
+    private val inviteUser = get<InviteUser>()
 
     private val _groupUsersNewSearch = MutableStateFlow<List<UserSearchResult>>(emptyList())
     override val groupUsersNewSearch: StateFlow<List<UserSearchResult>> = _groupUsersNewSearch.asStateFlow()
@@ -89,13 +93,11 @@ class AddMembersNewSearchViewModelImpl(
         coroutineScope.launch {
             val failedInvitations = mutableListOf<Pair<UserSearchResult, Throwable>>()
             for (user in groupUsersNewSearch.value) { // CHANGE
-                matrixClient.api.room
-                    .inviteUser(roomId, user.userId)
+                inviteUser(matrixClient, roomId, user.userId, null)
                     .fold(
                         onSuccess = { log.debug { "user ${user.userId.full} was invited" } },
                         onFailure = {
-                            log.error(it) { "Failed to invite user ${user.userId.full}" }
-                            log.trace { it.stackTraceToString() }
+                            log.warn(it) { "Failed to invite user ${user.userId.full}" }
                             failedInvitations.add(user to it)
                         },
                     )

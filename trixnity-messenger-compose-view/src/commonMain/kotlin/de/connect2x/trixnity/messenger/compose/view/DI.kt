@@ -86,8 +86,6 @@ import de.connect2x.trixnity.messenger.compose.view.room.settings.SearchUsersSet
 import de.connect2x.trixnity.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomNewSearchViewImpl
@@ -138,8 +136,10 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.Messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedTimelineElementView
-import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedTimelineElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedMessageTimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedMessageTimelineElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedStateTimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.RedactedStateTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementHolderView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementHolderViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -185,6 +185,15 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePillView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePillViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataMessageHistoryListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataMessageHistoryListItemViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataReadersAndReactionsListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataReadersAndReactionsListItemViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataSenderListItemView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataSenderListItemViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.CanonicalAliasStateTimelineElementView
@@ -306,6 +315,8 @@ import de.connect2x.trixnity.messenger.compose.view.settings.BlockedContactsSett
 import de.connect2x.trixnity.messenger.compose.view.settings.BlockedContactsSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.DeviceSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.DeviceSettingsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.settings.ExperimentalSettingsView
+import de.connect2x.trixnity.messenger.compose.view.settings.ExperimentalSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooterView
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooterViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettingsView
@@ -374,7 +385,12 @@ import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificatio
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardStepListImpl
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardViewImpl
+import de.connect2x.trixnity.messenger.internal.sort.SortableScope
+import de.connect2x.trixnity.messenger.internal.sort.after
+import de.connect2x.trixnity.messenger.internal.sort.sorted
 import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
+import org.koin.core.definition.Definition
+import org.koin.core.definition.KoinDefinition
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -539,6 +555,13 @@ fun roomViewModule() = module {
     single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
+inline fun <reified F : TimelineElementMetadataListItemView> Module.timelineElementMetadataListItemView(
+    noinline definition: Definition<F>,
+    noinline configure: SortableScope<TimelineElementMetadataListItemView>.() -> Unit = {},
+): KoinDefinition<out TimelineElementMetadataListItemView> {
+    return single<F>(named<F>(), definition = definition).bind<TimelineElementMetadataListItemView>().sorted(configure)
+}
+
 fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = null) = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
     single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
@@ -572,6 +595,23 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
             AddMembersToRoomViewImpl()
         }
     }
+
+    // sorted timeline element metadata sections
+    timelineElementMetadataListItemView<TimelineElementMetadataSenderListItemView>({
+        TimelineElementMetadataSenderListItemViewImpl()
+    }) {}
+
+    timelineElementMetadataListItemView<TimelineElementMetadataMessageHistoryListItemView>({
+        TimelineElementMetadataMessageHistoryListItemViewImpl()
+    }) {
+        after<TimelineElementMetadataSenderListItemView>()
+    }
+
+    timelineElementMetadataListItemView<TimelineElementMetadataReadersAndReactionsListItemView>({
+        TimelineElementMetadataReadersAndReactionsListItemViewImpl()
+    }) {
+        after<TimelineElementMetadataMessageHistoryListItemView>()
+    }
 }
 
 inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(
@@ -586,7 +626,8 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<EmptyTimelineElementView> { EmptyTimelineElementView }
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementViewImpl() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementViewImpl() }
-    timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementViewImpl() }
+    timelineElementView<RedactedMessageTimelineElementView> { RedactedMessageTimelineElementViewImpl() }
+    timelineElementView<RedactedStateTimelineElementView> { RedactedStateTimelineElementViewImpl() }
     timelineElementView<AudioRoomMessageTimelineElementView> { AudioRoomMessageTimelineElementViewImpl() }
     timelineElementView<EmoteRoomMessageTimelineElementView> { EmoteRoomMessageTimelineElementViewImpl() }
     timelineElementView<FileRoomMessageTimelineElementView> { FileRoomMessageTimelineElementViewImpl() }
@@ -669,6 +710,7 @@ fun settingsViewModule() = module {
     single<AvatarCutterView> { AvatarCutterViewImpl() }
     single<BlockedContactsSettingsView> { BlockedContactsSettingsViewImpl() }
     single<DeviceSettingsView> { DeviceSettingsViewImpl() }
+    single<ExperimentalSettingsView> { ExperimentalSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<AccountsSettingsView> { AccountsSettingsViewImpl() }

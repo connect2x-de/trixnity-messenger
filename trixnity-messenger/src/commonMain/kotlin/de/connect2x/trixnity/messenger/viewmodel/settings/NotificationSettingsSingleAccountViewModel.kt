@@ -6,9 +6,13 @@ import de.connect2x.trixnity.client.user.getAccountData
 import de.connect2x.trixnity.clientserverapi.model.push.SetPushRule
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.push.PushRule
+import de.connect2x.trixnity.core.model.push.PushRuleSet
+import de.connect2x.trixnity.core.model.push.toList
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.notification.AccountNotificationPushRuleModifier
 import de.connect2x.trixnity.messenger.notification.NoOpNotificationProvider
 import de.connect2x.trixnity.messenger.notification.NotificationHandlers
 import de.connect2x.trixnity.messenger.notification.NotificationProviders
@@ -16,7 +20,6 @@ import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel.NotificationProviderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.getContentRules
-import de.connect2x.trixnity.messenger.viewmodel.util.getServerDefaultRules
 import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
 import kotlin.time.Duration.Companion.seconds
@@ -134,6 +137,7 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
     private val i18n = get<I18n>()
     private val notificationProviders = get<NotificationProviders>()
     private val notificationHandlers = get<NotificationHandlers>()
+    private val accountNotificationPushRuleModifier = get<AccountNotificationPushRuleModifier>()
 
     private val settingsHolder = get<MatrixMessengerSettingsHolder>()
 
@@ -246,54 +250,44 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
 
                     val currentPushRuleSet =
                         matrixClient.user.getAccountData<PushRulesEventContent>().map { it?.global }.first()
-                    if (currentPushRuleSet?.toNotificationSettings() == settings) {
-                        log.debug { "no change in settings" }
+                    val newPushRuleSet =
+                        accountNotificationPushRuleModifier.modify(userId, settings, settings.toPushRuleSet(userId))
+                    val changes = diffPushRules(currentPushRuleSet, newPushRuleSet)
+                    if (changes.isEmpty()) {
+                        log.debug { "no change in push rules" }
                         return@launch
                     }
-                    val newPushRuleSet = settings.toPushRuleSet(userId)
-
-                    val currentServerDefaultRules = currentPushRuleSet?.getServerDefaultRules().orEmpty()
-                    val currentContentRules = currentPushRuleSet?.getContentRules().orEmpty()
-
-                    val newServerDefaultRules = newPushRuleSet.getServerDefaultRules()
-                    val newContentRules = newPushRuleSet.getContentRules()
-
-                    val updatedServerDefaultRules =
-                        newServerDefaultRules.values.toSet() - currentServerDefaultRules.values.toSet()
-                    val updatedContentRules = newContentRules.values.toSet() - currentContentRules.values.toSet()
-                    val deletedContentRules = currentContentRules - newContentRules.keys
 
                     log.debug { "update push rules" }
                     try {
                         coroutineScope {
-                            updatedServerDefaultRules.forEach { rule ->
-                                if (rule.enabled != currentServerDefaultRules[rule.ruleId]?.enabled) {
-                                    log.trace { "set enabled of push rule ${rule.ruleId} to ${rule.enabled}" }
-                                    launch {
-                                        matrixClient.api.push
-                                            .setPushRuleEnabled(
-                                                scope = "global",
-                                                kind = rule.kind,
-                                                ruleId = rule.ruleId,
-                                                enabled = rule.enabled,
-                                            )
-                                            .getOrThrow()
-                                    }
+                            changes.enabledUpdates.forEach { rule ->
+                                log.trace { "set enabled of push rule ${rule.ruleId} to ${rule.enabled}" }
+                                launch {
+                                    matrixClient.api.push
+                                        .setPushRuleEnabled(
+                                            scope = "global",
+                                            kind = rule.kind,
+                                            ruleId = rule.ruleId,
+                                            enabled = rule.enabled,
+                                        )
+                                        .getOrThrow()
                                 }
-                                if (rule.actions != currentServerDefaultRules[rule.ruleId]?.actions)
-                                    launch {
-                                        log.trace { "set actions of push rule ${rule.ruleId} to ${rule.actions}" }
-                                        matrixClient.api.push
-                                            .setPushRuleActions(
-                                                scope = "global",
-                                                kind = rule.kind,
-                                                ruleId = rule.ruleId,
-                                                actions = rule.actions,
-                                            )
-                                            .getOrThrow()
-                                    }
                             }
-                            updatedContentRules.forEach { rule ->
+                            changes.actionUpdates.forEach { rule ->
+                                launch {
+                                    log.trace { "set actions of push rule ${rule.ruleId} to ${rule.actions}" }
+                                    matrixClient.api.push
+                                        .setPushRuleActions(
+                                            scope = "global",
+                                            kind = rule.kind,
+                                            ruleId = rule.ruleId,
+                                            actions = rule.actions,
+                                        )
+                                        .getOrThrow()
+                                }
+                            }
+                            changes.contentUpdates.forEach { rule ->
                                 launch {
                                     log.trace { "add content push rule ${rule.ruleId}" }
                                     matrixClient.api.push
@@ -307,7 +301,7 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
                                         .getOrThrow()
                                 }
                             }
-                            deletedContentRules.values.forEach { rule ->
+                            changes.deletions.forEach { rule ->
                                 launch {
                                     log.trace { "delete content push rule ${rule.ruleId}" }
                                     matrixClient.api.push
@@ -320,7 +314,7 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
                             .getAccountData<PushRulesEventContent>()
                             .map { it?.global }
                             .timeout(10.seconds)
-                            .first { it?.toNotificationSettings() == settings }
+                            .first { rules -> rules != null && isPushRuleDiffApplied(changes, rules.toList()) }
                     } catch (exception: TimeoutCancellationException) {
                         log.warn(exception) { "there was an error updating the notification settings" }
                         updateAccountSettingsError.value = i18n.updateNotificationSettingsTimeoutError()
@@ -332,4 +326,47 @@ class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixCli
                 .invokeOnCompletion { accountSettingsIsUpdating.value = false }
         }
     }
+}
+
+internal data class PushRuleDiff(
+    val enabledUpdates: List<PushRule>,
+    val actionUpdates: List<PushRule>,
+    val contentUpdates: List<PushRule.Content>,
+    val deletions: List<PushRule.Content>,
+) {
+    fun isEmpty(): Boolean {
+        return enabledUpdates.isEmpty() && actionUpdates.isEmpty() && contentUpdates.isEmpty() && deletions.isEmpty()
+    }
+}
+
+internal fun diffPushRules(current: PushRuleSet?, desired: PushRuleSet): PushRuleDiff {
+    val serverDefaultRules =
+        (desired.override.orEmpty() + desired.underride.orEmpty()).filter { it.ruleId.startsWith(".") }
+    val currentContentRules = current?.getContentRules().orEmpty()
+    val desiredContentRules = desired.getContentRules()
+
+    return PushRuleDiff(
+        enabledUpdates = serverDefaultRules.filter { it.enabled != current?.findRule(it)?.enabled },
+        actionUpdates = serverDefaultRules.filter { it.actions != current?.findRule(it)?.actions },
+        contentUpdates = desiredContentRules.values.filter { it != currentContentRules[it.ruleId] },
+        deletions = currentContentRules.values.filter { it.ruleId !in desiredContentRules },
+    )
+}
+
+internal fun isPushRuleDiffApplied(changes: PushRuleDiff, rules: List<PushRule>): Boolean {
+    return changes.enabledUpdates.all { rules.findRule(it)?.enabled == it.enabled } &&
+        changes.actionUpdates.all { rules.findRule(it)?.actions == it.actions } &&
+        changes.contentUpdates.all { rule ->
+            val syncedRule = rules.findRule(rule) as? PushRule.Content
+            syncedRule?.pattern == rule.pattern && syncedRule.actions == rule.actions
+        } &&
+        changes.deletions.all { rules.findRule(it) == null }
+}
+
+private fun PushRuleSet.findRule(rule: PushRule): PushRule? {
+    return this.toList().firstOrNull { it.kind == rule.kind && it.ruleId == rule.ruleId }
+}
+
+private fun List<PushRule>.findRule(rule: PushRule): PushRule? {
+    return this.firstOrNull { it.kind == rule.kind && it.ruleId == rule.ruleId }
 }

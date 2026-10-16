@@ -771,13 +771,13 @@ open class I18n(
     }
 
     open fun settingsRoomLeaveRoomWarningConfirmButtonChat() = translate {
-        EN - "Yes, leave chat"
-        DE - "Ja, Chat verlassen"
+        EN - "Leave"
+        DE - "Verlassen"
     }
 
     open fun settingsRoomLeaveRoomWarningConfirmButtonGroup() = translate {
-        EN - "Yes, leave group"
-        DE - "Ja, Gruppe verlassen"
+        EN - "Leave"
+        DE - "Verlassen"
     }
 
     open fun settingsRoomLeaveRoomWarningMessageChat() = translate {
@@ -1755,9 +1755,17 @@ open class I18n(
         DE - "Während der Aufnahme ist ein Fehler aufgetreten"
     }
 
-    open fun microphonePermissionDenied() = translate {
-        EN - "Microphone permission denied. Check system settings."
-        DE - "Mikrofon-Zugriff verweigert. Überprüfen Sie die System-Einstellungen."
+    open fun genericRecordingErrorWeb() = translate {
+        EN - "An error occurred. Check microphone permission in browser settings and in device settings."
+        DE -
+            "Es ist ein Fehler aufgetreten. Prüfen Sie die Mikrofon-Berechtigung in den Browser-Einstellungen und den Geräte-Einstellungen."
+    }
+
+    open fun microphonePermissionDeniedWeb() = translate {
+        EN -
+            "Microphone permission not allowed. Check the microphone permission in browser settings and in device settings."
+        DE -
+            "Mikrofon-Zugriff nicht erlaubt. Prüfen Sie die Mikrofon-Berechtigung in den Browser-Einstellungen und in den Geräte-Einstellungen."
     }
 
     open fun microphonePermissionTimeout() = translate {
@@ -1768,6 +1776,11 @@ open class I18n(
     open fun joinRoomConfirmJoinOffline() = translate {
         EN - "You can't join the room without an internet connection, please try again later."
         DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."
+    }
+
+    open fun callJoinError() = translate {
+        EN - "Could not join the call."
+        DE - "Dem Anruf konnte nicht beigetreten werden."
     }
 
     open fun userSearchHomeserver() = translate {

@@ -225,6 +225,8 @@ class TimelineViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
     private val leaveRoom: LeaveRoom = get()
 
+    private val initTimelineMutex = Mutex()
+
     init {
         log.debug { "::: init timelineViewModel: $viewModelContext" }
     }
@@ -522,8 +524,6 @@ class TimelineViewModelImpl(
             }
         }
     }
-
-    private val initTimelineMutex = Mutex()
 
     private suspend fun initTimeline(startFrom: EventId) = initTimelineMutex.withLock {
         log.debug { "try init timeline from $startFrom" }

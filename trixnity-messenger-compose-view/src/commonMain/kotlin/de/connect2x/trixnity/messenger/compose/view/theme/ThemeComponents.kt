@@ -176,16 +176,8 @@ class ThemeComponentsImpl : ThemeComponents {
                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
                     focusedBorder = null, // needs no focus
                 ),
+            // Reactions
             reactionButton =
-                ButtonStyle.outlined(
-                    iconSize = 18.dp,
-                    iconSpacing = 4.dp,
-                    contentPadding = PaddingValues(12.dp, 4.dp),
-                    colors =
-                        ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                    focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurfaceVariant),
-                ),
-            selectedReactionButton =
                 ButtonStyle.filledTonal(
                     iconSize = 18.dp,
                     iconSpacing = 4.dp,
@@ -198,6 +190,43 @@ class ThemeComponentsImpl : ThemeComponents {
                             disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         ),
                     focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
+                ),
+            selectedReactionButton =
+                ButtonStyle.filledTonal(
+                    iconSize = 18.dp,
+                    iconSpacing = 4.dp,
+                    contentPadding = PaddingValues(12.dp, 4.dp),
+                    colors =
+                        ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
+                ),
+            pendingReactionButton =
+                ButtonStyle.outlined(
+                    iconSize = 18.dp,
+                    iconSpacing = 4.dp,
+                    contentPadding = PaddingValues(12.dp, 4.dp),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                    focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurfaceVariant),
+                ),
+            errorReactionButton =
+                ButtonStyle.filledTonal(
+                    iconSize = 18.dp,
+                    iconSpacing = 4.dp,
+                    contentPadding = PaddingValues(12.dp, 4.dp),
+                    colors =
+                        ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
+                            disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ),
+                    focusedBorder = focusedBorder(MaterialTheme.colorScheme.onError),
                 ),
             // other inputs
             listItem = ListItemStyle.default(),

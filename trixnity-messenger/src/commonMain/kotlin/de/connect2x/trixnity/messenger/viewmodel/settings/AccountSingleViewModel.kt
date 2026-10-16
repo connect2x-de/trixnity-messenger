@@ -5,10 +5,11 @@ import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
 import de.connect2x.trixnity.clientserverapi.model.server.setDisplayName
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.ProfileField.AvatarUrl
+import de.connect2x.trixnity.core.model.ProfileField.DisplayName
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.GetAccountProfileDisplayName
@@ -19,7 +20,6 @@ import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import kotlin.getValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -104,7 +104,7 @@ class AccountSingleViewModelImpl(
             .filterNotNull()
             .map { serverData ->
                 val capabilities = serverData.capabilities?.capabilities ?: return@map true
-                capabilities.profileFields(serverData.versions).isChangeAllowed(ProfileField.DisplayName) ||
+                capabilities.profileFields(serverData.versions).isChangeAllowed(DisplayName) ||
                     serverData.versions.versions.contains("v1.16").not() &&
                         @Suppress("DEPRECATION") capabilities.setDisplayName.enabled
             }
@@ -114,7 +114,7 @@ class AccountSingleViewModelImpl(
     override val avatar =
         matrixClient.profile
             .map { profile ->
-                profile?.get(ProfileField.AvatarUrl)?.let { avatarUrl ->
+                profile?.get(AvatarUrl)?.let { avatarUrl ->
                     avatarUrl.value
                         ?.takeIf { it.isNotBlank() }
                         ?.let { avatarUrl ->
@@ -138,7 +138,7 @@ class AccountSingleViewModelImpl(
             .filterNotNull()
             .map { serverData ->
                 val capabilities = serverData.capabilities?.capabilities ?: return@map true
-                capabilities.profileFields(serverData.versions).isChangeAllowed(ProfileField.AvatarUrl) ||
+                capabilities.profileFields(serverData.versions).isChangeAllowed(AvatarUrl) ||
                     serverData.versions.versions.contains("v1.16").not() &&
                         @Suppress("DEPRECATION") capabilities.setAvatarUrl.enabled
             }
@@ -148,7 +148,7 @@ class AccountSingleViewModelImpl(
 
     override val hasAvatar =
         matrixClient.profile
-            .map { profile -> profile?.get(ProfileField.AvatarUrl)?.value.orEmpty().isNotBlank() }
+            .map { profile -> profile?.get(AvatarUrl)?.value.orEmpty().isNotBlank() }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val initials =
@@ -170,7 +170,7 @@ class AccountSingleViewModelImpl(
         if (newDisplayName != displayName.value) {
             coroutineScope.launch {
                 log.debug { "set new display name in account $userId: $newDisplayName" }
-                matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName)).onFailure {
+                matrixClient.setProfileField(DisplayName(newDisplayName)).onFailure {
                     log.error(it) { "Cannot set display name." }
                     if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
                         error.value = i18n.profileNameForbidden()
@@ -190,7 +190,7 @@ class AccountSingleViewModelImpl(
         coroutineScope.launch {
             val matrixClient = getMatrixClient(userId)
             if (hasAvatar.value && canDeleteAvatar.value) {
-                matrixClient.deleteProfileField(ProfileField.AvatarUrl).onFailure {
+                matrixClient.deleteProfileField(AvatarUrl).onFailure {
                     log.error(it) { "Cannot delete avatar." }
                     if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
                         error.value = i18n.profileAvatarDeleteForbidden()

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.IntrinsicMeasurable
 import androidx.compose.ui.layout.IntrinsicMeasureScope
 import androidx.compose.ui.layout.Layout
@@ -130,6 +133,9 @@ fun MessageBubbleContent(
                     } else {
                         Text(
                             text = sender.name,
+                            modifier =
+                                Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                    .clickable(onClick = holder::openSenderProfile),
                             style =
                                 MaterialTheme.typography.labelLarge.copy(
                                     color =

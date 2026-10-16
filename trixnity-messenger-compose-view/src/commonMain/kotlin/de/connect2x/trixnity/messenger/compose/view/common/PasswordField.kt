@@ -2,7 +2,6 @@
 
 package de.connect2x.trixnity.messenger.compose.view.common
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -14,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.text.input.ImeAction
@@ -31,12 +29,14 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTextFieldWithToolbar
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PasswordField(
     password: MutableState<TextFieldValue>,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
+    lineCount: Int = 1,
+    isError: Boolean = false,
+    supportingText: @Composable (() -> Unit)? = null,
     label: @Composable () -> Unit,
 ) {
     val passwordVisible = remember { mutableStateOf(false) }
@@ -47,11 +47,11 @@ fun PasswordField(
         onValueChange = { password.value = it },
         label = label,
         enabled = enabled,
-        singleLine = true,
-        modifier =
-            Modifier.fillMaxWidth()
-                .autofill(AutofillType.Password) { password.value = TextFieldValue(it) }
-                .then(modifier),
+        singleLine = lineCount == 1,
+        maxLines = lineCount,
+        supportingText = supportingText,
+        isError = isError,
+        modifier = Modifier.autofill(AutofillType.Password) { password.value = TextFieldValue(it) }.then(modifier),
         visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions =
             KeyboardOptions(

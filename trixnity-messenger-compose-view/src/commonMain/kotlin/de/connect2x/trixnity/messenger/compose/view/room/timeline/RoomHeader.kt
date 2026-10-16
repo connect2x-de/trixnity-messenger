@@ -34,6 +34,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderSurface
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
@@ -44,6 +46,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.minHeaderHeight
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.room.call.CallControlButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
@@ -225,6 +228,12 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
 @Composable
 fun RoomExtras(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean) {
     val i18n = DI.get<I18nView>()
+    val messengerConfiguration = DI.get<MatrixMessengerConfiguration>()
+
+    @OptIn(TrixnityMessengerCallApi::class)
+    if (messengerConfiguration.features.enableVideoCalls && roomHeaderViewModel.call != null) {
+        CallControlButton(requireNotNull(roomHeaderViewModel.call))
+    }
 
     if (showSettingsButton) {
         Tooltip(tooltip = { Text(i18n.roomHeaderSettings()) }) {

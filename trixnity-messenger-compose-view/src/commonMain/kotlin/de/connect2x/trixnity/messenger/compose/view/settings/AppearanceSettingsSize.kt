@@ -267,6 +267,8 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
 
     override fun openTimelineElementMetadata() {}
 
+    override fun openSenderProfile() {}
+
     override fun jumpTo() {}
 }
 
@@ -339,6 +341,8 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun removeReaction(reaction: String) {}
 
     override fun openTimelineElementMetadata() {}
+
+    override fun openSenderProfile() {}
 
     override fun jumpTo() {}
 }

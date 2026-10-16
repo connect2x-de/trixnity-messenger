@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.decodeToImageBitmap
+import androidx.compose.ui.unit.IntSize
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import kotlinx.coroutines.Dispatchers
@@ -18,25 +19,32 @@ private val log = Logger("de.connect2x.trixnity.messenger.compose.view.files.dec
  * Returns null for empty, unsupported, or malformed data.
  */
 @TrixnityMessengerPrivateApi
-fun ByteArray.decodeToImageBitmapOrNull(): ImageBitmap? {
-    if (isEmpty()) return null
+fun ByteArray.decodeToImageBitmapOrNull(maxSize: IntSize? = null): ImageBitmap? {
+    if (isEmpty()) {
+        log.warn { "Unable to decode image: ByteArray is empty" }
+        return null
+    }
 
     return try {
-        decodeToImageBitmap().takeIf { it.width > 0 && it.height > 0 }
+        if (maxSize == null) {
+            decodeToImageBitmap()
+        } else {
+            decodeToImageBitmapWithSize(maxSize)
+        }
     } catch (e: Exception) {
-        log.warn { "Unable to decode Image: ${e.message}" }
+        log.warn { "Unable to decode image: ${e.message}" }
         null
     }
 }
 
 @TrixnityMessengerPrivateApi
 @Composable
-fun rememberImageBitmapOrNull(bytes: ByteArray?): ImageBitmap? {
+fun rememberImageBitmapOrNull(bytes: ByteArray?, maxSize: IntSize? = null): ImageBitmap? {
     if (bytes == null) return null
 
     val bitmap by
-        produceState<ImageBitmap?>(initialValue = null, key1 = bytes) {
-            value = withContext(Dispatchers.Default) { bytes.decodeToImageBitmapOrNull() }
+        produceState<ImageBitmap?>(initialValue = null, key1 = bytes, key2 = maxSize) {
+            value = withContext(Dispatchers.Default) { bytes.decodeToImageBitmapOrNull(maxSize) }
         }
 
     return bitmap

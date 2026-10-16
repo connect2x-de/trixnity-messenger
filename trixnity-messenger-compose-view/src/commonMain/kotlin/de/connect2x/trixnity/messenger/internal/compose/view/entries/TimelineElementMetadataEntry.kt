@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadata
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.metadata.TimelineElementMetadata
 import de.connect2x.trixnity.messenger.compose.view.root.IsSinglePane
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface

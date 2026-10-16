@@ -207,6 +207,7 @@ class RoomSettingsViewModelTest {
                                                         onOpenUserProfile: (UserId) -> Unit,
                                                     ): MemberListViewModel =
                                                         object : MemberListViewModel {
+                                                            override val searchTerm = MutableStateFlow("")
                                                             override val filterByMemberships =
                                                                 MutableStateFlow(
                                                                     setOf(

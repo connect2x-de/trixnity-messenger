@@ -6,6 +6,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun notificationModule(): Module = module {
+    single<AccountNotificationPushRuleModifier> { NoopAccountNotificationPushRuleModifier() }
     single<NotificationSyncService> {
             NotificationSyncService(
                 matrixClients = get(),

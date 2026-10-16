@@ -41,8 +41,11 @@ data class ComponentStyles(
     val destructiveIconButtonFilled: IconButtonStyle,
     val floatingActionButton: FloatingActionButtonStyle,
     val floatingActionButtonDisabled: FloatingActionButtonStyle,
+    // reactions
     val reactionButton: ButtonStyle,
     val selectedReactionButton: ButtonStyle,
+    val pendingReactionButton: ButtonStyle,
+    val errorReactionButton: ButtonStyle,
     // other inputs
     val listItem: ListItemStyle,
     val checkbox: CheckboxStyle,

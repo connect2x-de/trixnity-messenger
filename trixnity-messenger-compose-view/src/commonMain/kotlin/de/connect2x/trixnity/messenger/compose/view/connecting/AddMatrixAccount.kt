@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.BackButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
 import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -76,3 +78,26 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
 
 internal fun AddMatrixAccountState.inputEnabled() =
     this is AddMatrixAccountState.None || this is AddMatrixAccountState.Failure
+
+@Composable
+fun AddMatrixAccountWizardPanel(viewModel: AddMatrixAccountViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    WizardPanel(
+        title = {
+            val isFirstMatrixClient = viewModel.isFirstMatrixClient.collectAsState().value
+            if (isFirstMatrixClient != false) {
+                i18n.addMatrixClientCreateMatrixAccount()
+            } else {
+                i18n.addMatrixClientAnotherMatrixClient()
+            }
+        },
+        content = { AddMatrixAccount(viewModel) },
+        buttons = {
+            val hasOtherAccountsOrProfiles = viewModel.hasOtherAccountsOrProfiles.collectAsState().value
+            if (hasOtherAccountsOrProfiles) {
+                BackButton(text = i18n.actionCancel()) { viewModel.cancel() }
+            }
+        },
+        wizardId = "ConnectingWizard",
+    )
+}

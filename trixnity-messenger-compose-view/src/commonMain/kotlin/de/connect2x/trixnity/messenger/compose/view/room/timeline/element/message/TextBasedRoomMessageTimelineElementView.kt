@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -17,8 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,6 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.PlatformType
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.richtext.LocalInlineImageMaxHeight
 import de.connect2x.trixnity.messenger.compose.view.richtext.RichTextColors
 import de.connect2x.trixnity.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
@@ -113,6 +118,7 @@ private fun MessageTextContent(
             ) {
                 RichTextDisplay(
                     document = content,
+                    loadImage = remember(element) { element::loadInlineImage },
                     mentions = element.mentionsInFormattedBody,
                     modifier = Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { showActionMenu() }) },
                     colors =
@@ -165,11 +171,29 @@ fun TextReplyInSendMessage(
 
 @Composable
 fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
-    Text(
-        text = element.body,
-        fontStyle = FontStyle.Italic,
-        style = MaterialTheme.typography.bodySmall,
-        maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
-    )
+    val content = element.formattedBodyContent
+    val style = MaterialTheme.typography.bodySmall.copy(color = LocalContentColor.current)
+    if (content != null) {
+        val uriCaller = DI.get<UriCaller>()
+        val lineHeight = with(LocalDensity.current) { style.lineHeight.toDp() }
+        val maxHeight = lineHeight * maxLines
+        CompositionLocalProvider(LocalTextStyle provides style, LocalInlineImageMaxHeight provides lineHeight) {
+            RichTextDisplay(
+                document = content,
+                loadImage = remember(element) { element::loadInlineImage },
+                mentions = element.mentionsInFormattedBody,
+                modifier = Modifier.heightIn(max = maxHeight).clipToBounds(),
+                onLinkClick = { uriCaller.invoke(it, true) },
+                onMentionClick = element::openMention,
+            )
+        }
+    } else {
+        Text(
+            text = element.body,
+            fontStyle = FontStyle.Italic,
+            style = style,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }
