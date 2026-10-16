@@ -7,14 +7,18 @@ import de.connect2x.trixnity.client.rtc
 import de.connect2x.trixnity.client.rtc.PerMemberRtcSlotMembershipEncryptionInfo
 import de.connect2x.trixnity.client.rtc.RtcSlotMembership
 import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
 import de.connect2x.trixnity.core.MSC4143
+import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4195
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication
 import de.connect2x.trixnity.core.model.events.m.rtc.LiveKitRtcTransport
+import de.connect2x.trixnity.core.model.events.m.rtc.PerMemberRtcEncryption
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
@@ -29,8 +33,11 @@ import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import io.ktor.http.Url
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +52,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.component.get
 
 @TrixnityMessengerCallApi
@@ -71,7 +79,7 @@ interface RoomCallViewModel {
     )
 }
 
-@OptIn(MSC4143::class, MSC4195::class, TrixnityMessengerCallApi::class)
+@OptIn(MSC4143::class, MSC4195::class, MSC4193::class, TrixnityMessengerCallApi::class)
 internal class RoomCallViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
@@ -98,6 +106,7 @@ internal class RoomCallViewModelImpl(
         check(configuration.features.enableVideoCalls) {
             "RoomCallViewModel must not be used without video calls enabled"
         }
+        coroutineScope.launch { join() }
         registerBackCallback(BackCallback(onBack = ::back))
         lifecycle.doOnDestroy { leave() }
         coroutineScope.launch { matrixClient.user.loadMembers(roomId, wait = false) }
@@ -203,6 +212,73 @@ internal class RoomCallViewModelImpl(
 
     private fun leave() {
         membership.value?.leave(null)
+    }
+
+    private suspend fun join() {
+        try {
+            val existing =
+                matrixClient.rtc.getCurrentMemberships().first().firstOrNull {
+                    it.roomId == roomId && it.slotId == slotId && it.state.first().content is RtcMemberEventContent.Join
+                }
+            if (existing != null) {
+                membership.value = existing
+                return
+            }
+            check(matrixClient.user.canSendEvent<RtcMemberEventContent>(roomId).first()) {
+                "Cannot join call slot in $roomId"
+            }
+            ensureSlot()
+            val transport =
+                checkNotNull(
+                    matrixClient.api.rtc
+                        .getTransports()
+                        .getOrThrow()
+                        .filterIsInstance<LiveKitRtcTransport>()
+                        .firstOrNull()
+                ) {
+                    "Server does not have a LiveKitRtcTransport"
+                }
+            currentCoroutineContext().ensureActive()
+            membership.value =
+                matrixClient.rtc
+                    .joinSlot(
+                        roomId = roomId,
+                        slotId = slotId,
+                        application = CallRtcApplication.Member(),
+                        transports =
+                            RtcMemberEventContent.Join.RtcTransports(
+                                published = listOf(transport),
+                                canSubscribe = listOf("m.livekit", "livekit"), // TODO remove Element flavor
+                            ),
+                    )
+                    .getOrThrow()
+        } catch (cancelled: CancellationException) {
+            try {
+                leave()
+            } catch (t: Throwable) {
+                cancelled.addSuppressed(t)
+            }
+            throw cancelled
+        } catch (exception: Exception) {
+            log.warn(exception) { "Failed to join call slot in $roomId" }
+            error.value = i18n.callJoinError()
+        }
+    }
+
+    private suspend fun ensureSlot() {
+        val encryption =
+            if (matrixClient.room.getById(roomId).first()?.encrypted == true) PerMemberRtcEncryption else null
+        val slot = RtcSlotEventContent.Open(application = CallRtcApplication.Slot, encryption = encryption)
+        if (matrixClient.rtc.getSlot(roomId, slotId).first()?.content == slot) return
+        check(matrixClient.user.canSendEvent<RtcSlotEventContent>(roomId).first()) {
+            "Cannot create or repair call slot in $roomId"
+        }
+        matrixClient.api.room.sendStateEvent(roomId = roomId, eventContent = slot, stateKey = slotId.value).getOrThrow()
+        checkNotNull(
+            withTimeoutOrNull(5.seconds) { matrixClient.rtc.getSlot(roomId, slotId).first { it?.content == slot } }
+        ) {
+            "Call slot did not appear after creation in $roomId"
+        }
     }
 
     private fun reportMembershipError(failure: RtcSlotMembership.Error) {

@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.call
 
-import de.connect2x.lognity.api.logger.warn
-import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.rtc
 import de.connect2x.trixnity.client.rtc.RtcSlotMembership
 import de.connect2x.trixnity.client.user
@@ -10,14 +8,10 @@ import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4195
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication
 import de.connect2x.trixnity.core.model.events.m.rtc.LiveKitRtcTransport
-import de.connect2x.trixnity.core.model.events.m.rtc.PerMemberRtcEncryption
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
-import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -27,11 +21,8 @@ import de.connect2x.trixnity.messenger.internal.routes.RoomCallRoute
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -40,10 +31,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -101,33 +90,26 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     private val slotId = CallRtcApplication.SLOT_ID
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val routeNavigation = getOrNull<RouteNavigation>()
-    private val joining = MutableStateFlow(false)
-    private val error = MutableStateFlow<String?>(null)
-
-    private val joinedParticipants =
-        matrixClient.rtc
-            .getMembers(roomId, slotId)
-            .map { events ->
-                @Suppress("UNCHECKED_CAST")
-                events.filterValues { it.content is RtcMemberEventContent.Join }
-                    as Map<Pair<UserId, RtcMemberId>, ClientEvent.RoomEvent.MessageEvent<RtcMemberEventContent.Join>>
-            }
-            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+    private val membership =
+        matrixClient.rtc.getCurrentMemberships().map { it.find { it.roomId == roomId && it.slotId == slotId } }
+    private val hasParticipants =
+        matrixClient.rtc.getMembers(roomId, slotId).map { events ->
+            events.values.any { it.content is RtcMemberEventContent.Join }
+        }
 
     private val canCreateOrJoin =
         combine(
-                matrixClient.serverData.map { it?.rtcTransports },
-                matrixClient.rtc.getSlot(roomId, slotId).map { it != null },
-                matrixClient.user.canSendEvent<RtcSlotEventContent>(roomId),
-                matrixClient.user.canSendEvent<RtcMemberEventContent>(roomId),
-            ) { transports, isCallSlotPresent, canSendSlotEvent, canSendMemberEvent ->
-                when {
-                    transports == null -> false // TODO use foreign SFU when present
-                    isCallSlotPresent -> canSendMemberEvent
-                    else -> canSendSlotEvent && canSendMemberEvent
-                }
+            matrixClient.serverData.map { it?.rtcTransports },
+            matrixClient.rtc.getSlot(roomId, slotId).map { it?.content is RtcSlotEventContent.Open },
+            matrixClient.user.canSendEvent<RtcSlotEventContent>(roomId),
+            matrixClient.user.canSendEvent<RtcMemberEventContent>(roomId),
+        ) { transports, isCallSlotPresent, canSendSlotEvent, canSendMemberEvent ->
+            when {
+                transports.orEmpty().none { it is LiveKitRtcTransport } -> false // TODO use foreign SFU when present
+                isCallSlotPresent -> canSendMemberEvent
+                else -> canSendSlotEvent && canSendMemberEvent
             }
-            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+        }
 
     private val configuration: MatrixMessengerConfiguration by inject()
 
@@ -143,36 +125,22 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
             .flatMapLatest { enabled ->
                 if (!enabled) return@flatMapLatest flowOf(CallControlViewModel.State.NoCall)
 
-                combine(
-                    getExistingMembership().flatMapLatest { it?.state ?: flowOf(null) },
+                combine(membership.flatMapLatest { it?.state ?: flowOf(null) }, canCreateOrJoin, hasParticipants) {
+                    existingMembershipState,
                     canCreateOrJoin,
-                    joinedParticipants,
-                    error,
-                    joining,
-                ) { existingMembershipState, canCreateOrJoin, participants, error, joining ->
-                    val hasParticipants = participants.isNotEmpty()
+                    hasParticipants ->
                     when (existingMembershipState) {
                         is RtcSlotMembership.State.Join -> CallControlViewModel.State.Join
                         is RtcSlotMembership.State.Joining -> CallControlViewModel.State.Joining
-                        is RtcSlotMembership.State.JoiningError ->
-                            CallControlViewModel.State.Error(i18n.callJoinError())
-                        is RtcSlotMembership.State.Leave ->
-                            if (hasParticipants) {
-                                CallControlViewModel.State.CallAvailable(hasParticipants = hasParticipants)
-                            } else {
-                                CallControlViewModel.State.NoCall
-                            }
                         is RtcSlotMembership.State.Leaving -> CallControlViewModel.State.Leaving
+                        is RtcSlotMembership.State.JoiningError,
                         is RtcSlotMembership.State.LeavingError ->
                             CallControlViewModel.State.Error(i18n.callJoinError())
+
+                        is RtcSlotMembership.State.Leave,
                         null ->
-                            when {
-                                error != null -> CallControlViewModel.State.Error(error)
-                                joining -> CallControlViewModel.State.Joining
-                                canCreateOrJoin && hasParticipants ->
-                                    CallControlViewModel.State.CallAvailable(hasParticipants = hasParticipants)
-                                else -> CallControlViewModel.State.NoCall
-                            }
+                            if (canCreateOrJoin) CallControlViewModel.State.CallAvailable(hasParticipants)
+                            else CallControlViewModel.State.NoCall
                     }
                 }
             }
@@ -180,140 +148,20 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     }
 
     override fun join() {
-        val currentState = state.value
-        if (currentState !is CallControlViewModel.State.CallAvailable) {
-            log.warn { "cannot join with wrong state" }
-            return
-        }
-        if (!messengerSettings.value.experimental.enableVideoCalls) {
-            log.warn { "cannot start a call while experimental video calls are disabled" }
-            return
-        }
-        if (!joining.compareAndSet(expect = false, update = true)) return
-
-        coroutineScope.launch {
-            error.value = null
-            val existingJoinedMembership = getExistingJoinedMembership()
-            if (existingJoinedMembership != null) return@launch
-
-            val hasOrCreateSlot = hasOrCreateSlot()
-            if (!hasOrCreateSlot) return@launch
-            val transport =
-                matrixClient.api.rtc
-                    .getTransports()
-                    .fold(
-                        onSuccess = {
-                            val liveKitTransport = it.filterIsInstance<LiveKitRtcTransport>().firstOrNull()
-                            if (liveKitTransport == null) {
-                                log.warn { "server does not have a LiveKitRtcTransport" }
-                            }
-                            liveKitTransport
-                        },
-                        onFailure = {
-                            if (it is CancellationException) throw it
-                            log.warn(it) { "failed to create slot" }
-                            error.value = i18n.callJoinError()
-                            null
-                        },
-                    ) ?: return@launch
-            matrixClient.rtc
-                .joinSlot(
-                    roomId = roomId,
-                    slotId = slotId,
-                    application = CallRtcApplication.Member(),
-                    transports =
-                        RtcMemberEventContent.Join.RtcTransports(
-                            published = listOf(transport),
-                            canSubscribe =
-                                listOf(
-                                    "m.livekit",
-                                    "livekit", // TODO remove Element flavor
-                                ),
-                        ),
-                )
-                .fold(
-                    onSuccess = {
-                        routeNavigation?.updateNavigation {
-                            val route = RoomCallRoute(userId, roomId)
-                            if (route !in items) push(route)
-                        }
-                    },
-                    onFailure = {
-                        if (it is CancellationException) throw it
-                        log.warn(it) { "failed to join slot" }
-                        error.value = i18n.callJoinError()
-                    },
-                )
-
-            joining.value = false
+        if (state.value !is CallControlViewModel.State.CallAvailable) return
+        routeNavigation?.updateNavigation {
+            val route = RoomCallRoute(userId, roomId)
+            if (route !in items) push(route)
         }
     }
 
     override fun leave() {
-        error.value = null
         coroutineScope.launch {
-            getExistingJoinedMembership()
+            membership
+                .first()
+                ?.takeIf { it.state.first().content is RtcMemberEventContent.Join }
                 ?.leave(RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.LEAVE.value))
         }
-    }
-
-    private fun getExistingMembership() =
-        matrixClient.rtc.getCurrentMemberships().map { it.find { it.roomId == roomId && it.slotId == slotId } }
-
-    private suspend fun getExistingJoinedMembership() =
-        getExistingMembership().first()?.takeIf {
-            val state = it.state.first()
-            when (state) {
-                is RtcSlotMembership.State.Join,
-                is RtcSlotMembership.State.Joining,
-                is RtcSlotMembership.State.JoiningError -> true
-                is RtcSlotMembership.State.Leave,
-                is RtcSlotMembership.State.Leaving,
-                is RtcSlotMembership.State.LeavingError -> false
-            }
-        }
-
-    private suspend fun hasOrCreateSlot(): Boolean {
-        val slotEvent = matrixClient.rtc.getSlot(roomId, slotId).first()
-        val slot = slotEvent?.content as? RtcSlotEventContent.Open
-        if (slot != null) {
-            if (
-                slot.application != CallRtcApplication.Slot ||
-                    slot.encryption == null && slot.encryption != null ||
-                    slot.encryption != null && slot.encryption !is PerMemberRtcEncryption
-            ) {
-                log.info { "the room has an incompatible slot" }
-            } else return true
-        }
-        if (!matrixClient.user.canSendEvent<RtcSlotEventContent>(roomId).first()) {
-            log.warn { "cannot create or repair slot" }
-            return false
-        }
-        val encryption =
-            if (matrixClient.room.getById(roomId).first()?.encrypted == true) PerMemberRtcEncryption else null
-        matrixClient.api.room
-            .sendStateEvent(
-                roomId = roomId,
-                eventContent = RtcSlotEventContent.Open(application = CallRtcApplication.Slot, encryption = encryption),
-                stateKey = slotId.value,
-            )
-            .fold(
-                onSuccess = {
-                    withTimeoutOrNull(5.seconds) { matrixClient.rtc.getSlot(roomId, slotId).first { it != null }?.id }
-                        .also {
-                            if (it == null) {
-                                log.warn { "slot did not exist after waiting" }
-                            }
-                        }
-                },
-                onFailure = {
-                    if (it is CancellationException) throw it
-                    log.warn(it) { "failed to create slot" }
-                    error.value = i18n.callJoinError()
-                    return false
-                },
-            )
-        return true
     }
 }
 
