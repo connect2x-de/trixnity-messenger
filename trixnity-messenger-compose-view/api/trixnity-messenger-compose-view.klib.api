@@ -4181,6 +4181,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun experimentalSettingsCallsTitle(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.experimentalSettingsCallsTitle|experimentalSettingsCallsTitle(){}[0]
     open fun experimentalSettingsTitle(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.experimentalSettingsTitle|experimentalSettingsTitle(){}[0]
     open fun experimentalSettingsVideoCalls(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.experimentalSettingsVideoCalls|experimentalSettingsVideoCalls(){}[0]
+    open fun experimentalSettingsVideoCallsDisableExplanation(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.experimentalSettingsVideoCallsDisableExplanation|experimentalSettingsVideoCallsDisableExplanation(){}[0]
     open fun experimentalSettingsVideoCallsExplanation(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.experimentalSettingsVideoCallsExplanation|experimentalSettingsVideoCallsExplanation(){}[0]
     open fun exportRoom(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.exportRoom|exportRoom(kotlin.String){}[0]
     open fun exportRoomAbort(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.exportRoomAbort|exportRoomAbort(){}[0]

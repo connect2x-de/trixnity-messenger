@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerExperimentalSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -25,9 +26,9 @@ interface ExperimentalSettingsViewModelFactory {
 }
 
 interface ExperimentalSettingsViewModel {
-    val videoCallsEnabled: StateFlow<Boolean>
+    @TrixnityMessengerCallApi val videoCallsEnabled: StateFlow<Boolean>
 
-    fun toggleVideoCallsEnabled()
+    @TrixnityMessengerCallApi fun toggleVideoCallsEnabled()
 
     fun back()
 }
@@ -39,6 +40,7 @@ class ExperimentalSettingsViewModelImpl(
     private val settings: MatrixMessengerSettingsHolder by inject()
     private val configuration: MatrixMessengerConfiguration by inject()
 
+    @TrixnityMessengerCallApi
     override val videoCallsEnabled: StateFlow<Boolean> =
         settings
             .map { it.experimental.enableVideoCalls }
@@ -50,6 +52,7 @@ class ExperimentalSettingsViewModelImpl(
         registerBackCallback(backCallback)
     }
 
+    @TrixnityMessengerCallApi
     override fun toggleVideoCallsEnabled() {
         if (!configuration.features.enableVideoCalls) {
             log.error { "Unable to enable MatrixRTC-based video calls because the developer disabled video calls" }
