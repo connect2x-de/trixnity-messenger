@@ -79,6 +79,14 @@ kotlin {
                 group("web")
                 group("ios")
             }
+            group("call") {
+                withAndroidTarget()
+                group("web")
+            }
+            group("nonCall") {
+                withJvm()
+                group("ios")
+            }
         }
     }
     sourceSets {
@@ -131,6 +139,13 @@ kotlin {
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(projects.wrappersPdfjs)
+            }
+        }
+        getByName("callMain") {
+            dependencies {
+                implementation(libs.livekitnity.api)
+                implementation(libs.livekitnity.core)
+                implementation(libs.livekitnity.compose)
             }
         }
         commonTest {

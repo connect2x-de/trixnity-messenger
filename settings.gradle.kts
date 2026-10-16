@@ -29,3 +29,13 @@ include(
     "wrappers-zipjs",
     "wrappers-pdfjs",
 )
+
+dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
+    repositories {
+        exclusiveContent {
+            forRepository { maven("https://jitpack.io") }
+            filter { includeModule("com.github.davidliu", "audioswitch") }
+        }
+    }
+}
