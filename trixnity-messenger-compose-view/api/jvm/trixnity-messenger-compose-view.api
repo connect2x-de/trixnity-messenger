@@ -1322,6 +1322,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun experimentalSettingsCallsTitle ()Ljava/lang/String;
 	public fun experimentalSettingsTitle ()Ljava/lang/String;
 	public fun experimentalSettingsVideoCalls ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCallsDisableExplanation ()Ljava/lang/String;
 	public fun experimentalSettingsVideoCallsExplanation ()Ljava/lang/String;
 	public fun exportRoom (Ljava/lang/String;)Ljava/lang/String;
 	public fun exportRoomAbort ()Ljava/lang/String;

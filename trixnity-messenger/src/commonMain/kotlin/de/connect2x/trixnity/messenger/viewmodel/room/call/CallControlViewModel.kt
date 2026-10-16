@@ -129,7 +129,7 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val state: StateFlow<CallControlViewModel.State?> = let {
-        if (configuration.features.enableVideoCalls) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
+        if (!configuration.features.enableVideoCalls) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
 
         messengerSettings
             .map { it.experimental.enableVideoCalls }

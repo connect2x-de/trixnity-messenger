@@ -18,7 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.Platform
+import de.connect2x.trixnity.messenger.compose.view.PlatformType
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -38,11 +41,15 @@ fun ExperimentalSettings(experimentalSettingsViewModel: ExperimentalSettingsView
 
 class ExperimentalSettingsViewImpl : ExperimentalSettingsView {
     @Composable
+    @TrixnityMessengerCallApi
     override fun create(experimentalSettingsViewModel: ExperimentalSettingsViewModel) {
         val i18n = DI.get<I18nView>()
         val configuration = DI.get<MatrixMessengerConfiguration>()
         val scroll = rememberScrollState()
+        val platform = Platform.current
+
         val enableVideoCalls by experimentalSettingsViewModel.videoCallsEnabled.collectAsState()
+        val videoCallsSupported = platform == PlatformType.ANDROID || platform == PlatformType.WEB
 
         Box(Modifier.fillMaxSize()) {
             Column {
@@ -54,8 +61,19 @@ class ExperimentalSettingsViewImpl : ExperimentalSettingsView {
                                 ThemedListItemSwitch(
                                     style = MaterialTheme.components.settingsItem,
                                     headlineContent = { Text(i18n.experimentalSettingsVideoCalls()) },
-                                    supportingContent = { Text(i18n.experimentalSettingsVideoCallsExplanation()) },
-                                    selected = enableVideoCalls,
+                                    supportingContent = {
+                                        Column {
+                                            Text(i18n.experimentalSettingsVideoCallsExplanation())
+                                            if (!videoCallsSupported) {
+                                                Text(
+                                                    text = i18n.experimentalSettingsVideoCallsDisableExplanation(),
+                                                    color = MaterialTheme.colorScheme.error,
+                                                )
+                                            }
+                                        }
+                                    },
+                                    selected = enableVideoCalls && videoCallsSupported,
+                                    enabled = videoCallsSupported,
                                     onChange = { experimentalSettingsViewModel.toggleVideoCallsEnabled() },
                                 )
                             }

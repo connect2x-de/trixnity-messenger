@@ -2926,6 +2926,11 @@ open class I18nView(
             "Diese Funktion ist möglicherweise nicht mit Clients kompatibel, die ältere MatrixRTC-Versionen unterstützen."
     }
 
+    open fun experimentalSettingsVideoCallsDisableExplanation() = translate {
+        EN - "This setting is disabled because it is not supported on this platform."
+        DE - "Diese Einstellung ist deaktiviert da diese Funktion auf dieser Plattform nicht unterstützt wird."
+    }
+
     open fun appearanceColorsTitle() = translate {
         EN - "Colors"
         DE - "Farben"
