@@ -24,6 +24,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
 import de.connect2x.trixnity.messenger.internal.routes.RoomCallRoute
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlin.time.Duration.Companion.seconds
@@ -99,7 +100,7 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
 
     private val slotId = CallRtcApplication.SLOT_ID
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
-    private val routeNavigation = get<RouteNavigation>()
+    private val routeNavigation = getOrNull<RouteNavigation>()
     private val joining = MutableStateFlow(false)
     private val error = MutableStateFlow<String?>(null)
 
@@ -133,6 +134,8 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     @OptIn(ExperimentalCoroutinesApi::class)
     override val state: StateFlow<CallControlViewModel.State?> = let {
         if (!configuration.features.enableVideoCalls) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
+        // TODO(fhilgers): can we check that features are only enabled when nav3 is enabled?
+        if (routeNavigation == null) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
 
         messengerSettings
             .map { it.experimental.enableVideoCalls }
@@ -230,7 +233,7 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
                 )
                 .fold(
                     onSuccess = {
-                        routeNavigation.updateNavigation {
+                        routeNavigation?.updateNavigation {
                             val route = RoomCallRoute(userId, roomId)
                             if (route !in items) push(route)
                         }
