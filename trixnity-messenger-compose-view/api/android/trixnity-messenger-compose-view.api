@@ -6917,8 +6917,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/util/AnimateRota
 public final class de/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder {
 	public static final field $stable I
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder;
-	public final fun decode-s_kHBtI (Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;F)Landroidx/compose/ui/graphics/ImageBitmap;
-	public static synthetic fun decode-s_kHBtI$default (Lde/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder;Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;FILjava/lang/Object;)Landroidx/compose/ui/graphics/ImageBitmap;
+	public final fun decode-WBGoCGI (Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;JF)Landroidx/compose/ui/graphics/ImageBitmap;
+	public static synthetic fun decode-WBGoCGI$default (Lde/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder;Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;JFILjava/lang/Object;)Landroidx/compose/ui/graphics/ImageBitmap;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/util/CopyableUserId {

@@ -115,7 +115,8 @@ class BlurHashDecoderTest {
     }
 
     private fun testFixture(fixture: Fixture) {
-        val bitmap = assertNotNull(BlurHashDecoder.decode(fixture.blurHash, IntSize(fixture.width, fixture.height)))
+        val size = IntSize(fixture.width, fixture.height)
+        val bitmap = assertNotNull(BlurHashDecoder.decode(fixture.blurHash, size, size))
 
         assertEquals(fixture.width, bitmap.width)
         assertEquals(fixture.height, bitmap.height)
