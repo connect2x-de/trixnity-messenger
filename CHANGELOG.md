@@ -68,6 +68,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Only display available verification methods in SelfVerificationWizard
 - SDK: When exporting a room then do not throw an exception when the start condition filters out all events
 - SDK,ANDROID: Correctly cancel account adding process via back button
+- SDK: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
 
 ### Security
 
