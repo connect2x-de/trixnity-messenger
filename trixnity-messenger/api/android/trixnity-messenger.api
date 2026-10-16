@@ -11219,6 +11219,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11270,6 +11272,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11321,6 +11325,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11372,6 +11378,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11452,6 +11460,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomli
 	public abstract fun getAccount-hu1aZbM ()Ljava/lang/String;
 	public abstract fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getNotificationCount ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11512,6 +11521,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementV
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getKoin ()Lorg/koin/core/Koin;

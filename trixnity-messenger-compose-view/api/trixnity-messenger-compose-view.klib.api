@@ -4492,6 +4492,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun roomListNoRoom(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomListNoRoom|roomListNoRoom(){}[0]
     open fun roomListNoSearchResults(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomListNoSearchResults|roomListNoSearchResults(){}[0]
     open fun roomListRemoveRoom(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomListRemoveRoom|roomListRemoveRoom(){}[0]
+    open fun roomListRunningCall(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomListRunningCall|roomListRunningCall(){}[0]
     open fun roomListSearch(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomListSearch|roomListSearch(){}[0]
     open fun roomListSyncErrorAccounts(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomListSyncErrorAccounts|roomListSyncErrorAccounts(kotlin.String){}[0]
     open fun roomListSyncErrorNoConnection(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomListSyncErrorNoConnection|roomListSyncErrorNoConnection(){}[0]

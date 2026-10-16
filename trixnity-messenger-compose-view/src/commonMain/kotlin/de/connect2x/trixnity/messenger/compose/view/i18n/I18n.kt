@@ -1761,6 +1761,11 @@ open class I18nView(
         DE - "Beitreten"
     }
 
+    open fun roomListRunningCall() = translate {
+        EN - "Running call"
+        DE - "Laufender Anruf"
+    }
+
     open fun roomListAccountNotVerifiedIcon() = translate {
         EN - "Account not verified"
         DE - "Nutzerkonto nicht verifiziert"
