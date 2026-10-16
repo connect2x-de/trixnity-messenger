@@ -22,6 +22,8 @@ import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
+import de.connect2x.trixnity.messenger.internal.routes.RoomCallRoute
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlin.time.Duration.Companion.seconds
@@ -97,6 +99,7 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
 
     private val slotId = CallRtcApplication.SLOT_ID
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
+    private val routeNavigation = get<RouteNavigation>()
     private val joining = MutableStateFlow(false)
     private val error = MutableStateFlow<String?>(null)
 
@@ -226,7 +229,12 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
                         ),
                 )
                 .fold(
-                    onSuccess = {},
+                    onSuccess = {
+                        routeNavigation.updateNavigation {
+                            val route = RoomCallRoute(userId, roomId)
+                            if (route !in items) push(route)
+                        }
+                    },
                     onFailure = {
                         if (it is CancellationException) throw it
                         log.warn(it) { "failed to join slot" }
