@@ -3917,6 +3917,51 @@ open class I18nView(
         DE - "Anruf fehlgeschlagen: $error (Drücke um neu zu versuchen)"
     }
 
+    open fun callJoining() = translate {
+        EN - "Joining..."
+        DE - "Beitreten..."
+    }
+
+    open fun callReconnecting() = translate {
+        EN - "Reconnecting..."
+        DE - "Verbindung wird wiederhergestellt..."
+    }
+
+    open fun callConnectionError() = translate {
+        EN - "A call connection failed."
+        DE - "Eine Anrufverbindung ist fehlgeschlagen."
+    }
+
+    open fun callParticipantsUnavailable() = translate {
+        EN - "Some participants are unavailable."
+        DE - "Einige Teilnehmer sind nicht erreichbar."
+    }
+
+    open fun callCameraError() = translate {
+        EN - "Could not change camera state."
+        DE - "Die Kamera konnte nicht umgeschaltet werden."
+    }
+
+    open fun callMicrophoneError() = translate {
+        EN - "Could not change microphone state."
+        DE - "Das Mikrofon konnte nicht umgeschaltet werden."
+    }
+
+    open fun callCameraPermissionDenied() = translate {
+        EN - "Camera permission was denied. Your camera is off."
+        DE - "Zugriff auf die Kamera verweigert. Die Kamera ist ausgeschaltet."
+    }
+
+    open fun callMicrophonePermissionDenied() = translate {
+        EN - "Microphone permission was denied. Your microphone is off."
+        DE - "Zugriff auf das Mikrofon verweigert. Das Mikrofon ist ausgeschaltet."
+    }
+
+    open fun callYou() = translate {
+        EN - "You"
+        DE - "Du"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
 
     fun actionMore() = commonMore().capitalize(Locale.current)

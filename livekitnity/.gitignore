@@ -1,0 +1,6 @@
+build
+.kotlin
+.idea
+.gradle
+local.properties
+node_modules
