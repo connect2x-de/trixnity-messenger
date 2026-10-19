@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Downscale images in the timeline
 - UI: Add a menu for enabling experimental messenger settings
 - UI: Add entry to enable experimental MatrixRTC calls on Android and Web
+- SDK,UI: Add experimental support for MatrixRTC Livekit calls
 
 ### Changed
 
