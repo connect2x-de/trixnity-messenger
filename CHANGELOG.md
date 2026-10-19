@@ -74,6 +74,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: When exporting a room then do not throw an exception when the start condition filters out all events
 - SDK,ANDROID: Correctly cancel account adding process via back button
 - SDK: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
+- UI: Placeholder of the input area with hint is shown when user can't type messages into the room
 
 ### Security
 
