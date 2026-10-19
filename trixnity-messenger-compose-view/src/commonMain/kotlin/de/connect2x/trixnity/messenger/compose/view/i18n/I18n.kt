@@ -3912,6 +3912,16 @@ open class I18nView(
             "Falls Benachrichtigungen deaktiviert sind, müssen Sie manuell prüfen, ob Sie neue Nachrichten erhalten haben."
     }
 
+    open fun callSymbol() = translate {
+        EN - "Call"
+        DE - "Anruf"
+    }
+
+    open fun callStart() = translate {
+        EN - "Start call"
+        DE - "Anruf starten"
+    }
+
     open fun callStartWithError(error: String) = translate {
         EN - "Call failed: $error (Click to retry)"
         DE - "Anruf fehlgeschlagen: $error (Drücke um neu zu versuchen)"

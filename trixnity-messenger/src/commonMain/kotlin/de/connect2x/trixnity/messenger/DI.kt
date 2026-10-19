@@ -124,6 +124,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.LocationRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.NoticeRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RtcMemberMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneTimelineElementViewModelFactory
@@ -555,6 +556,9 @@ private fun timelineElementViewModels() = module {
     }
     timelineElementViewModelFactory<AudioRoomMessageTimelineElementViewModelFactory> {
         AudioRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<RtcMemberMessageTimelineElementViewModelFactory> {
+        RtcMemberMessageTimelineElementViewModelFactory
     }
     timelineElementViewModelFactory<TextRoomMessageTimelineElementViewModelFactory> {
         TextRoomMessageTimelineElementViewModelFactory
