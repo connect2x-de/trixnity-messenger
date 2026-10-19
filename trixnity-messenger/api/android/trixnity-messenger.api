@@ -1407,6 +1407,7 @@ public class de/connect2x/trixnity/messenger/i18n/I18n : de/connect2x/trixnity/m
 	public fun blockUserError (Ljava/lang/String;)Ljava/lang/String;
 	public fun bootstrapErrorAccount (Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun bootstrapErrorAccount$default (Lde/connect2x/trixnity/messenger/i18n/I18n;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public fun callConnectError ()Ljava/lang/String;
 	public fun callJoinError ()Ljava/lang/String;
 	public fun commonAnd (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public fun commonCancelled ()Ljava/lang/String;
@@ -6100,6 +6101,35 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/call/PreviewCa
 	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun join ()V
 	public fun leave ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel {
+	public abstract fun back ()V
+	public abstract fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getMembers ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getPublishing ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getReceiving ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getRoomInfo ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3-hu1aZbM ()Ljava/lang/String;
+	public final fun component4-gwg-m3I ()Ljava/lang/String;
+	public final fun component5 ()Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;
+	public final fun copy-SaxmEko (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters;
+	public static synthetic fun copy-SaxmEko$default (Lde/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEncryptionInfo ()Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;
+	public final fun getMemberId-gwg-m3I ()Ljava/lang/String;
+	public final fun getToken ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModel : de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel {
