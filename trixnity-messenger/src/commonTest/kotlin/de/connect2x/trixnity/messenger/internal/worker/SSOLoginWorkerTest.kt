@@ -51,6 +51,7 @@ class SSOLoginWorkerTest {
         assertEquals(listOf(), cut.routeNavigation.routes.value)
 
         cut.matrixMessengerSettingsHolder.update<MatrixMessengerSettingsBase> { it.copy(ssoLoginState = loginState) }
+        cut.testUriHandler.emit(redirectUri)
         testScheduler.runCurrent()
         assertEquals(listOf(expectedRoute), cut.routeNavigation.routes.value)
     }

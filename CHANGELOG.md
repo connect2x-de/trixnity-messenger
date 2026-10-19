@@ -51,6 +51,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Added `connect2x GmbH proprietary license` to publishing information in additon to AGPL3
 - SDK,IOS: race condition in NetworkMonitor
 - SDK: account setup is skipped after logout and login with the same account
+- SDK: oauth and sso should only be resumed when url changes
 
 ### Deprecated
 
