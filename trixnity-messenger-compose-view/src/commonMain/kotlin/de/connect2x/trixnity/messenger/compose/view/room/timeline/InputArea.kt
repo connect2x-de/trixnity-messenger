@@ -196,29 +196,36 @@ class InputAreaViewImpl : InputAreaView {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (!canSendMessages) {
-                        return@Row
-                    }
-                    when (audioRecorderState) {
-                        AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
-                        null -> TextInput(canRecordAudio = false)
-                        is AudioRecorder.State.Recording,
-                        is AudioRecorder.State.Completed,
-                        is AudioRecorder.State.Failed ->
-                            if (isEdit) {
-                                TextInput(canRecordAudio = true)
-                            } else {
-                                // Hack: the input area does not constrain its height, so the audio recorder's
-                                // fillMaxHeight fills all available space. Constrain the audio row here until
-                                // the parent sizing is fixed; intrinsic sizing around text breaks its line limit.
-                                Row(
-                                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    AudioRecordingArea(inputAreaViewModel.audio)
+                    if (canSendMessages) {
+                        when (audioRecorderState) {
+                            AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
+                            null -> TextInput(canRecordAudio = false)
+                            is AudioRecorder.State.Recording,
+                            is AudioRecorder.State.Completed,
+                            is AudioRecorder.State.Failed ->
+                                if (isEdit) {
+                                    TextInput(canRecordAudio = true)
+                                } else {
+                                    // Hack: the input area does not constrain its height, so the audio recorder's
+                                    // fillMaxHeight fills all available space. Constrain the audio row here until
+                                    // the parent sizing is fixed; intrinsic sizing around text breaks its line limit.
+                                    Row(
+                                        Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        AudioRecordingArea(inputAreaViewModel.audio)
+                                    }
                                 }
-                            }
+                        }
+                    } else {
+                        Box(Modifier.fillMaxWidth()) {
+                            Text(
+                                i18n.inputAreaCannotSendMessages(),
+                                modifier = Modifier.padding(10.dp).align(Alignment.Center),
+                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.75f),
+                            )
+                        }
                     }
                 }
             }

@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "tabWidth": 2,
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "endOfLine": "lf",
+  "embeddedLanguageFormatting": "off",
+  "sortImports": false,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "node_modules/**",
+    "build/**",
+    "coverage.json",
+    "generated-manifest.json",
+    "pnpm-lock.yaml"
+  ]
+}

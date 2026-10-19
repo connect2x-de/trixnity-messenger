@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Downscale images in the timeline
 - UI: Add a menu for enabling experimental messenger settings
 - UI: Add entry to enable experimental MatrixRTC calls on Android and Web
+- SDK,UI: Add experimental support for MatrixRTC Livekit calls
 
 ### Changed
 
@@ -74,6 +75,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK,ANDROID: Correctly cancel account adding process via back button
 - CI: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
 - SDK, UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
+- UI: Placeholder of the input area with hint is shown when user can't type messages into the room
 
 ### Security
 

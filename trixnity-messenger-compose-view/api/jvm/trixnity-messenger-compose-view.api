@@ -1196,7 +1196,16 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun bootstrapRecoveryKeyVaultCreation ()Ljava/lang/String;
 	public fun bootstrapRecoveryKeyWarning ()Ljava/lang/String;
 	public fun bootstrapVault ()Ljava/lang/String;
+	public fun callCameraError ()Ljava/lang/String;
+	public fun callCameraPermissionDenied ()Ljava/lang/String;
+	public fun callConnectionError ()Ljava/lang/String;
+	public fun callJoining ()Ljava/lang/String;
+	public fun callMicrophoneError ()Ljava/lang/String;
+	public fun callMicrophonePermissionDenied ()Ljava/lang/String;
+	public fun callParticipantsUnavailable ()Ljava/lang/String;
+	public fun callReconnecting ()Ljava/lang/String;
 	public fun callStartWithError (Ljava/lang/String;)Ljava/lang/String;
+	public fun callYou ()Ljava/lang/String;
 	public fun cameraDialogAlertNoPermission ()Ljava/lang/String;
 	public fun cannotChangePowerLevels ()Ljava/lang/String;
 	public fun cannotDisableMultiProfileMode ()Ljava/lang/String;

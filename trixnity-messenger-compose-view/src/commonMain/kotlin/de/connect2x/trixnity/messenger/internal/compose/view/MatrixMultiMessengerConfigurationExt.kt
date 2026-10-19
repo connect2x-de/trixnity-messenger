@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.internal.compose.view
 
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
-import de.connect2x.trixnity.messenger.compose.view.ClientView
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.EntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.entryDecoratorOf
@@ -34,6 +33,7 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.RedoSelfVer
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RegisterMatrixAccountEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RemoveMatrixAccountEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.ReportMessageEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomCallEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomDevInfoEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomListEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomSettingsEntry
@@ -140,6 +140,7 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::RegisterMatrixAccountEntry)
         navigationOf(::RemoveMatrixAccountEntry)
         navigationOf(::ReportMessageEntry)
+        navigationOf(::RoomCallEntry)
         navigationOf(::RoomDevInfoEntry)
         navigationOf(::RoomListEntry)
         navigationOf(::RoomSettingsEntry)

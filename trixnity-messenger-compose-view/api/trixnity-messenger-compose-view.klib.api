@@ -4055,7 +4055,16 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun bootstrapRecoveryKeyVaultCreation(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.bootstrapRecoveryKeyVaultCreation|bootstrapRecoveryKeyVaultCreation(){}[0]
     open fun bootstrapRecoveryKeyWarning(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.bootstrapRecoveryKeyWarning|bootstrapRecoveryKeyWarning(){}[0]
     open fun bootstrapVault(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.bootstrapVault|bootstrapVault(){}[0]
+    open fun callCameraError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callCameraError|callCameraError(){}[0]
+    open fun callCameraPermissionDenied(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callCameraPermissionDenied|callCameraPermissionDenied(){}[0]
+    open fun callConnectionError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callConnectionError|callConnectionError(){}[0]
+    open fun callJoining(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callJoining|callJoining(){}[0]
+    open fun callMicrophoneError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callMicrophoneError|callMicrophoneError(){}[0]
+    open fun callMicrophonePermissionDenied(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callMicrophonePermissionDenied|callMicrophonePermissionDenied(){}[0]
+    open fun callParticipantsUnavailable(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callParticipantsUnavailable|callParticipantsUnavailable(){}[0]
+    open fun callReconnecting(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callReconnecting|callReconnecting(){}[0]
     open fun callStartWithError(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callStartWithError|callStartWithError(kotlin.String){}[0]
+    open fun callYou(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.callYou|callYou(){}[0]
     open fun cameraDialogAlertNoPermission(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.cameraDialogAlertNoPermission|cameraDialogAlertNoPermission(){}[0]
     open fun cannotChangePowerLevels(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.cannotChangePowerLevels|cannotChangePowerLevels(){}[0]
     open fun cannotDisableMultiProfileMode(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.cannotDisableMultiProfileMode|cannotDisableMultiProfileMode(){}[0]
@@ -6368,6 +6377,12 @@ final val de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnit
 final val de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop[0]
 
 // Targets: [js, wasmJs]
+final val de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Active$stableprop // de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Active$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Active$stableprop[0]
+
+// Targets: [js, wasmJs]
+final val de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Message$stableprop // de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Message$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Message$stableprop[0]
+
+// Targets: [js, wasmJs]
 final val de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_WebPDFReader$stableprop // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_WebPDFReader$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_WebPDFReader$stableprop[0]
 
 // Targets: [js, wasmJs]
@@ -6390,6 +6405,12 @@ final fun de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnit
 
 // Targets: [js, wasmJs]
 final fun de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop_getter(){}[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Active$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Active$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Active$stableprop_getter(){}[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Message$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.room.call/de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Message$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_room_call_CallState_Message$stableprop_getter(){}[0]
 
 // Targets: [js, wasmJs]
 final fun de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_WebPDFReader$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_WebPDFReader$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_WebPDFReader$stableprop_getter(){}[0]

@@ -14,6 +14,8 @@ plugins { id("de.connect2x.conventions.c2x-settings-plugin") version "20261015.1
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+includeBuild("livekitnity")
+
 include(
     "trixnity-messenger",
     "trixnity-messenger:trixnity-messenger-notification-apns",
@@ -27,3 +29,13 @@ include(
     "wrappers-zipjs",
     "wrappers-pdfjs",
 )
+
+dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
+    repositories {
+        exclusiveContent {
+            forRepository { maven("https://jitpack.io") }
+            filter { includeModule("com.github.davidliu", "audioswitch") }
+        }
+    }
+}

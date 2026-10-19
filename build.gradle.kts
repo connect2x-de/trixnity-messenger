@@ -42,6 +42,19 @@ applyKtfmt()
 
 tasks.named { it == "ktfmtCheck" }.configureEach { dependsOn(gradle.includedBuild("build-logic").task(":ktfmtCheck")) }
 
+val aggregateTasks =
+    setOf(
+        "spotlessApply",
+        "spotlessCheck",
+        "publishToMavenLocal",
+        "publishAndReleaseToMavenCentral",
+        "publishAllPublicationsToGitLabRepository",
+    )
+
+aggregateTasks.forEach { aggregateTask ->
+    tasks.register(aggregateTask) { dependsOn(gradle.includedBuild("livekitnity").task(":$aggregateTask")) }
+}
+
 updateAbiFilesFromReportZip()
 
 allprojects {
