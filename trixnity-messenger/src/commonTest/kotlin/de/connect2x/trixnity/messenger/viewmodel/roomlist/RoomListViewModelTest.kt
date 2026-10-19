@@ -159,16 +159,16 @@ class RoomListViewModelTest {
 
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                            single { rtcServiceMock }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                        single { rtcServiceMock }
+                        single { notificationService }
+                    }
+                )
+            }
                 .koin
         syncStateMocker = every { matrixClientMock.syncState }
         syncStateMocker returns MutableStateFlow(SyncState.RUNNING)
@@ -714,15 +714,15 @@ class RoomListViewModelTest {
         val spaceId21 = RoomId("!space21") // space with room23
         every { matrixClientMock2.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock2 }
-                            single { userServiceMock2 }
-                            single { rtcServiceMock2 }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock2 }
+                        single { userServiceMock2 }
+                        single { rtcServiceMock2 }
+                        single { notificationService }
+                    }
+                )
+            }
                 .koin
         every { matrixClientMock2.userId } returns user2
         every { matrixClientMock2.api } returns matrixClientServerApiClientMock
@@ -919,16 +919,16 @@ class RoomListViewModelTest {
 
         every { matrixClientMock2.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock2 }
-                            single { userServiceMock2 }
-                            single { keyServiceMock2 }
-                            single { rtcServiceMock2 }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock2 }
+                        single { userServiceMock2 }
+                        single { keyServiceMock2 }
+                        single { rtcServiceMock2 }
+                        single { notificationService }
+                    }
+                )
+            }
                 .koin
 
         every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns flowOf(DeviceTrustLevel.CrossSigned(true))
@@ -955,16 +955,16 @@ class RoomListViewModelTest {
         val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock))
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                            single { rtcServiceMock }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                        single { rtcServiceMock }
+                        single { notificationService }
+                    }
+                )
+            }
                 .koin
         every { roomServiceMock.getAll() } returns flowOf(mapOf())
         subscribe(cut)
@@ -983,16 +983,16 @@ class RoomListViewModelTest {
         val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock))
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                            single { rtcServiceMock }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                        single { rtcServiceMock }
+                        single { notificationService }
+                    }
+                )
+            }
                 .koin
         every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId1 to flowOf(Room(roomId1))))
         every { roomServiceMock.getById(roomId1) } returns flowOf()
@@ -1012,16 +1012,16 @@ class RoomListViewModelTest {
         val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock))
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                            single { rtcServiceMock }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                        single { rtcServiceMock }
+                        single { notificationService }
+                    }
+                )
+            }
                 .koin
         every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId1 to flowOf(Room(roomId1))))
         every { roomServiceMock.getById(roomId1) } returns flowOf(Room(roomId1))
@@ -1039,30 +1039,34 @@ class RoomListViewModelTest {
     @Test
     fun `should update room element when selected account changes and both accounts are in the room`() = runTest {
         val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock, user2 to matrixClientMock2))
+        val syncState = MutableStateFlow(SyncState.STOPPED)
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                        single { notificationService }
+                        single { rtcServiceMock }
+                    }
+                )
+            }
                 .koin
         every { matrixClientMock2.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                            single { notificationService }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock2 }
+                        single { rtcServiceMock2 }
+                        single { notificationService }
+                    }
+                )
+            }
                 .koin
+        every { matrixClientMock2.syncState } returns syncState
         every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId1 to flowOf(Room(roomId1))))
         every { roomServiceMock.getById(roomId1) } returns flowOf(Room(roomId1))
         cut.accountViewModel.selectActiveAccount(user1)
@@ -1093,58 +1097,54 @@ class RoomListViewModelTest {
         matrixClients: Map<UserId, MatrixClient> = mapOf(user1 to matrixClientMock),
         onVerificationStarted: ((UserId) -> Unit)? = null,
     ): RoomListViewModelImpl {
-        val koin =
-            koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(matrixClients) +
-                            module {
-                                single { roomNameMock }
-                                single { profileManagerMock }
-                                single<AccountViewModelFactory> {
-                                    object : AccountViewModelFactory {
-                                        override fun create(
-                                            viewModelContext: ViewModelContext,
-                                            onAccountSelected: (UserId?) -> Unit,
-                                            onUserSettingsSelected: () -> Unit,
-                                            onShowAppInfo: () -> Unit,
-                                            onShowAccounts: () -> Unit,
-                                        ): AccountViewModel {
-                                            return object : AccountViewModel {
-                                                override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
-                                                override val isSingleAccount: StateFlow<Boolean> =
-                                                    MutableStateFlow(false)
-                                                override val accounts: StateFlow<List<AccountInfo>> =
-                                                    MutableStateFlow(listOf())
-                                                override val globalNotificationCount: StateFlow<String?> =
-                                                    MutableStateFlow(null)
-                                                override val accountNotificationCounts:
-                                                    StateFlow<Map<UserId, String?>> =
-                                                    MutableStateFlow(emptyMap())
+        val koin = koinApplication {
+            modules(
+                createTestDefaultTrixnityMessengerModules(matrixClients) +
+                    module {
+                        single { roomNameMock }
+                        single { profileManagerMock }
+                        single<AccountViewModelFactory> {
+                            object : AccountViewModelFactory {
+                                override fun create(
+                                    viewModelContext: ViewModelContext,
+                                    onAccountSelected: (UserId?) -> Unit,
+                                    onUserSettingsSelected: () -> Unit,
+                                    onShowAppInfo: () -> Unit,
+                                    onShowAccounts: () -> Unit,
+                                ): AccountViewModel {
+                                    return object : AccountViewModel {
+                                        override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
+                                        override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val accounts: StateFlow<List<AccountInfo>> = MutableStateFlow(listOf())
+                                        override val globalNotificationCount: StateFlow<String?> =
+                                            MutableStateFlow(null)
+                                        override val accountNotificationCounts: StateFlow<Map<UserId, String?>> =
+                                            MutableStateFlow(emptyMap())
 
-                                                override fun selectActiveAccount(userId: UserId?) {
-                                                    backgroundScope.launch {
-                                                        this@single.get<MatrixMessengerSettingsHolder>().update<
-                                                            MatrixMessengerSettingsBase
-                                                        > {
-                                                            it.copy(selectedAccount = userId)
-                                                        }
-                                                    }
-                                                    onAccountSelected(userId) // needed to influence RoomListViewModel
+                                        override fun selectActiveAccount(userId: UserId?) {
+                                            backgroundScope.launch {
+                                                this@single.get<MatrixMessengerSettingsHolder>().update<
+                                                    MatrixMessengerSettingsBase
+                                                > {
+                                                    it.copy(selectedAccount = userId)
                                                 }
-
-                                                override fun openUserSettings() {}
-
-                                                override fun openUserAccounts() {}
-
-                                                override fun openAppInfo() {}
                                             }
+                                            onAccountSelected(userId) // needed to influence RoomListViewModel
                                         }
+
+                                        override fun openUserSettings() {}
+
+                                        override fun openUserAccounts() {}
+
+                                        override fun openAppInfo() {}
                                     }
                                 }
                             }
-                    )
-                }
-                .koin
+                        }
+                    }
+            )
+        }
+            .koin
         koin.createScope<RootViewModelImpl>()
         return RoomListViewModelImpl(
             viewModelContext =

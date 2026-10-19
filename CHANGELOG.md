@@ -74,7 +74,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK,ANDROID: Correctly cancel account adding process via back button
 - CI: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
 - SDK, UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
-- SDK, UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
 
 ### Security
 
