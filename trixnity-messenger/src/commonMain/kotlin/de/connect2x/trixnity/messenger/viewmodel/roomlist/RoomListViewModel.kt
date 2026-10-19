@@ -290,7 +290,11 @@ class RoomListViewModelImpl(
                 }
 
         elements =
-            combine(allRoomsFlow, directRoomsFlow, searchedRoomsFlow) { roomsWithMeta, _, searchedRooms ->
+            combine(allRoomsFlow, directRoomsFlow, searchedRoomsFlow, selectedMatrixClients) {
+                    roomsWithMeta,
+                    _,
+                    searchedRooms,
+                    selectedClients ->
                     data class SortableRoom(val roomWithMatrixClient: RoomWithMatrixClient, val sortTime: Instant?)
 
                     val relevantRooms =
@@ -339,7 +343,10 @@ class RoomListViewModelImpl(
 
                     elementCache
                         .mapNotNull { (key, wrapper) ->
-                            if (relevantRooms[key] == null) {
+                            if (
+                                relevantRooms[key] == null ||
+                                    selectedClients.none { relevantRooms[key] == wrapper.viewModel.account }
+                            ) {
                                 wrapper.lifecycle.destroy()
                                 key
                             } else null

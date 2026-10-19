@@ -59,6 +59,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
@@ -175,6 +176,8 @@ class RoomListViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
+        every { matrixClientMock2.userId } returns user2
+
         every { userServiceMock.getById(roomId1, user1) } returns MutableStateFlow(roomUser(roomId1, user1))
         every { userServiceMock.getById(roomId2, user1) } returns MutableStateFlow(roomUser(roomId2, user1))
         every { userServiceMock.getById(roomId1, user2) } returns user2Flow
@@ -251,8 +254,8 @@ class RoomListViewModelTest {
 
         every { onAccountSelected.invoke() } returns Unit
 
-        every { roomNameMock.getRoomName(isRoomOf(roomId1), matrixClientMock, any()) } returns flowOf("room1")
-        every { roomNameMock.getRoomName(roomId1, matrixClientMock, any()) } returns flowOf("room1")
+        every { roomNameMock.getRoomName(isRoomOf(roomId1), any(), any()) } returns flowOf("room1")
+        every { roomNameMock.getRoomName(roomId1, any(), any()) } returns flowOf("room1")
         every { roomNameMock.getRoomName(isRoomOf(roomId2), matrixClientMock, any()) } returns flowOf("room2")
         every { roomNameMock.getRoomName(roomId2, matrixClientMock, any()) } returns flowOf("room2")
         roomName3Mocker = every { roomNameMock.getRoomName(isRoomOf(roomId3), matrixClientMock, any()) }
@@ -1031,6 +1034,52 @@ class RoomListViewModelTest {
         cut.searchTerm.update("KeinErgebnis")
         delay(600)
         cut.searchResultsEmpty.value shouldBe true
+    }
+
+    @Test
+    fun `should update room element when selected account changes and both accounts are in the room`() = runTest {
+        val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock, user2 to matrixClientMock2))
+        val syncState = MutableStateFlow(SyncState.STOPPED)
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { keyServiceMock }
+                            single { notificationService }
+                            single { rtcServiceMock }
+                        }
+                    )
+                }
+                .koin
+        every { matrixClientMock2.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { keyServiceMock2 }
+                            single { rtcServiceMock2 }
+                            single { notificationService }
+                        }
+                    )
+                }
+                .koin
+        every { matrixClientMock2.syncState } returns syncState
+        every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId1 to flowOf(Room(roomId1))))
+        every { roomServiceMock.getById(roomId1) } returns flowOf(Room(roomId1))
+        cut.accountViewModel.selectActiveAccount(user1)
+        subscribe(cut)
+
+        delay(10.milliseconds)
+        cut.elements.value.size shouldBe 1
+        cut.elements.value.first().account shouldBe user1
+
+        cut.accountViewModel.selectActiveAccount(user2)
+        delay(10.milliseconds)
+        cut.elements.value.size shouldBe 1
+        cut.elements.value.first().account shouldBe user2
     }
 
     private fun TestScope.subscribe(cut: RoomListViewModel) = backgroundScope.launch {
