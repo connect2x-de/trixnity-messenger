@@ -49,6 +49,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   RedactedStateTimelineElementViewModel
 - UI: Replace single, view model dependent step ConnectingWizard with UI-only WizardPanel, removing old navigation logic
 - SDK: Added `connect2x GmbH proprietary license` to publishing information in additon to AGPL3
+- SDK,IOS: race condition in NetworkMonitor
 
 ### Deprecated
 

@@ -22,12 +22,12 @@ class NetworkMonitor : IsNetworkAvailable {
 
     init {
         nw_path_monitor_set_queue(monitor, queue)
-        nw_path_monitor_start(monitor)
-        log.info { "Starting network monitor" }
         nw_path_monitor_set_update_handler(monitor) { path ->
             connected = nw_path_get_status(path) == nw_path_status_satisfied
             log.info { "Network is now ${if (connected) "connected" else "disconnected"}" }
         }
+        log.info { "Starting network monitor" }
+        nw_path_monitor_start(monitor)
     }
 
     override fun invoke(): Boolean = connected
