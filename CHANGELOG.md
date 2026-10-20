@@ -26,7 +26,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK,UI: Add experimental support for MatrixRTC Livekit calls
 - UI: Add timeline elements for MatrixRTC membership changes
 
-
 ### Changed
 
 - UI: BlurHashes now load synchronously and thus appear earlier when rendering the timeline
@@ -81,6 +80,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - CI: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
 - SDK, UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
 - UI: Placeholder of the input area with hint is shown when user can't type messages into the room
+- DEPENDENCY: Fix remove foreground service permission
+- DEPENDENCY: FIx publish correct gradle module metadata
 
 ### Security
 
