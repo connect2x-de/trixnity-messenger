@@ -31,6 +31,8 @@ include(
 )
 
 dependencyResolutionManagement {
+    versionCatalogs { create("livekitnityLibs") { from(files("livekitnity/gradle/libs.versions.toml")) } }
+
     @Suppress("UnstableApiUsage")
     repositories {
         exclusiveContent {

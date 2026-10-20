@@ -29,8 +29,6 @@ filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases # TODO: 0.13.0
 detekt = "2.0.0-alpha.3" # https://detekt.dev/docs/introduction/compatibility/
 material3Adaptive = "1.2.0"
 
-livekitnity = "included"
-
 [libraries]
 
 trixnity-client = { module = "de.connect2x.trixnity:trixnity-client", version.ref = "trixnity" }
@@ -66,10 +64,6 @@ highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 
 # TODO (fhilgers): The version from the catalog requires compileSdk 37
 compose-material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "material3Adaptive" }
-
-livekitnity-api = { module = "de.connect2x.livekitnity:livekitnity-api", version.ref = "livekitnity" }
-livekitnity-core = { module = "de.connect2x.livekitnity:livekitnity-core", version.ref = "livekitnity" }
-livekitnity-compose = { module = "de.connect2x.livekitnity:livekitnity-compose", version.ref = "livekitnity" }
 
 [bundles]
 
