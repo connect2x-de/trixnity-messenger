@@ -9,20 +9,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-
-## 4.11.0
-
-### Added
-
 - UI: Render inline images and custom emotes in messages and formatted reply previews
 - UI: Open user info in room settings by clicking or tapping a sender's name in the timeline
 - UI: Add a leave room action with confirmation to the room list's more options menu
@@ -39,6 +25,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Add entry to enable experimental MatrixRTC calls on Android and Web
 - SDK,UI: Add experimental support for MatrixRTC Livekit calls
 - UI: Add timeline elements for MatrixRTC membership changes
+
 
 ### Changed
 
@@ -66,6 +53,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: account setup is skipped after logout and login with the same account
 - SDK: oauth and sso should only be resumed when url changes
 
+### Deprecated
+
+### Removed
+
 ### Fixed
 
 - SDK: Blurhash now differentiates between intrinsicSize and decodeSize
@@ -90,6 +81,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - CI: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
 - SDK, UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
 - UI: Placeholder of the input area with hint is shown when user can't type messages into the room
+
+### Security
 
 ## 4.10.3
 
