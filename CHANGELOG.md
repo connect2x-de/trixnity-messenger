@@ -25,6 +25,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Add entry to enable experimental MatrixRTC calls on Android and Web
 - SDK,UI: Add experimental support for MatrixRTC Livekit calls
 - UI: Add timeline elements for MatrixRTC membership changes
+- SDK,UI: Add I18n functions for providing URL to privacy policy and imprint website
+- SDK: Replace old imprint and privacy policy with newer connect2x website
 
 ### Changed
 

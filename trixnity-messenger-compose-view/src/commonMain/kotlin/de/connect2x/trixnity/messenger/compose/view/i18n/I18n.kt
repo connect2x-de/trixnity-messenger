@@ -22,6 +22,16 @@ open class I18nView(
     getSystemLang: GetSystemLang,
     timeZone: TimeZone,
 ) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
+    open fun privacyPolicyUrl() = translate {
+        EN - "https://connect2x.de/en-us/privacy/"
+        DE - "https://connect2x.de/de-de/privacy/"
+    }
+
+    open fun imprintUrl() = translate {
+        EN - "https://connect2x.de/en-us/imprint/"
+        DE - "https://connect2x.de/de-de/imprint/"
+    }
+
     open fun commonArchived() = translate {
         EN - "Archived"
         DE - "Archiviert"
