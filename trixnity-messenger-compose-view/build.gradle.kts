@@ -139,6 +139,7 @@ kotlin {
         webMain {
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
+                implementation(devNpm("@swc/core", libs.versions.swc.get()))
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(projects.wrappersPdfjs)

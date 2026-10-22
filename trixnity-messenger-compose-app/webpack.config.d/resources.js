@@ -21,6 +21,7 @@ if (config.mode === "production") {
         minimize: true,
         minimizer: [
             new TerserPlugin({
+                minify: TerserPlugin.swcMinify,
                 extractComments: true,
                 terserOptions: {
                     compress: {
