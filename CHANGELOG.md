@@ -51,7 +51,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK,IOS: race condition in NetworkMonitor
 - SDK: account setup is skipped after logout and login with the same account
 - SDK: oauth and sso should only be resumed when url changes
-- SDK: Fix NodeJS stack exhaustion when running Webpack/Terser because of generated Kotlin/JS code
+- SDK: Swap out Terser JS engine for SWC core to prevent reaching the hard limit of Set in JS
 
 ### Deprecated
 

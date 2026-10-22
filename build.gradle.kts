@@ -105,10 +105,6 @@ subprojects {
             extensions.configure<KotlinMultiplatformExtension> {
                 enableAbiChecker("TrixnityMessengerPrivateApi", "de.connect2x.trixnity.messenger.abi")
             }
-            // Give Webpack/Terser enough stack space to process generated Kotlin/JS code
-            tasks.withType<KotlinWebpack>().configureEach {
-                nodeArgs.add("--stack-size=2048") // kB aka. 2MB
-            }
         }
     }
 }
