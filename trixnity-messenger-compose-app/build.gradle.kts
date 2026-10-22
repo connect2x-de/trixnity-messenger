@@ -138,11 +138,7 @@ kotlin {
             }
         }
         iosMain { dependencies { implementation(projects.trixnityMessenger.trixnityMessengerNotificationApns) } }
-        webMain {
-            dependencies {
-                implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
-            }
-        }
+        webMain { dependencies { implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get())) } }
     }
 }
 
