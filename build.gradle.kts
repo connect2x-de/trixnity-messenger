@@ -14,6 +14,7 @@ import dev.detekt.gradle.extensions.DetektExtension
 import dev.detekt.gradle.plugin.DetektPlugin
 import org.jetbrains.dokka.gradle.DokkaPlugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
     alias(sharedLibs.plugins.c2xConventions)
@@ -103,6 +104,10 @@ subprojects {
         plugins.withId(PluginIds.KOTLIN_MULTIPLATFORM) {
             extensions.configure<KotlinMultiplatformExtension> {
                 enableAbiChecker("TrixnityMessengerPrivateApi", "de.connect2x.trixnity.messenger.abi")
+            }
+            // Give Webpack/Terser enough stack space to process generated Kotlin/JS code
+            tasks.withType<KotlinWebpack>().configureEach {
+                nodeArgs.add("--stack-size=2048") // kB aka. 2MB
             }
         }
     }
