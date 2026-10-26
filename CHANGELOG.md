@@ -33,6 +33,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   the current VerificationViewModel into a single viewModel
 - UI: Speaking indicator for MatrixRTC calls
 - SDK: Add the `enableSpaces` feature flag (enabled by default)
+- UI: Browse Matrix spaces and subspaces with desktop and mobile navigation, search, account selection,
+  and an Explore space view for discovering rooms and joining eligible rooms or spaces
 
 ### Changed
 
@@ -73,6 +75,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK, UI: Replace setup wizard with UI-only WizardPanel and routes, removing old navigation logic and add manual
   starting of setup
   process to AccountSetupViewModel
+- SDK, UI: (**breaking change**) Add spaces support to `MatrixMessengerConfiguration.Features`, `AvatarStyle`,
+  and `RoomListViewModelImpl`
 
 ### Deprecated
 

@@ -1002,8 +1002,8 @@ open class I18nView(
     }
 
     open fun userProfileRoleCreator() = translate {
-        EN - "room creator"
-        DE - "Raumersteller"
+        EN - "creator"
+        DE - "Ersteller"
     }
 
     open fun userProfileRoleAdministrator() = translate {
@@ -1719,6 +1719,133 @@ open class I18nView(
     open fun createNewChatTitle() = translate {
         EN - "New chat"
         DE - "Neuer Chat"
+    }
+
+    open fun spacesInvitations() = translate {
+        EN - "Invitations"
+        DE - "Einladungen"
+    }
+
+    open fun spacesDecline() = translate {
+        EN - "Decline"
+        DE - "Ablehnen"
+    }
+
+    open fun spacesMembershipError() = translate {
+        EN - "Could not update membership. Please try again."
+        DE - "Mitgliedschaft konnte nicht geändert werden. Bitte erneut versuchen."
+    }
+
+    open fun spacesMemberCount(count: Long) = translate {
+        EN - "$count ${if (count == 1L) "member" else "members"}"
+        DE - "$count ${if (count == 1L) "Mitglied" else "Mitglieder"}"
+    }
+
+    open fun spacesChildCounts(rooms: Int, subspaces: Int, unknown: Int = 0) = translate {
+        EN -
+            listOfNotNull(
+                    "$rooms ${if (rooms == 1) "room" else "rooms"}",
+                    if (subspaces > 0) "$subspaces ${if (subspaces == 1) "subspace" else "subspaces"}" else null,
+                    if (unknown > 0) "$unknown unknown" else null,
+                )
+                .joinToString(", ")
+        DE -
+            listOfNotNull(
+                    "$rooms ${if (rooms == 1) "Raum" else "Räume"}",
+                    if (subspaces > 0) "$subspaces ${if (subspaces == 1) "Unterspace" else "Unterspaces"}" else null,
+                    if (unknown > 0) "$unknown unbekannt" else null,
+                )
+                .joinToString(", ")
+    }
+
+    open fun spacesSearch() = translate {
+        EN - "Search spaces"
+        DE - "Spaces durchsuchen"
+    }
+
+    open fun spacesSearchJoinedRooms() = translate {
+        EN - "Search joined rooms"
+        DE - "Beigetretene Räume durchsuchen"
+    }
+
+    open fun spacesSearchRooms() = translate {
+        EN - "Search rooms and subspaces"
+        DE - "Räume und Unterspaces durchsuchen"
+    }
+
+    open fun spacesNavigationHome() = translate {
+        EN - "Home"
+        DE - "Startseite"
+    }
+
+    open fun spacesNoSearchResults() = translate {
+        EN - "No matches"
+        DE - "Keine Treffer"
+    }
+
+    open fun spacesOpen() = translate {
+        EN - "Open"
+        DE - "Öffnen"
+    }
+
+    open fun spacesSettings() = translate {
+        EN - "Space settings"
+        DE - "Space-Einstellungen"
+    }
+
+    open fun spacesExplore() = translate {
+        EN - "Explore space"
+        DE - "Space entdecken"
+    }
+
+    open fun spacesRooms() = translate {
+        EN - "Rooms"
+        DE - "Räume"
+    }
+
+    open fun spacesSubspaces() = translate {
+        EN - "Subspaces"
+        DE - "Untergeordnete Spaces"
+    }
+
+    open fun spacesNoJoinedRooms() = translate {
+        EN - "No joined rooms. Find rooms in Explore space."
+        DE - "Keine beigetretenen Räume. Finde Räume unter Space entdecken."
+    }
+
+    open fun spacesAllRooms() = translate {
+        EN - "All rooms"
+        DE - "Alle Räume"
+    }
+
+    open fun spacesTitle() = translate {
+        EN - "Spaces"
+        DE - "Spaces"
+    }
+
+    open fun spacesEmptyList() = translate {
+        EN - "No spaces for the selected accounts."
+        DE - "Keine Spaces für die ausgewählten Konten."
+    }
+
+    open fun spacesEmptySpace() = translate {
+        EN - "This space has no visible rooms or subspaces."
+        DE - "Dieser Space enthält keine sichtbaren Räume oder untergeordneten Spaces."
+    }
+
+    open fun spacesLoadError() = translate {
+        EN - "Could not load space information."
+        DE - "Space-Informationen konnten nicht geladen werden."
+    }
+
+    open fun spacesJoining() = translate {
+        EN - "Joining…"
+        DE - "Beitritt läuft…"
+    }
+
+    open fun spacesRetry() = translate {
+        EN - "Try again"
+        DE - "Erneut versuchen"
     }
 
     open fun roomListRemoveRoom() = translate {
@@ -3007,8 +3134,8 @@ open class I18nView(
     }
 
     open fun joinRuleInvitedExplanation() = translate {
-        EN - "Only users with an invitation from a group member are able to join"
-        DE - "Nur von einem Gruppenmitglied eingeladene Nutzer können beitreten"
+        EN - "Only users with an invitation from a member are able to join"
+        DE - "Nur von einem Mitglied eingeladene Nutzer können beitreten"
     }
 
     open fun joinRulePublicExplanation() = translate {
@@ -3017,9 +3144,9 @@ open class I18nView(
     }
 
     open fun joinRuleKnockExplanation() = translate {
-        EN - "Only users who request an invite and are accepted or get one from a group member are able to join"
+        EN - "Only users who request an invite and are accepted or get one from a member are able to join"
         DE -
-            "Nur Nutzer, die eine Beitrittsanfrage stellen und akzeptiert werden oder von einem Gruppenmitglied eingeladen werden, können beitreten"
+            "Nur Nutzer, die eine Beitrittsanfrage stellen und akzeptiert werden oder von einem Mitglied eingeladen werden, können beitreten"
     }
 
     open fun joinRuleRestrictedExplanation() = translate {
@@ -3029,9 +3156,9 @@ open class I18nView(
 
     open fun joinRuleKnockRestrictedExplanation() = translate {
         EN -
-            "Only users who satisfy a specified condition, whose requested invitation gets accepted or are invited by a group member are able to join"
+            "Only users who satisfy a specified condition, whose requested invitation gets accepted or are invited by a member are able to join"
         DE -
-            "Nur Nutzer, die eine Bedingung erfüllen, deren Beitrittsanfrage akzeptiert wird oder die von einem Gruppenmitglied eingeladen werden, können beitreten"
+            "Nur Nutzer, die eine Bedingung erfüllen, deren Beitrittsanfrage akzeptiert wird oder die von einem Mitglied eingeladen werden, können beitreten"
     }
 
     open fun joinRulePrivateExplanation() = translate {

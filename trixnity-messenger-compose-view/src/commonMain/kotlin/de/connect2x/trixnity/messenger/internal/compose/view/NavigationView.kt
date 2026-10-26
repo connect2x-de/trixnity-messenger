@@ -15,6 +15,7 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.EntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.EntryProvider
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.SceneDecoratorStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.SceneStrategyFactory
 import de.connect2x.trixnity.messenger.internal.navigation.GetRouteNavigation
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -29,6 +30,7 @@ internal fun NavigationView(
     navigation: GetRouteNavigation,
     entryDecorators: List<EntryDecoratorFactory>,
     sceneStrategies: List<SceneStrategyFactory>,
+    sceneDecorators: List<SceneDecoratorStrategyFactory>,
     entryProvider: EntryProvider,
 ): NavigationView {
     return NavigationViewImpl(
@@ -36,6 +38,7 @@ internal fun NavigationView(
         navigation = navigation,
         entryDecorators = entryDecorators,
         sceneStrategies = sceneStrategies,
+        sceneDecorators = sceneDecorators,
         entryProvider = entryProvider,
     )
 }
@@ -46,6 +49,7 @@ private class NavigationViewImpl(
     private val navigation: GetRouteNavigation,
     private val entryDecorators: List<EntryDecoratorFactory>,
     private val sceneStrategies: List<SceneStrategyFactory>,
+    private val sceneDecorators: List<SceneDecoratorStrategyFactory>,
     private val entryProvider: EntryProvider,
 ) : NavigationView {
     @Composable
@@ -58,6 +62,7 @@ private class NavigationViewImpl(
             onBack = { backHandler.goBack() },
             entryDecorators = entryDecorators.map { it.create() },
             sceneStrategies = sceneStrategies.map { it.create() },
+            sceneDecoratorStrategies = sceneDecorators.map { it.create() },
             entryProvider = { entryProvider.createEntry(it) },
             transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
             popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
