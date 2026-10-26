@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -26,21 +24,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.CollectionInfo
-import androidx.compose.ui.semantics.collectionInfo
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastAny
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
-import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountMenuItem
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.SelectAccountHeader
-import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropdownMenu
@@ -95,41 +86,17 @@ class RoomListViewImpl : RoomListView {
                     Column(Modifier.padding(horizontal = 20.dp)) { Text(i18n.roomListNoSearchResults()) }
                 }
             } else {
-                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
-                val focusedItem =
-                    remember(selectedRoomId, allRooms) {
-                        mutableStateOf(
-                            if (selectedRoomId != null && allRooms.fastAny { it.roomId == selectedRoomId }) {
-                                selectedRoomId.full
-                            } else {
-                                allRooms.firstOrNull()?.roomId?.full
-                            }
-                        )
-                    }
-                LazyColumn(
-                    Modifier.fillMaxSize()
-                        .rovingFocusContainer(
-                            listState = state,
-                            focusedItem = focusedItem,
-                            ignoredKeys = listOf("Spacer"),
-                        )
-                        .semantics { collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0) },
+                RoomListItems(
+                    roomListViewModel,
                     state,
-                ) {
-                    itemsIndexed(allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
-                        Box(
-                            Modifier.rovingFocusItem(
-                                isFocused = { focusedItem.value == roomListElement.roomId.full },
-                                onFocus = { focusedItem.value = roomListElement.roomId.full },
+                    footer = {
+                        item("Spacer") {
+                            Spacer(
+                                Modifier.fillMaxWidth().height(MaterialTheme.components.floatingActionButton.size * 2)
                             )
-                        ) {
-                            RoomListElementContainer(roomListElement.roomId, roomListViewModel, roomListElement, index)
                         }
-                    }
-                    item("Spacer") {
-                        Spacer(Modifier.fillMaxWidth().height(MaterialTheme.components.floatingActionButton.size * 2))
-                    }
-                }
+                    },
+                )
             }
             VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), state, false)
             CreateRoomFloatingButton(roomListViewModel)
