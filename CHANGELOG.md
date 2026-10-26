@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- CI, INTERNAL: Build the web staging app with Wasm and Navigation 3
 - UI: Show a translated media playback error message with an error icon
 - UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
