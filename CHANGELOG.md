@@ -84,6 +84,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Placeholder of the input area with hint is shown when user can't type messages into the room
 - DEPENDENCY: Fix remove foreground service permission
 - DEPENDENCY: FIx publish correct gradle module metadata
+- UI, ANDROID: Correctly require foreground permissions for media playback
 
 ### Security
 
