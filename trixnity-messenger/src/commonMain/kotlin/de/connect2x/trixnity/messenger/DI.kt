@@ -75,8 +75,8 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactoryImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModelFactoryImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSearchViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
@@ -124,6 +124,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.LocationRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.NoticeRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RtcMemberMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneTimelineElementViewModelFactory
@@ -166,6 +167,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelF
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ExperimentalSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.InitialSettingsSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModelFactory
@@ -307,7 +309,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
 
                 single<BackHandler> { BackHandlerImpl() }
                 single<GetAccountProfileDisplayName> { GetAccountProfileDisplayNameImpl(get()) }
-                single<CallViewModelFactory> { CallViewModelFactoryImpl(get()) }
+                single<CallControlViewModelFactory> { CallControlViewModelFactoryImpl(get()) }
             }
         },
         ::connectingViewModels,
@@ -531,6 +533,7 @@ private fun settingsViewModels() = module {
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }
     single<AppearanceSettingsViewModelFactory> { AppearanceSettingsViewModelFactory }
+    single<ExperimentalSettingsViewModelFactory> { ExperimentalSettingsViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
     single<NotificationSettingsSingleAccountViewModelFactory> { NotificationSettingsSingleAccountViewModelFactory }
     single<InitialSettingsSetupViewModelFactory> { InitialSettingsSetupViewModelFactory }
@@ -553,6 +556,9 @@ private fun timelineElementViewModels() = module {
     }
     timelineElementViewModelFactory<AudioRoomMessageTimelineElementViewModelFactory> {
         AudioRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<RtcMemberMessageTimelineElementViewModelFactory> {
+        RtcMemberMessageTimelineElementViewModelFactory
     }
     timelineElementViewModelFactory<TextRoomMessageTimelineElementViewModelFactory> {
         TextRoomMessageTimelineElementViewModelFactory
@@ -635,7 +641,8 @@ private fun roomViewModels() = module {
     single<GetEventReactions> { GetEventReactionsImpl(get()) }
     single<GetEventReaders> { GetEventReadersImpl() }
     single<JoinRoomActionViewModelFactory> { JoinRoomActionViewModelFactory }
-    @OptIn(TrixnityMessengerCallApi::class) single<CallViewModelFactory> { CallViewModelFactoryImpl(get()) }
+    @OptIn(TrixnityMessengerCallApi::class)
+    single<CallControlViewModelFactory> { CallControlViewModelFactoryImpl(get()) }
 }
 
 private fun roomSettingsViewModels() = module {

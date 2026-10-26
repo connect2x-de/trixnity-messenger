@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.Worker
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.internal.adapters.AccountSetupViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.AccountsViewModelFactoryAdapter
@@ -18,6 +19,7 @@ import de.connect2x.trixnity.messenger.internal.adapters.CreateNewChatViewModelF
 import de.connect2x.trixnity.messenger.internal.adapters.CreateNewGroupViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.CrossSigningBootstrapViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.DeviceSettingsViewModelFactoryAdapter
+import de.connect2x.trixnity.messenger.internal.adapters.ExperimentalSettingsViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.ExportRoomViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.JoinRoomActionViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.MatrixClientInitializationFailureViewModelFactoryAdapter
@@ -33,6 +35,7 @@ import de.connect2x.trixnity.messenger.internal.adapters.RedoSelfVerificationVie
 import de.connect2x.trixnity.messenger.internal.adapters.RegisterMatrixAccountViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.RemoveMatrixAccountViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.ReportMessageViewModelFactoryAdapter
+import de.connect2x.trixnity.messenger.internal.adapters.RoomCallViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.RoomDevInfoViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.RoomListViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.RoomSettingsViewModelFactoryAdapter
@@ -156,6 +159,7 @@ private fun nav3ViewModelModuleFactory(): Module {
         viewModelFactoryAdapterOf(::CrossSigningBootstrapViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::DeviceSettingsViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::ExportRoomViewModelFactoryAdapter)
+        viewModelFactoryAdapterOf(::ExperimentalSettingsViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::JoinRoomActionViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::MatrixClientInitializationFailureViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::MatrixClientInitializationViewModelFactoryAdapter)
@@ -170,6 +174,7 @@ private fun nav3ViewModelModuleFactory(): Module {
         viewModelFactoryAdapterOf(::RegisterMatrixAccountViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RemoveMatrixAccountViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::ReportMessageViewModelFactoryAdapter)
+        @OptIn(TrixnityMessengerCallApi::class) viewModelFactoryAdapterOf(::RoomCallViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomDevInfoViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomListViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomSettingsViewModelFactoryAdapter)

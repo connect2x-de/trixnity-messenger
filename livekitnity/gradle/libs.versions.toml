@@ -1,0 +1,25 @@
+[versions]
+livekitnity = "0.0.1"
+
+browser = "0.5.0" # https://github.com/Kotlin/kotlinx-browser/releases
+spotless = "8.10.4" # https://github.com/diffplug/spotless/releases
+
+# These three should be kept in sync
+# https://github.com/livekit/client-sdk-android/blob/main/gradle/libs.versions.toml
+livekit = "2.29.0"
+protobufJavalite = "3.25.9"
+webrtc = "144.7559.14"
+
+[libraries]
+
+livekit-android = { group = "io.livekit", name = "livekit-android", version.ref = "livekit" }
+livekit-androidCamerax = { group = "io.livekit", name = "livekit-android-camerax", version.ref = "livekit" }
+livekit-androidTrackProcessors = { group = "io.livekit", name = "livekit-android-track-processors", version.ref = "livekit" }
+
+webrtcSdk-androidPrefixed = { module = "io.github.webrtc-sdk:android-prefixed", version.ref = "webrtc" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }
+
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "browser" }
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -169,6 +169,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.LocationRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.NoticeRoomMessageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.NoticeRoomMessageTimelineElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.RtcMemberMessageTimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.RtcMemberMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.UnknownRoomMessageTimelineElementView
@@ -315,6 +317,8 @@ import de.connect2x.trixnity.messenger.compose.view.settings.BlockedContactsSett
 import de.connect2x.trixnity.messenger.compose.view.settings.BlockedContactsSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.DeviceSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.DeviceSettingsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.settings.ExperimentalSettingsView
+import de.connect2x.trixnity.messenger.compose.view.settings.ExperimentalSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooterView
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooterViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettingsView
@@ -631,6 +635,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<FileRoomMessageTimelineElementView> { FileRoomMessageTimelineElementViewImpl() }
     timelineElementView<ImageRoomMessageTimelineElementView> { ImageRoomMessageTimelineElementViewImpl() }
     timelineElementView<LocationRoomMessageTimelineElementView> { LocationRoomMessageTimelineElementViewImpl() }
+    timelineElementView<RtcMemberMessageTimelineElementView> { RtcMemberMessageTimelineElementViewImpl() }
     timelineElementView<NoticeRoomMessageTimelineElementView> { NoticeRoomMessageTimelineElementViewImpl() }
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementViewImpl() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementViewImpl() }
@@ -708,6 +713,7 @@ fun settingsViewModule() = module {
     single<AvatarCutterView> { AvatarCutterViewImpl() }
     single<BlockedContactsSettingsView> { BlockedContactsSettingsViewImpl() }
     single<DeviceSettingsView> { DeviceSettingsViewImpl() }
+    single<ExperimentalSettingsView> { ExperimentalSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<AccountsSettingsView> { AccountsSettingsViewImpl() }

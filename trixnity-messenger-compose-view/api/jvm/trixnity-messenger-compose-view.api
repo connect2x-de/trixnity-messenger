@@ -1196,8 +1196,18 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun bootstrapRecoveryKeyVaultCreation ()Ljava/lang/String;
 	public fun bootstrapRecoveryKeyWarning ()Ljava/lang/String;
 	public fun bootstrapVault ()Ljava/lang/String;
+	public fun callCameraError ()Ljava/lang/String;
+	public fun callCameraPermissionDenied ()Ljava/lang/String;
+	public fun callConnectionError ()Ljava/lang/String;
+	public fun callJoining ()Ljava/lang/String;
+	public fun callMicrophoneError ()Ljava/lang/String;
+	public fun callMicrophonePermissionDenied ()Ljava/lang/String;
+	public fun callParticipantsUnavailable ()Ljava/lang/String;
+	public fun callReconnecting ()Ljava/lang/String;
 	public fun callStart ()Ljava/lang/String;
 	public fun callStartWithError (Ljava/lang/String;)Ljava/lang/String;
+	public fun callSymbol ()Ljava/lang/String;
+	public fun callYou ()Ljava/lang/String;
 	public fun cameraDialogAlertNoPermission ()Ljava/lang/String;
 	public fun cannotChangePowerLevels ()Ljava/lang/String;
 	public fun cannotDisableMultiProfileMode ()Ljava/lang/String;
@@ -1320,6 +1330,11 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun editRoomTopic ()Ljava/lang/String;
 	public fun errorDetails ()Ljava/lang/String;
 	public fun eventMentionPile (Ljava/lang/String;)Ljava/lang/String;
+	public fun experimentalSettingsCallsTitle ()Ljava/lang/String;
+	public fun experimentalSettingsTitle ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCalls ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCallsDisableExplanation ()Ljava/lang/String;
+	public fun experimentalSettingsVideoCallsExplanation ()Ljava/lang/String;
 	public fun exportRoom (Ljava/lang/String;)Ljava/lang/String;
 	public fun exportRoomAbort ()Ljava/lang/String;
 	public fun exportRoomBodyLabel (Ljava/lang/String;)Ljava/lang/String;
@@ -1630,6 +1645,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun roomListNoRoom ()Ljava/lang/String;
 	public fun roomListNoSearchResults ()Ljava/lang/String;
 	public fun roomListRemoveRoom ()Ljava/lang/String;
+	public fun roomListRunningCall ()Ljava/lang/String;
 	public fun roomListSearch ()Ljava/lang/String;
 	public fun roomListSyncErrorAccounts (Ljava/lang/String;)Ljava/lang/String;
 	public fun roomListSyncErrorNoConnection ()Ljava/lang/String;
@@ -2000,6 +2016,16 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/RoomViewImp
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/call/CallControlButtonKt {
+	public static final fun CallControlButton (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$CallControlButtonKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$CallControlButtonKt;
+	public fun <init> ()V
+	public final fun getLambda$-250584730$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ChangePowerLevelKt {
@@ -2384,7 +2410,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/Co
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/ComposableSingletons$RoomHeaderKt;
 	public fun <init> ()V
 	public final fun getLambda$-1843424404$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1340861054$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/ComposableSingletons$TimelineKt {
@@ -2522,7 +2547,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/Ro
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/RoomHeaderKt {
 	public static final fun RoomBackButton (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun RoomCallButton (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RoomExtras (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel;ZLandroidx/compose/runtime/Composer;I)V
 	public static final fun RoomHeader (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel;ZZLandroidx/compose/runtime/Composer;I)V
 	public static final fun RoomName (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderInfo;Landroidx/compose/runtime/Composer;I)V
@@ -3293,6 +3317,34 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public fun isFocusable ()Z
 	public synthetic fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/RtcMemberMessageTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/RtcMemberMessageTimelineElementView$DefaultImpls {
+	public static fun a11yLabel (Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/RtcMemberMessageTimelineElementView;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/RtcMemberMessageTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/RtcMemberMessageTimelineElementView {
+	public static final field $stable I
+	public fun <init> ()V
+	public synthetic fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public fun a11yLabel (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
+	public synthetic fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createAsPreview (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public synthetic fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public fun createInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;ILandroidx/compose/runtime/Composer;I)V
+	public synthetic fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInSendMessage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public synthetic fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public fun createReplyInTimeline (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/runtime/Composer;I)V
+	public synthetic fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public fun getClipEntry (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/platform/ClipEntry;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+	public fun isFocusable ()Z
+	public synthetic fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/TextBasedRoomMessageTimelineElementViewKt {
@@ -4999,6 +5051,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Composa
 public final class de/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$UserSettingsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$UserSettingsKt;
 	public fun <init> ()V
+	public final fun getLambda$-234515533$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-278407967$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-835105995$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$1555589593$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
@@ -5021,6 +5074,20 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Devices
 	public static final fun DeviceItem (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel$DeviceInfo;ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettingsSingleAccount (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsKt {
+	public static final fun ExperimentalSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsViewImpl : de/connect2x/trixnity/messenger/compose/view/settings/ExperimentalSettingsView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/LegalFooterKt {
@@ -5180,6 +5247,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/UserSet
 	public static final fun AccountsInfoButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun AppearanceSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun ExperimentalSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun NotificationsSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun ProfilesSettingsButton (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
@@ -6694,8 +6762,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/util/AnimateRota
 public final class de/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder {
 	public static final field $stable I
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder;
-	public final fun decode-s_kHBtI (Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;F)Landroidx/compose/ui/graphics/ImageBitmap;
-	public static synthetic fun decode-s_kHBtI$default (Lde/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder;Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;FILjava/lang/Object;)Landroidx/compose/ui/graphics/ImageBitmap;
+	public final fun decode-WBGoCGI (Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;JF)Landroidx/compose/ui/graphics/ImageBitmap;
+	public static synthetic fun decode-WBGoCGI$default (Lde/connect2x/trixnity/messenger/compose/view/util/BlurHashDecoder;Ljava/lang/String;Landroidx/compose/ui/unit/IntSize;JFILjava/lang/Object;)Landroidx/compose/ui/graphics/ImageBitmap;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/util/CopyableUserId {

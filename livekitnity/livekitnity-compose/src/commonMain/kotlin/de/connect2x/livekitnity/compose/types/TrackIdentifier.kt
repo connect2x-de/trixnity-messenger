@@ -1,0 +1,70 @@
+/*
+ * Copyright 2023-2025 LiveKit, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package de.connect2x.livekitnity.compose.types
+
+import de.connect2x.livekitnity.api.room.participant.Participant
+import de.connect2x.livekitnity.api.room.track.Track
+import de.connect2x.livekitnity.api.room.track.TrackPublication
+
+/** Identifying information for a track. */
+public interface TrackIdentifier {
+  public val participant: Participant
+
+  public val publication: TrackPublication?
+}
+
+/** Identifies a track based on the source and/or name. At least one is required. */
+public data class TrackSource(
+    override val participant: Participant,
+    val source: Track.Source? = null,
+    val name: String? = null,
+) : TrackIdentifier {
+  init {
+    require(source != null || name != null) { "At least one of source or name must be provided!" }
+  }
+
+  override val publication: TrackPublication?
+    get() {
+      return if (source != null && name != null) {
+        participant.trackPublications.value.values.firstOrNull { p ->
+          p.source == source && p.name == name
+        }
+      } else if (source != null) {
+        participant.trackPublications.value.values.firstOrNull { p -> p.source == source }
+      } else if (name != null) {
+        participant.trackPublications.value.values.firstOrNull { p -> p.name == name }
+      } else {
+        throw IllegalStateException("At least one of source or name must be provided!")
+      }
+    }
+}
+
+/** A reference to a [Track], or a placeholder. */
+public data class TrackReference(
+    override val participant: Participant,
+    override val publication: TrackPublication?,
+    val source: Track.Source,
+) : TrackIdentifier {
+
+  public fun isPlaceholder(): Boolean {
+    return publication == null
+  }
+
+  public fun isSubscribed(): Boolean {
+    return !isPlaceholder() && (publication?.subscribed ?: false)
+  }
+}

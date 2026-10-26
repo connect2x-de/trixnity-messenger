@@ -15,21 +15,27 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Search room members by display name or Matrix address
 - SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
 - SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
+- UI: Add a room list hint for rooms with running calls
 - SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
 - SDK: MatrixRTC support introduced; disable by setting `features.enableVideoCalls = false`
 - UI: Allow for extending `TimelineElementMetadata` with more items via DI
-- UI: Add button in room header for joining and leaving calls
+- UI: Add button in room header for joining and leaving matrix rtc calls
 - UI: Downscale images in the timeline
+- UI: Add a menu for enabling experimental messenger settings
+- UI: Add entry to enable experimental MatrixRTC calls on Android and Web
+- SDK,UI: Add experimental support for MatrixRTC Livekit calls
+- UI: Add timeline elements for MatrixRTC membership changes
 
 ### Changed
 
 - CI, INTERNAL: Build the web staging app with Wasm and Navigation 3
+- UI: BlurHashes now load synchronously and thus appear earlier when rendering the timeline
 - UI: Show a translated media playback error message with an error icon
 - UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
-- DEPENDENCY: Update Trixnity to 5.10.0-SNAPSHOT.CI-20261009.191601
+- DEPENDENCY: Update Trixnity to 5.10.0
 - DEPENDENCY: Update SQLitenity to 0.0.8
 - SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
@@ -42,13 +48,23 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: (**breaking change**) Split up RedactedTimelineElementViewModel into RedactedMessageTimelineElementViewModel and
   RedactedStateTimelineElementViewModel
 - UI: Replace single, view model dependent step ConnectingWizard with UI-only WizardPanel, removing old navigation logic
+- SDK: Added `connect2x GmbH proprietary license` to publishing information in additon to AGPL3
+- SDK,IOS: race condition in NetworkMonitor
+- SDK: account setup is skipped after logout and login with the same account
+- SDK: oauth and sso should only be resumed when url changes
 
 ### Deprecated
 
 ### Removed
 
+- SDK: Terser webpack plugin
+
 ### Fixed
 
+- SDK: Blurhash now differentiates between intrinsicSize and decodeSize
+- UI: Imprint and Privacy crashed with `NoDefinitionFoundException` for `InformationMarkdownFlavour` when shown by the
+  multi messenger
+- UI: Show the room name reliably when opening room settings
 - UI: Render formatted message bodies in reply previews above the message input and in the timeline
 - UI: Keep file message bubbles a consistent width during downloads and truncate long filenames to a single line
 - SDK: Correct voice message recording duration on Android, iOS, and Web by using recording metadata or recorder
@@ -64,6 +80,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Only display available verification methods in SelfVerificationWizard
 - SDK: When exporting a room then do not throw an exception when the start condition filters out all events
 - SDK,ANDROID: Correctly cancel account adding process via back button
+- CI: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
+- SDK, UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
+- UI: Placeholder of the input area with hint is shown when user can't type messages into the room
+- DEPENDENCY: Fix remove foreground service permission
+- DEPENDENCY: FIx publish correct gradle module metadata
 
 ### Security
 

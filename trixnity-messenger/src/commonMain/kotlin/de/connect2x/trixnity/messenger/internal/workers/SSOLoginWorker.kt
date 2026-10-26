@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.internal.workers
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
@@ -9,7 +8,6 @@ import de.connect2x.trixnity.messenger.internal.navigation.replace
 import de.connect2x.trixnity.messenger.internal.routes.root.SSOLoginRoute
 import de.connect2x.trixnity.messenger.util.UriHandler
 import io.ktor.http.Url
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 
@@ -36,19 +34,16 @@ private class SSOLoginWorkerImpl(
     private val routeNavigation: RouteNavigation,
 ) : SSOLoginWorker {
     override suspend fun doWork() {
-        combine(
-                uriHandler.filter(::isSsoUri),
-                matrixMessengerSettingsHolder.mapNotNull { it.base.ssoLoginState },
-                ::makeRoute,
-            )
-            .collect(::updateNavigation)
+        uriHandler.filter(::isSsoUri).mapNotNull(::makeRoute).collect(::updateNavigation)
     }
 
     private fun isSsoUri(uri: String): Boolean {
         return Url(uri).encodedPath == "/${matrixMessengerConfiguration.appUriSsoRedirect}"
     }
 
-    private fun makeRoute(uri: String, state: MatrixMessengerSettingsBase.SSOLoginState): SSOLoginRoute {
+    private fun makeRoute(uri: String): SSOLoginRoute? {
+        val state = matrixMessengerSettingsHolder.value.base.ssoLoginState ?: return null
+
         return SSOLoginRoute(
             serverUrl = state.serverUrl,
             providerId = state.providerId,

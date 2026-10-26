@@ -1761,6 +1761,11 @@ open class I18nView(
         DE - "Beitreten"
     }
 
+    open fun roomListRunningCall() = translate {
+        EN - "Running call"
+        DE - "Laufender Anruf"
+    }
+
     open fun roomListAccountNotVerifiedIcon() = translate {
         EN - "Account not verified"
         DE - "Nutzerkonto nicht verifiziert"
@@ -2905,6 +2910,32 @@ open class I18nView(
         DE - "Erscheinungsbild"
     }
 
+    open fun experimentalSettingsTitle() = translate {
+        EN - "Experimental features"
+        DE - "Experimentelle Funktionen"
+    }
+
+    open fun experimentalSettingsCallsTitle() = translate {
+        EN - "Calls"
+        DE - "Anrufe"
+    }
+
+    open fun experimentalSettingsVideoCalls() = translate {
+        EN - "Video calls"
+        DE - "Videoanrufe"
+    }
+
+    open fun experimentalSettingsVideoCallsExplanation() = translate {
+        EN - "This feature may not be compatible with clients running older MatrixRTC versions."
+        DE -
+            "Diese Funktion ist möglicherweise nicht mit Clients kompatibel, die ältere MatrixRTC-Versionen unterstützen."
+    }
+
+    open fun experimentalSettingsVideoCallsDisableExplanation() = translate {
+        EN - "This setting is disabled because it is not supported on this platform."
+        DE - "Diese Einstellung ist deaktiviert da diese Funktion auf dieser Plattform nicht unterstützt wird."
+    }
+
     open fun appearanceColorsTitle() = translate {
         EN - "Colors"
         DE - "Farben"
@@ -3881,6 +3912,11 @@ open class I18nView(
             "Falls Benachrichtigungen deaktiviert sind, müssen Sie manuell prüfen, ob Sie neue Nachrichten erhalten haben."
     }
 
+    open fun callSymbol() = translate {
+        EN - "Call"
+        DE - "Anruf"
+    }
+
     open fun callStart() = translate {
         EN - "Start call"
         DE - "Anruf starten"
@@ -3889,6 +3925,51 @@ open class I18nView(
     open fun callStartWithError(error: String) = translate {
         EN - "Call failed: $error (Click to retry)"
         DE - "Anruf fehlgeschlagen: $error (Drücke um neu zu versuchen)"
+    }
+
+    open fun callJoining() = translate {
+        EN - "Joining..."
+        DE - "Beitreten..."
+    }
+
+    open fun callReconnecting() = translate {
+        EN - "Reconnecting..."
+        DE - "Verbindung wird wiederhergestellt..."
+    }
+
+    open fun callConnectionError() = translate {
+        EN - "A call connection failed."
+        DE - "Eine Anrufverbindung ist fehlgeschlagen."
+    }
+
+    open fun callParticipantsUnavailable() = translate {
+        EN - "Some participants are unavailable."
+        DE - "Einige Teilnehmer sind nicht erreichbar."
+    }
+
+    open fun callCameraError() = translate {
+        EN - "Could not change camera state."
+        DE - "Die Kamera konnte nicht umgeschaltet werden."
+    }
+
+    open fun callMicrophoneError() = translate {
+        EN - "Could not change microphone state."
+        DE - "Das Mikrofon konnte nicht umgeschaltet werden."
+    }
+
+    open fun callCameraPermissionDenied() = translate {
+        EN - "Camera permission was denied. Your camera is off."
+        DE - "Zugriff auf die Kamera verweigert. Die Kamera ist ausgeschaltet."
+    }
+
+    open fun callMicrophonePermissionDenied() = translate {
+        EN - "Microphone permission was denied. Your microphone is off."
+        DE - "Zugriff auf das Mikrofon verweigert. Das Mikrofon ist ausgeschaltet."
+    }
+
+    open fun callYou() = translate {
+        EN - "You"
+        DE - "Du"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

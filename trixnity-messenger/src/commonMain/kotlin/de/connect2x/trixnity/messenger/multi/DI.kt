@@ -5,6 +5,8 @@ import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.platformModule
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.BackHandlerImpl
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.SharedDataHandlerImpl
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
@@ -30,6 +32,9 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> =
                 }
                 single<BackHandler> { BackHandlerImpl() }
                 single<SharedDataHandler> { SharedDataHandlerImpl() }
+                // Imprint and Privacy are shown by the multi messenger itself (login, profile selection),
+                // where this is the root scope, and resolve it from there.
+                single<InformationMarkdownFlavour> { InformationMarkdownFlavourImpl() }
                 single<MultiProfileMigrator> { MultiProfileMigratorImpl(get()) }.apply { bind<Worker>() }
             }
         },

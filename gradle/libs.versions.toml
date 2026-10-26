@@ -1,12 +1,12 @@
 [versions]
 
-trixnityMessenger = "4.10.4"
+trixnityMessenger = "4.11.0"
 
 minSdkVersion = "28"
 
 seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.10.0-SNAPSHOT.CI-20261009.191601" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "5.10.1" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.7.1" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.8" # https://gitlab.com/connect2x/sqlitenity/-/releases
 

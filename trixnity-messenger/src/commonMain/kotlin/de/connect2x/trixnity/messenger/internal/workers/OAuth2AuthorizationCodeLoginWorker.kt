@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.internal.workers
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
@@ -9,7 +8,6 @@ import de.connect2x.trixnity.messenger.internal.navigation.replace
 import de.connect2x.trixnity.messenger.internal.routes.root.OAuth2AuthorizationCodeLoginRoute
 import de.connect2x.trixnity.messenger.util.UriHandler
 import io.ktor.http.Url
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 
@@ -36,22 +34,16 @@ private class OAuth2AuthorizationCodeLoginWorkerImpl(
     private val routeNavigation: RouteNavigation,
 ) : OAuth2AuthorizationCodeLoginWorker {
     override suspend fun doWork() {
-        combine(
-                uriHandler.filter(::isOauth2Uri),
-                matrixMessengerSettingsHolder.mapNotNull { it.base.oAuth2LoginState },
-                ::makeRoute,
-            )
-            .collect(::updateNavigation)
+        uriHandler.filter(::isOauth2Uri).mapNotNull(::makeRoute).collect(::updateNavigation)
     }
 
     private fun isOauth2Uri(uri: String): Boolean {
         return Url(uri).encodedPath == "/${matrixMessengerConfiguration.appUriOAuth2Redirect}"
     }
 
-    private fun makeRoute(
-        uri: String,
-        state: MatrixMessengerSettingsBase.OAuth2LoginState,
-    ): OAuth2AuthorizationCodeLoginRoute {
+    private fun makeRoute(uri: String): OAuth2AuthorizationCodeLoginRoute? {
+        val state = matrixMessengerSettingsHolder.value.base.oAuth2LoginState ?: return null
+
         return OAuth2AuthorizationCodeLoginRoute(
             serverUrl = state.serverUrl,
             kind = state.type,

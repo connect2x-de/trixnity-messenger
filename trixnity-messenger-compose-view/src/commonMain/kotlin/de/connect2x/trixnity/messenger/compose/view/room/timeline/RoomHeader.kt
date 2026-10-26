@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.DoorFront
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
@@ -24,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -49,14 +46,13 @@ import de.connect2x.trixnity.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.minHeaderHeight
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.room.call.CallControlButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedLabel
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 
@@ -230,69 +226,13 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
 }
 
 @Composable
-@TrixnityMessengerCallApi
-fun RoomCallButton(viewModel: CallViewModel) {
-    val state by viewModel.state.collectAsState()
-    val canCall by viewModel.canJoinCall.collectAsState()
-    val i18n = DI.get<I18nView>()
-    val error = (state as? CallViewModel.State.Error)?.error
-
-    val tooltipText =
-        when {
-            error != null -> i18n.callStartWithError(error)
-            else -> i18n.callStart()
-        }
-
-    val callButtonColor =
-        when {
-            state == CallViewModel.State.Active -> MaterialTheme.messengerColors.success
-            state == CallViewModel.State.Joined -> MaterialTheme.colorScheme.error
-            error != null -> MaterialTheme.colorScheme.error
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
-        }
-
-    if (canCall) {
-        Tooltip(tooltip = { Text(tooltipText) }) {
-            ThemedIconButton(
-                style = MaterialTheme.components.commonIconButton,
-                onClick = {
-                    when (state) {
-                        CallViewModel.State.Joined -> viewModel.leave()
-                        else -> viewModel.join()
-                    }
-                },
-            ) {
-                BadgedBox(
-                    badge = {
-                        if (error != null) {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(10.dp),
-                                )
-                            }
-                        }
-                    }
-                ) {
-                    Icon(imageVector = Icons.Default.Call, contentDescription = tooltipText, tint = callButtonColor)
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun RoomExtras(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean) {
     val i18n = DI.get<I18nView>()
     val messengerConfiguration = DI.get<MatrixMessengerConfiguration>()
 
     @OptIn(TrixnityMessengerCallApi::class)
     if (messengerConfiguration.features.enableVideoCalls && roomHeaderViewModel.call != null) {
-        RoomCallButton(requireNotNull(roomHeaderViewModel.call))
+        CallControlButton(requireNotNull(roomHeaderViewModel.call))
     }
 
     if (showSettingsButton) {

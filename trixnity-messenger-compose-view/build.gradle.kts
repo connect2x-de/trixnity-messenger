@@ -10,6 +10,7 @@ import de.connect2x.conventions.withAndroidLibrary
 import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJvm
+import de.connect2x.conventions.withVersionSuffix
 import de.connect2x.conventions.withWeb
 import java.net.ServerSocket
 import java.time.Duration
@@ -31,6 +32,8 @@ plugins {
 }
 
 configureJava(sharedLibs.versions.targetJvm)
+
+val livekitnityVersion = withVersionSuffix(livekitnityLibs.versions.livekitnity)
 
 registerCoverageTask("koverXmlReportJvm")
 
@@ -77,6 +80,14 @@ kotlin {
             group("skia") {
                 withJvm()
                 group("web")
+                group("ios")
+            }
+            group("call") {
+                withAndroidTarget()
+                group("web")
+            }
+            group("nonCall") {
+                withJvm()
                 group("ios")
             }
         }
@@ -131,6 +142,13 @@ kotlin {
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(projects.wrappersPdfjs)
+            }
+        }
+        getByName("callMain") {
+            dependencies {
+                implementation("de.connect2x.livekitnity:livekitnity-api:$livekitnityVersion")
+                implementation("de.connect2x.livekitnity:livekitnity-core:$livekitnityVersion")
+                implementation("de.connect2x.livekitnity:livekitnity-compose:$livekitnityVersion")
             }
         }
         commonTest {

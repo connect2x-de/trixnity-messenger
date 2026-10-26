@@ -4,6 +4,7 @@ import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
@@ -184,6 +185,62 @@ open class I18n(
         EN - "$username has left $groupOrChat"
         DE - "$username hat $groupOrChat verlassen"
     }
+
+    open fun rtcMemberStartedSession(applicationType: String) =
+        when (applicationType) {
+            CallRtcApplication.APPLICATION_TYPE ->
+                translate {
+                    EN - "started a call"
+                    DE - "hat einen Anruf gestartet"
+                }
+            else ->
+                translate {
+                    EN - "started a MatrixRTC session"
+                    DE - "hat eine MatrixRTC Sitzung gestartet"
+                }
+        }
+
+    open fun rtcMemberJoinedSession(applicationType: String) =
+        when (applicationType) {
+            CallRtcApplication.APPLICATION_TYPE ->
+                translate {
+                    EN - "joined the call"
+                    DE - "ist dem Anruf beigetreten"
+                }
+            else ->
+                translate {
+                    EN - "joined the MatrixRTC session"
+                    DE - "ist der MatrixRTC Sitzung beigetreten"
+                }
+        }
+
+    open fun rtcMemberLeftSession(applicationType: String) =
+        when (applicationType) {
+            CallRtcApplication.APPLICATION_TYPE ->
+                translate {
+                    EN - "left the call"
+                    DE - "hat den Anruf verlassen"
+                }
+            else ->
+                translate {
+                    EN - "left the MatrixRTC session"
+                    DE - "hat die MatrixRTC Sitzung verlassen"
+                }
+        }
+
+    open fun rtcMemberStoppedSession(applicationType: String) =
+        when (applicationType) {
+            CallRtcApplication.APPLICATION_TYPE ->
+                translate {
+                    EN - "ended a call"
+                    DE - "hat einen Anruf beendet"
+                }
+            else ->
+                translate {
+                    EN - "ended a MatrixRTC session"
+                    DE - "hat eine MatrixRTC Sitzung beendet"
+                }
+        }
 
     open fun eventChangeBan(target: String, moderator: String, groupOrChat: String, reason: String? = null) =
         translate {
@@ -1776,6 +1833,16 @@ open class I18n(
     open fun joinRoomConfirmJoinOffline() = translate {
         EN - "You can't join the room without an internet connection, please try again later."
         DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."
+    }
+
+    open fun callConnectError() = translate {
+        EN - "Could not connect to the call."
+        DE - "Die Verbindung zum Anruf konnte nicht hergestellt werden."
+    }
+
+    open fun callJoinError() = translate {
+        EN - "Could not join the call."
+        DE - "Dem Anruf konnte nicht beigetreten werden."
     }
 
     open fun userSearchHomeserver() = translate {
