@@ -27,7 +27,9 @@ import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventCont
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
+import de.connect2x.trixnity.core.model.events.m.space.ParentEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
@@ -46,6 +48,9 @@ import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.spaces.RoomListSpace
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceContentViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceRoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
@@ -65,12 +70,14 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -287,6 +294,205 @@ class RoomListViewModelTest {
     @BeforeTest
     fun setup() {
         configureTestLogging()
+    }
+
+    @Test
+    fun `space membership is watched while its list is hidden`() = runTest {
+        for (membership in listOf(Membership.LEAVE, Membership.BAN, null)) {
+            val space = MutableStateFlow<Room?>(Room(spaceId1, createEventContent = spaceCreateEventContent))
+            every { roomServiceMock.getById(spaceId1) } returns space
+            var backCalls = 0
+            roomListViewModel(space = RoomListSpace(user1, spaceId1), onSpaceBack = { backCalls++ })
+            delay(1)
+            backCalls shouldBe 0
+            space.value = membership?.let { space.value!!.copy(membership = it) }
+            eventually(2.seconds) { backCalls shouldBe 1 }
+            space.value = null
+            delay(1)
+            backCalls shouldBe 1
+        }
+    }
+
+    @Test
+    fun `space account switching keeps only joined memberships in the current space`() = runTest {
+        every { matrixClientMock2.di } returns koinApplication { modules(module { single { roomServiceMock2 } }) }.koin
+        for (membership in listOf(Membership.JOIN, Membership.INVITE, Membership.LEAVE, Membership.BAN, null)) {
+            every { roomServiceMock2.getById(spaceId1) } returns
+                flowOf(
+                    membership?.let { Room(spaceId1, membership = it, createEventContent = spaceCreateEventContent) }
+                )
+            val selected = mutableListOf<UserId?>()
+            val cut =
+                roomListViewModel(
+                    matrixClients = mapOf(user1 to matrixClientMock, user2 to matrixClientMock2),
+                    space = RoomListSpace(user1, spaceId1),
+                    onSpaceAccountSelected = { selected += it },
+                )
+            cut.accountViewModel.selectActiveAccount(user2)
+            eventually(2.seconds) { selected shouldBe listOf(if (membership == Membership.JOIN) user2 else null) }
+        }
+    }
+
+    @Test
+    fun `a delayed space membership check cannot override a newer account selection`() = runTest {
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        every { matrixClientMock2.di } returns koinApplication { modules(module { single { roomServiceMock2 } }) }.koin
+        every { roomServiceMock2.getById(spaceId1) } returns
+            flow {
+                started.complete(Unit)
+                release.await()
+                emit(Room(spaceId1, createEventContent = spaceCreateEventContent))
+            }
+        val thirdClient = mock<MatrixClient>()
+        val thirdRooms = mock<RoomService>()
+        every { thirdClient.di } returns koinApplication { modules(module { single { thirdRooms } }) }.koin
+        every { thirdRooms.getById(spaceId1) } returns
+            flowOf(Room(spaceId1, createEventContent = spaceCreateEventContent))
+        val selected = mutableListOf<UserId?>()
+        val cut =
+            roomListViewModel(
+                matrixClients = mapOf(user1 to matrixClientMock, user2 to matrixClientMock2, user3 to thirdClient),
+                space = RoomListSpace(user1, spaceId1),
+                onSpaceAccountSelected = { selected += it },
+            )
+        cut.accountViewModel.selectActiveAccount(user2)
+        started.await()
+        cut.accountViewModel.selectActiveAccount(user3)
+        eventually(2.seconds) { selected shouldBe listOf(user3) }
+        release.complete(Unit)
+        eventually(2.seconds) { selected shouldBe listOf(user3) }
+    }
+
+    @Test
+    fun `space list reuses room elements and sorting while tracking child membership`() = runTest {
+        val parent = MutableStateFlow(Room(spaceId1, createEventContent = spaceCreateEventContent))
+        val older =
+            MutableStateFlow(
+                Room(
+                    roomId1,
+                    createEventContent = roomCreateEventContent,
+                    lastRelevantEventTimestamp = Instant.fromEpochMilliseconds(1),
+                )
+            )
+        val newer =
+            MutableStateFlow(
+                Room(
+                    roomId2,
+                    createEventContent = roomCreateEventContent,
+                    lastRelevantEventTimestamp = Instant.fromEpochMilliseconds(2),
+                )
+            )
+        val unjoined =
+            MutableStateFlow(Room(roomId3, membership = Membership.LEAVE, createEventContent = roomCreateEventContent))
+        val unrelated = Room(roomId4, createEventContent = roomCreateEventContent)
+        val child =
+            MutableStateFlow(
+                spaceChildEvent(spaceId1, roomId1).copy(content = ChildEventContent(via = setOf("server")))
+            )
+        every { roomServiceMock.getAllState(any(), ParentEventContent::class) } returns flowOf(emptyMap())
+        every { roomServiceMock2.getAllState(any(), ParentEventContent::class) } returns flowOf(emptyMap())
+        every { roomServiceMock.getAll() } returns
+            flowOf(
+                mapOf(
+                    spaceId1 to parent,
+                    roomId1 to older,
+                    roomId2 to newer,
+                    roomId3 to unjoined,
+                    roomId4 to flowOf(unrelated),
+                )
+            )
+        every { roomServiceMock.getById(spaceId1) } returns parent
+        every { roomServiceMock.getById(roomId1) } returns older
+        every { roomServiceMock.getById(roomId2) } returns newer
+        every { roomServiceMock.getById(roomId4) } returns flowOf(unrelated)
+        every { roomServiceMock.getAllState(spaceId1, ChildEventContent::class) } returns
+            flowOf(
+                mapOf(
+                    roomId1.full to child,
+                    roomId2.full to
+                        flowOf(
+                            spaceChildEvent(spaceId1, roomId2).copy(content = ChildEventContent(via = setOf("server")))
+                        ),
+                    roomId3.full to
+                        flowOf(
+                            spaceChildEvent(spaceId1, roomId3).copy(content = ChildEventContent(via = setOf("server")))
+                        ),
+                )
+            )
+        val parentLink = MutableStateFlow<StateEvent<ParentEventContent>?>(null)
+        every { roomServiceMock.getAllState(roomId4, ParentEventContent::class) } returns
+            flowOf(mapOf(spaceId1.full to parentLink))
+        every { roomServiceMock.getState(spaceId1, CreateEventContent::class, "") } returns
+            flowOf(
+                StateEvent(
+                    CreateEventContent(type = RoomType.Space),
+                    EventId("$" + "create"),
+                    user1,
+                    spaceId1,
+                    1L,
+                    stateKey = "",
+                )
+            )
+        val parentPower =
+            MutableStateFlow(
+                StateEvent(
+                    PowerLevelsEventContent(users = mapOf(user2 to 50)),
+                    EventId("$" + "power"),
+                    user1,
+                    spaceId1,
+                    2L,
+                    stateKey = "",
+                )
+            )
+        every { roomServiceMock.getState(spaceId1, PowerLevelsEventContent::class, "") } returns parentPower
+        every { roomServiceMock.getAllState(spaceId1, MemberEventContent::class) } returns
+            flowOf(
+                mapOf(
+                    user2.full to
+                        flowOf(
+                            StateEvent(
+                                MemberEventContent(membership = Membership.JOIN),
+                                EventId("$" + "member"),
+                                user2,
+                                spaceId1,
+                                3L,
+                                stateKey = user2.full,
+                            )
+                        )
+                )
+            )
+        val cut = roomListViewModel(space = RoomListSpace(user1, spaceId1))
+        subscribe(cut)
+        eventually(2.seconds) { cut.elements.value.map { it.roomId } shouldBe listOf(roomId2, roomId1) }
+        cut.elements.value.map { it.account }.toSet() shouldBe setOf(user1)
+        cut.showSearch.value = true
+        cut.searchTerm.update("room2")
+        eventually(2.seconds) { cut.elements.value.map { it.roomId } shouldBe listOf(roomId2) }
+        cut.searchTerm.update("room4")
+        eventually(2.seconds) { cut.elements.value shouldBe emptyList() }
+        cut.searchTerm.update("")
+        eventually(2.seconds) { cut.elements.value.map { it.roomId } shouldBe listOf(roomId2, roomId1) }
+        child.value = child.value.copy(content = ChildEventContent(via = emptySet()))
+        eventually(2.seconds) { cut.elements.value.map { it.roomId } shouldBe listOf(roomId2) }
+        newer.value = newer.value.copy(membership = Membership.LEAVE)
+        eventually(2.seconds) { cut.elements.value shouldBe emptyList() }
+        newer.value = newer.value.copy(membership = Membership.JOIN)
+        eventually(2.seconds) { cut.elements.value.map { it.roomId } shouldBe listOf(roomId2) }
+        parentLink.value =
+            StateEvent(
+                ParentEventContent(via = setOf("server")),
+                EventId("$" + "parent"),
+                user2,
+                roomId4,
+                4L,
+                stateKey = spaceId1.full,
+            )
+        eventually(2.seconds) { cut.elements.value.map { it.roomId }.toSet() shouldBe setOf(roomId2, roomId4) }
+        parentPower.value = parentPower.value.copy(content = PowerLevelsEventContent(users = mapOf(user2 to 49)))
+        eventually(2.seconds) { cut.elements.value.map { it.roomId } shouldBe listOf(roomId2) }
+        parent.value = parent.value.copy(membership = Membership.LEAVE)
+        eventually(2.seconds) { cut.elements.value shouldBe emptyList() }
     }
 
     @Test
@@ -1122,7 +1328,10 @@ class RoomListViewModelTest {
         onVerificationStarted: ((UserId) -> Unit)? = null,
         uriHandler: UriHandler? = null,
         appUri: String? = null,
-    ): RoomListViewModelImpl {
+        space: RoomListSpace? = null,
+        onSpaceAccountSelected: (UserId?) -> Unit = { onAccountSelected() },
+        onSpaceBack: () -> Unit = {},
+    ): RoomListViewModel {
         val koin =
             koinApplication {
                     modules(
@@ -1132,6 +1341,7 @@ class RoomListViewModelTest {
                                 if (uriHandler != null) single<UriHandler> { uriHandler }
                                 if (appUri != null) single { MatrixMessengerConfiguration(appUri = appUri) }
                                 single { profileManagerMock }
+                                single<SpaceContentViewModelFactory> { SpaceContentViewModelFactory }
                                 single<AccountViewModelFactory> {
                                     object : AccountViewModelFactory {
                                         override fun create(
@@ -1160,8 +1370,8 @@ class RoomListViewModelTest {
                                                         > {
                                                             it.copy(selectedAccount = userId)
                                                         }
+                                                        onAccountSelected(userId)
                                                     }
-                                                    onAccountSelected(userId) // needed to influence RoomListViewModel
                                                 }
 
                                                 override fun openUserSettings() {}
@@ -1178,25 +1388,48 @@ class RoomListViewModelTest {
                 }
                 .koin
         koin.createScope<RootViewModelImpl>()
-        return RoomListViewModelImpl(
-            viewModelContext =
-                ViewModelContextImpl(
-                    componentContext = DefaultComponentContext(lifecycleRegistry),
-                    di = koin,
-                    coroutineContext = backgroundScope.coroutineContext,
-                    name = "RoomList",
-                ),
-            selectedRoomId = MutableStateFlow(RoomId("!roomId")),
-            onRoomSelected = onRoomSelectedMock,
-            onCreateNewRoom = mock(),
-            onShowAccounts = mock(),
-            onUserSettingsSelected = mock(),
-            onOpenAppInfo = mock(),
-            onSendLogs = mock(),
-            onAccountSelected = onAccountSelected,
-            onStartVerification = onVerificationStarted ?: mock(),
-            onCloseRoom = mock(),
-        )
+        val context =
+            ViewModelContextImpl(
+                componentContext = DefaultComponentContext(lifecycleRegistry),
+                di = koin,
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "RoomList",
+            )
+        return if (space != null)
+            SpaceRoomListViewModelFactory.create(
+                    viewModelContext = context,
+                    space = space,
+                    onSelect = {},
+                    onBack = onSpaceBack,
+                    exploreSelected = MutableStateFlow(false),
+                    onOpenExplore = {},
+                    selectedRoomId = MutableStateFlow(RoomId("!roomId")),
+                    onRoomSelected = onRoomSelectedMock,
+                    onStartCreateNewRoom = mock(),
+                    onShowAccounts = mock(),
+                    onUserSettingsSelected = mock(),
+                    onOpenAppInfo = mock(),
+                    onSendLogs = mock(),
+                    onAccountSelected = onSpaceAccountSelected,
+                    onSpaceUnavailable = { onSpaceAccountSelected(null) },
+                    onStartVerification = onVerificationStarted ?: mock(),
+                    onCloseRoom = mock(),
+                )
+                .rooms
+        else
+            RoomListViewModelFactory.create(
+                viewModelContext = context,
+                selectedRoomId = MutableStateFlow(RoomId("!roomId")),
+                onRoomSelected = onRoomSelectedMock,
+                onStartCreateNewRoom = mock(),
+                onShowAccounts = mock(),
+                onUserSettingsSelected = mock(),
+                onOpenAppInfo = mock(),
+                onSendLogs = mock(),
+                onAccountSelected = onAccountSelected,
+                onStartVerification = onVerificationStarted ?: mock(),
+                onCloseRoom = mock(),
+            )
     }
 
     private fun containRoomListElementViewModelsFor(roomIds: List<RoomId>) =

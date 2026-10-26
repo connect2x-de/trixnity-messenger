@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
 import de.connect2x.trixnity.messenger.internal.routes.TimelineRoute
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.RoomListRoute
+import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceListRouteMarker
 import de.connect2x.trixnity.messenger.internal.util.MinimizeAppIfPossible
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -41,6 +42,7 @@ private class FallbackBackCallbackWorkerImpl(
     private fun updateNavigation() {
         routeNavigation.updateNavigation {
             when {
+                items.any { it is SpaceListRouteMarker } && items.size > 1 -> items = items.dropLast(1)
                 items.any { it is TimelineRoute } -> items = listOf(RoomListRoute)
                 items.last() == RoomListRoute -> minimizeAppIfPossible.invoke()
             }

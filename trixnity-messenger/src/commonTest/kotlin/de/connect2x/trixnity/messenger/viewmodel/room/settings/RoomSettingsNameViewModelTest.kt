@@ -12,6 +12,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
@@ -126,6 +127,26 @@ class RoomSettingsNameViewModelTest {
         viewModel.roomName.update("edited name")
         viewModel.roomName.approveEdit()
         homeServerHandle.numCallsToHomeServer.first { it == 1 }
+    }
+
+    @Test
+    fun `edit a space name using the regular room settings`() = runTest {
+        every { userServiceMock.getAccountData(PushRulesEventContent::class, any()) } returns MutableStateFlow(null)
+        roomGetById returns
+            MutableStateFlow<Room?>(
+                room("Current space")
+                    .copy(createEventContent = CreateEventContent(type = CreateEventContent.RoomType.Space))
+            )
+        val homeServer = mockSendToHomeServer(NameEventContent("Renamed space"))
+        val viewModel = roomSettingsNameViewModel()
+        backgroundScope.launch { viewModel.canChangeRoomName.collect() }
+        viewModel.canChangeRoomName.first { it } shouldBe true
+        eventually(2.seconds) { viewModel.roomName.textValue shouldBe "Current space" }
+
+        viewModel.roomName.startEdit()
+        viewModel.roomName.update("Renamed space")
+        viewModel.roomName.approveEdit()
+        homeServer.numCallsToHomeServer.first { it == 1 }
     }
 
     private fun room(name: String) =

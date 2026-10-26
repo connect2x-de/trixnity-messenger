@@ -177,6 +177,11 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsSingle
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceContentViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceExploreViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceNavigationRailViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceRoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModelFactory
@@ -315,6 +320,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
         ::connectingViewModels,
         ::syncViewModels,
         ::roomListViewModels,
+        ::spaceViewModels,
         ::settingsViewModels,
         ::timelineElementViewModels,
         ::timelineViewModels,
@@ -378,6 +384,14 @@ private fun roomListViewModels() = module {
     single<SearchGroupViewModelFactory> { SearchGroupViewModelFactory }
     single<RoomListElementViewModelFactory> { RoomListElementViewModelFactory }
     single<RoomListViewModelFactory> { RoomListViewModelFactory }
+}
+
+private fun spaceViewModels() = module {
+    single<SpaceRoomListViewModelFactory> { SpaceRoomListViewModelFactory }
+    single<SpaceContentViewModelFactory> { SpaceContentViewModelFactory }
+    single<SpaceBrowserViewModelFactory> { SpaceBrowserViewModelFactory }
+    single<SpaceExploreViewModelFactory> { SpaceExploreViewModelFactory }
+    single<SpaceNavigationRailViewModelFactory> { SpaceNavigationRailViewModelFactory }
 }
 
 inline fun <reified F : SearchProviderFactory<*, *>> Module.searchProviderFactory(

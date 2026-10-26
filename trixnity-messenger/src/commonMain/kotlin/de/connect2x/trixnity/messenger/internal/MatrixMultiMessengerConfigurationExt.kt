@@ -43,6 +43,10 @@ import de.connect2x.trixnity.messenger.internal.adapters.SearchGroupViewModelFac
 import de.connect2x.trixnity.messenger.internal.adapters.SelfVerificationViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.SendAttachmentViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.ShareDataViewModelFactoryAdapter
+import de.connect2x.trixnity.messenger.internal.adapters.SpaceBrowserViewModelFactoryAdapter
+import de.connect2x.trixnity.messenger.internal.adapters.SpaceExploreViewModelFactoryAdapter
+import de.connect2x.trixnity.messenger.internal.adapters.SpaceNavigationRailViewModelFactoryAdapter
+import de.connect2x.trixnity.messenger.internal.adapters.SpaceRoomListViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.SyncViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.TimelineElementDevInfoViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.TimelineElementMetadataViewModelFactoryAdapter
@@ -182,6 +186,10 @@ private fun nav3ViewModelModuleFactory(): Module {
         @OptIn(TrixnityMessengerCallApi::class) viewModelFactoryAdapterOf(::RoomCallViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomDevInfoViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomListViewModelFactoryAdapter)
+        viewModelFactoryAdapterOf(::SpaceBrowserViewModelFactoryAdapter)
+        viewModelFactoryAdapterOf(::SpaceExploreViewModelFactoryAdapter)
+        viewModelFactoryAdapterOf(::SpaceNavigationRailViewModelFactoryAdapter)
+        viewModelFactoryAdapterOf(::SpaceRoomListViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomSettingsViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::SearchGroupViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::SelfVerificationViewModelFactoryAdapter)

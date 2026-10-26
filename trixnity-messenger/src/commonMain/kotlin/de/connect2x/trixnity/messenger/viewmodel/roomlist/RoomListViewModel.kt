@@ -41,6 +41,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -156,6 +157,7 @@ class RoomListViewModelImpl(
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
     private val onStartVerification: (userId: UserId) -> Unit,
     onCloseRoom: () -> Unit,
+    private val roomListSource: RoomListSource = DefaultRoomListSource,
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -238,9 +240,8 @@ class RoomListViewModelImpl(
         selectedMatrixClients
             .flatMapLatest { selectedMatrixClients ->
                 val allRoomsFlows = selectedMatrixClients.map { selectedMatrixClient ->
-                    selectedMatrixClient.room.getAll().flattenValues().map { rooms ->
-                        rooms.map { room -> RoomWithMatrixClient(room, selectedMatrixClient) }
-                    }
+                    val rooms = roomListSource.getRooms(selectedMatrixClient)
+                    rooms.map { allRooms -> allRooms.map { room -> RoomWithMatrixClient(room, selectedMatrixClient) } }
                 }
                 combine(allRoomsFlows) { combinedRooms ->
                     combinedRooms.toList().flatten().associateBy { it.room.roomId }
@@ -553,4 +554,13 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override fun closeProfile() {}
 
     override fun verifyAccount(userId: UserId) {}
+}
+
+interface RoomListSource {
+    fun getRooms(matrixClient: MatrixClient): Flow<Collection<Room>>
+}
+
+private object DefaultRoomListSource : RoomListSource {
+    override fun getRooms(matrixClient: MatrixClient): Flow<Collection<Room>> =
+        matrixClient.room.getAll().flattenValues()
 }
