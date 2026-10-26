@@ -87,7 +87,6 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value == true
         val isJoined = roomName != null && !isInvite && !isKnock && !isLeave
         val hoverable = roomName != null && !isInvite && !isKnock
-        val elementsSize = roomListViewModel.elements.collectAsState().value.size
         val showActionMenu = remember { mutableStateOf<ThemedActionMenuState>(ThemedActionMenuState.Closed) }
         val isUnread = roomListElementViewModel.isUnread.collectAsState().value ?: false
         val i18n = DI.current.get<I18nView>()
@@ -156,9 +155,9 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                     )
                 }
             }
-        }
-        if (index < elementsSize) {
-            ThemedHorizontalDivider(style = MaterialTheme.components.roomListDivider)
+            if (index > 0) {
+                ThemedHorizontalDivider(style = MaterialTheme.components.roomListDivider)
+            }
         }
     }
 }
