@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.common
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -17,6 +18,9 @@ internal fun AccountColorBar(accountColor: Long?, modifier: Modifier = Modifier)
     Box(
         modifier
             .width(if (accountColor != null) 6.dp else 0.dp)
-            .background(if (accountColor != null) Color(accountColor) else Color.Transparent)
+            .background(
+                color = if (accountColor != null) Color(accountColor) else Color.Transparent,
+                shape = RoundedCornerShape(topEnd = 3.dp, bottomEnd = 3.dp),
+            )
     )
 }

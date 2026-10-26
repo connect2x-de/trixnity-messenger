@@ -108,7 +108,7 @@ class RoomListElementViewImpl : RoomListElementView {
 @Composable
 fun MatrixClientColor(roomElementViewModel: RoomListElementViewModel) {
     val accountColor = roomElementViewModel.accountColor.collectAsState().value
-    Box(Modifier.padding(start = 2.dp, end = 12.dp).fillMaxHeight().padding(vertical = 0.dp)) {
+    Box(Modifier.padding(start = 2.dp, end = 12.dp).fillMaxHeight().padding(vertical = 8.dp)) {
         AccountColorBar(accountColor, Modifier.fillMaxHeight())
     }
 }
