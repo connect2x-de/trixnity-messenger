@@ -302,6 +302,7 @@ staging:web:
       - public
     expire_in: 7d
   script:
+    - export NODE_OPTIONS="--max-old-space-size=8192"
     - ./gradlew
       :trixnity-messenger-compose-app:wasmJsBrowserDistribution
       -Ptm_use_nav3=true
