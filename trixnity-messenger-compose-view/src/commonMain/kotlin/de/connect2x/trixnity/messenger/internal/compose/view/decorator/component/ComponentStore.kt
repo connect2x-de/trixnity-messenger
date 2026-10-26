@@ -37,14 +37,19 @@ private class ComponentStoreImpl(
         val provider =
             ViewModelProvider.create(
                 store = viewModelStoreOwner.viewModelStore,
-                factory =
-                    viewModelFactory {
-                        initializer<Wrapper<T>> { Wrapper(closeableComponentFactory.create(clazz, parameters)) }
-                    },
+                factory = viewModelFactory { initializer { Components() } },
             )
 
-        return provider.get<Wrapper<T>>().component.value
+        return provider.get<Components>().getOrCreate(clazz) { closeableComponentFactory.create(clazz, parameters) }
     }
 }
 
-private class Wrapper<T>(val component: CloseableComponent<T>) : ViewModel(component)
+private class Components : ViewModel() {
+    private val components = mutableMapOf<KClass<*>, CloseableComponent<out Any>>()
+
+    fun <T : Any> getOrCreate(clazz: KClass<out T>, create: () -> CloseableComponent<T>): T {
+        val component = components.getOrPut(clazz) { create().also { addCloseable(it) } }
+        @Suppress("UNCHECKED_CAST")
+        return component.value as T
+    }
+}

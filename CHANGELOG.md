@@ -116,6 +116,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Complete mention suggestions for full mxid
 - UI: Debounce mention loading indicator
 - UI: Fix Image preview in timeline fails to load
+- UI: Keep navigation components cached separately by type, including types with the same name on Web
 
 ### Security
 
