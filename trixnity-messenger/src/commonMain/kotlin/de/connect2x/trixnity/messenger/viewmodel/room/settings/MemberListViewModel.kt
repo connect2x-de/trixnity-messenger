@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
 interface MemberListViewModelFactory {
@@ -66,6 +67,10 @@ open class MemberListViewModelImpl(
     override val error: MutableStateFlow<String?>,
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, MemberListViewModel {
+
+    init {
+        coroutineScope.launch { matrixClient.user.loadMembers(selectedRoomId, wait = false) }
+    }
 
     override val showLoadingSpinner =
         matrixClient.room
