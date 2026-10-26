@@ -28,6 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- CI, INTERNAL: Build the web staging app with Wasm and Navigation 3
 - UI: BlurHashes now load synchronously and thus appear earlier when rendering the timeline
 - UI: Show a translated media playback error message with an error icon
 - UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
