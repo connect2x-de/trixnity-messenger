@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -93,8 +94,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
                 PowerLevelInput(i18n.mRoomRedactHeading(), model.redact, canChangePowerLevels)
 
                 events.forEach { (eventType, value) ->
-                    println("Adding input for $eventType with value ${value.input.value.text}")
-                    PowerLevelInput(translateEventHeading(eventType), value, canChangePowerLevels)
+                    key(eventType) { PowerLevelInput(translateEventHeading(eventType), value, canChangePowerLevels) }
                 }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -110,8 +110,6 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
                         style = MaterialTheme.components.secondaryButton,
                         content = { Text(i18n.actionCancel()) },
                     )
-                    println("InputError $inputError, isModified $isAnyInputModified")
-
                     ThemedButton(
                         onClick = { model.setPowerLevels() },
                         enabled = !inputError && isAnyInputModified,
@@ -192,15 +190,8 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
     var textFieldValue by value.input.collectAsTextFieldValueState()
     val isModified by value.isModified.collectAsState()
 
-    println("Label is $label, value is ${value.input.value.text}, textField is ${textFieldValue.text}")
-
     val inputOptions =
-        listOf(
-            PowerLevelOptions.User,
-            PowerLevelOptions.Moderator,
-            PowerLevelOptions.Admin,
-            PowerLevelOptions.Custom,
-        )
+        listOf(PowerLevelOptions.User, PowerLevelOptions.Moderator, PowerLevelOptions.Admin, PowerLevelOptions.Custom)
     val selectedOption = remember {
         mutableStateOf(
             inputOptions.firstOrNull { it.defaultPowerLevel == textFieldValue.text.toLongOrNull() }
@@ -209,9 +200,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
     }
 
     LaunchedEffect(selectedOption.value) {
-        selectedOption.value.defaultPowerLevel?.let {
-            textFieldValue = TextFieldValue(it.toString())
-        }
+        selectedOption.value.defaultPowerLevel?.let { textFieldValue = TextFieldValue(it.toString()) }
     }
 
     val isCustomSelected = selectedOption.value is PowerLevelOptions.Custom
@@ -258,12 +247,10 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
                 value = textFieldValue,
                 enabled = canChangeAnyPowerlevel && isCustomSelected && canChange,
                 readOnly = !isCustomSelected,
-                onValueChange = {
-                    textFieldValue = it
-                },
+                onValueChange = { textFieldValue = it },
                 isError = isError && isModified,
                 maxLines = 1,
-                label = { Text("${i18n.powerLevelLabel()} ${label} ${value.input.value.text} ${textFieldValue.text}") },
+                label = { Text(i18n.powerLevelLabel()) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 trailingIcon = {
                     if (isError && isModified) {
