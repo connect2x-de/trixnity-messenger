@@ -341,6 +341,7 @@ class PowerlevelViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override fun newEventCreate() {
+        log.debug { "Creating new power level event with input ${newEventInput.value.text}" }
         if (newEventError.value != null) return
         val eventType = newEventInput.value.text
         if (removedEvents.value.contains(eventType)) {
@@ -353,6 +354,7 @@ class PowerlevelViewModelImpl(
     }
 
     private fun removeEvent(event: String) {
+        log.debug { "Removing event $event from power levels" }
         if (addedEvents.value.contains(event)) addedEvents.value -= event else removedEvents.value += event
     }
 

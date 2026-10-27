@@ -12,13 +12,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +30,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -94,6 +93,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
                 PowerLevelInput(i18n.mRoomRedactHeading(), model.redact, canChangePowerLevels)
 
                 events.forEach { (eventType, value) ->
+                    println("Adding input for $eventType with value ${value.input.value.text}")
                     PowerLevelInput(translateEventHeading(eventType), value, canChangePowerLevels)
                 }
 
@@ -110,6 +110,8 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
                         style = MaterialTheme.components.secondaryButton,
                         content = { Text(i18n.actionCancel()) },
                     )
+                    println("InputError $inputError, isModified $isAnyInputModified")
+
                     ThemedButton(
                         onClick = { model.setPowerLevels() },
                         enabled = !inputError && isAnyInputModified,
@@ -183,7 +185,6 @@ private fun ErrorModal(model: PowerlevelViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, canChangeAnyPowerlevel: Boolean) {
     val i18n = DI.get<I18nView>()
@@ -191,50 +192,64 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
     var textFieldValue by value.input.collectAsTextFieldValueState()
     val isModified by value.isModified.collectAsState()
 
-    val options = listOf("User", "Moderator", "Admin", "Custom")
-    val defaultVals = listOf(0L, 50L, 100L, textFieldValue.text.toLongOrNull())
-    val initialIndex = defaultVals.indexOf(textFieldValue.text.toLongOrNull())
+    println("Label is $label, value is ${value.input.value.text}, textField is ${textFieldValue.text}")
 
-    var isCustomSelected by remember(initialIndex) { mutableStateOf(initialIndex == 3) }
+    val inputOptions =
+        listOf(
+            PowerLevelOptions.User,
+            PowerLevelOptions.Moderator,
+            PowerLevelOptions.Admin,
+            PowerLevelOptions.Custom,
+        )
+    val selectedOption = remember {
+        mutableStateOf(
+            inputOptions.firstOrNull { it.defaultPowerLevel == textFieldValue.text.toLongOrNull() }
+                ?: PowerLevelOptions.Custom
+        )
+    }
+
+    LaunchedEffect(selectedOption.value) {
+        selectedOption.value.defaultPowerLevel?.let {
+            textFieldValue = TextFieldValue(it.toString())
+        }
+    }
+
+    val isCustomSelected = selectedOption.value is PowerLevelOptions.Custom
+
     val focusRequester = remember { FocusRequester() }
 
     val isError = value.error.collectAsState().value != null
-    val errorMsg = value.error.collectAsState().value ?: ""
+    val errorMsg = value.error.collectAsState().value
     val canChange = value.canChange.collectAsState().value
 
     Column(Modifier.fillMaxWidth()) {
         Text(label)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (value.canBeRemoved && canChangeAnyPowerlevel)
+            if (value.canBeRemoved && canChangeAnyPowerlevel) {
                 ThemedIconButton(onClick = { value.remove() }, Modifier.align(Alignment.CenterVertically)) {
                     Icon(Icons.Default.Close, i18n.actionRemove())
                 }
+            }
 
             ThemedSelect(
                 modifier = Modifier.widthIn(max = 170.dp),
                 label = { Text(i18n.roleLabel()) },
-                options = options,
-                value = options[initialIndex],
+                options = inputOptions,
+                value = selectedOption.value,
                 enabled = canChangeAnyPowerlevel && canChange,
                 render = {
                     when (it) {
-                        "User" -> i18n.userProfileRoleUser()
-                        "Moderator" -> i18n.userProfileRoleModerator()
-                        "Admin" -> i18n.userProfileRoleAdministrator()
-                        "Custom" -> i18n.userProfileRoleCustom()
-                        else -> ""
+                        PowerLevelOptions.User -> i18n.userProfileRoleUser()
+                        PowerLevelOptions.Moderator -> i18n.userProfileRoleModerator()
+                        PowerLevelOptions.Admin -> i18n.userProfileRoleAdministrator()
+                        is PowerLevelOptions.Custom -> i18n.userProfileRoleCustom()
                     }
                 },
                 onValueChange = {
-                    val v = defaultVals[options.indexOf(it)].toString()
-                    if (it == "Custom") {
-                        isCustomSelected = true
-                        textFieldValue = TextFieldValue(v, TextRange(0, v.length))
+                    if (it is PowerLevelOptions.Custom) {
                         focusRequester.requestFocus()
-                    } else {
-                        isCustomSelected = false
-                        textFieldValue = TextFieldValue(v)
                     }
+                    selectedOption.value = it
                 },
             )
 
@@ -243,15 +258,21 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
                 value = textFieldValue,
                 enabled = canChangeAnyPowerlevel && isCustomSelected && canChange,
                 readOnly = !isCustomSelected,
-                onValueChange = { textFieldValue = it },
+                onValueChange = {
+                    textFieldValue = it
+                },
                 isError = isError && isModified,
                 maxLines = 1,
-                label = { Text(i18n.powerLevelLabel()) },
+                label = { Text("${i18n.powerLevelLabel()} ${label} ${value.input.value.text} ${textFieldValue.text}") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 trailingIcon = {
                     if (isError && isModified) {
                         Tooltip(
-                            tooltip = { Text(errorMsg) },
+                            tooltip = {
+                                if (errorMsg != null) {
+                                    Text(errorMsg)
+                                }
+                            },
                             content = {
                                 Icon(
                                     imageVector = Icons.Default.Error,
@@ -262,7 +283,10 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
                         )
                     }
                 },
-                supportingText = { Text(errorMsg) },
+                supportingText =
+                    if (errorMsg?.isNotEmpty() == true) {
+                        { Text(errorMsg) }
+                    } else null,
             )
         }
     }
@@ -317,5 +341,25 @@ private fun translateEventHeading(event: String): String {
         "m.space.child" -> i18n.mSpaceChildHeading()
 
         else -> event
+    }
+}
+
+private sealed interface PowerLevelOptions {
+    val defaultPowerLevel: Long?
+
+    data object User : PowerLevelOptions {
+        override val defaultPowerLevel: Long = 0
+    }
+
+    data object Moderator : PowerLevelOptions {
+        override val defaultPowerLevel: Long = 50
+    }
+
+    data object Admin : PowerLevelOptions {
+        override val defaultPowerLevel: Long = 100
+    }
+
+    data object Custom : PowerLevelOptions {
+        override val defaultPowerLevel: Long? = null
     }
 }
