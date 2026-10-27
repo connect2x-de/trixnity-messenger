@@ -58,6 +58,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 
 - SDK: Terser webpack plugin
+- SDK,CI: Remove KMM publish and SKIE
 
 ### Fixed
 

@@ -334,13 +334,3 @@ publish:release:
       publishAllPublicationsToGitLabRepository
       publishAndReleaseToMavenCentral
       --stacktrace
-
-publish:kmm:
-  stage: publish
-  tags: [ "c2x","mac","shell","medium" ]
-  rules:
-    - *if-release
-  timeout: 2h
-  needs: [ "publish:release" ]
-  script:
-    - ./kmmPublish.sh

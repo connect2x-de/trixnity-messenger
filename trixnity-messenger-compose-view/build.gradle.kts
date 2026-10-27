@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalAbiValidation::class)
 
-import co.touchlab.skie.util.cache.readTextOrNull
 import com.android.build.gradle.internal.tasks.ManagedDeviceInstrumentationTestTask
 import de.connect2x.conventions.CI
 import de.connect2x.conventions.configureJava
@@ -272,7 +271,7 @@ val exportIosScreenshots by
 
         val resultFile = layout.buildDirectory.file("ios-container-path.txt")
 
-        from(resultFile.get().asFile.readTextOrNull())
+        from(resultFile.get().asFile.takeIf { it.isFile }?.readText())
         into(layout.projectDirectory.dir("screenshots"))
     }
 

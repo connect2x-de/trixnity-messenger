@@ -28,8 +28,6 @@ plugins {
     alias(sharedLibs.plugins.android.application) apply false
     alias(sharedLibs.plugins.aboutLibraries.plugin) apply false
     alias(sharedLibs.plugins.mokkery) apply false
-    alias(sharedLibs.plugins.skie) apply false
-    alias(sharedLibs.plugins.kmmBridge) apply false
     alias(sharedLibs.plugins.compose.multiplatform) apply false
     alias(sharedLibs.plugins.dokka) apply false
     alias(sharedLibs.plugins.google.services) apply false
