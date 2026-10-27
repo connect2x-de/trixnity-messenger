@@ -3355,6 +3355,11 @@ open class I18nView(
         DE - "Selbstdefiniert"
     }
 
+    open fun selectPowerLevelTemplateHeading() = translate {
+        EN - "Select event type"
+        DE - "Event Typ auswählen"
+    }
+
     open fun mRoomAvatarPowerLevelHeading() = translate {
         EN - "Change room avatar"
         DE - "Raumavatar ändern"
@@ -3571,8 +3576,8 @@ open class I18nView(
     }
 
     open fun powerLevelChangeNewEventHeading() = translate {
-        EN - "Create new event"
-        DE - "Neues Ereignis erstellen"
+        EN - "Add optional power level"
+        DE - "Optionales Berechtigungslevel hinzufügen"
     }
 
     open fun mRoomCreateHeading() = translate {

@@ -3,9 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.room.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.common.Header
+import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -51,6 +50,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelect
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModel
 
 interface ChangePowerLevelView {
@@ -81,7 +81,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
             AdaptiveDialogScrollContent {
                 if (!canChangePowerLevels) {
                     ThemedSurface(style = MaterialTheme.components.sidebar) { Text(i18n.cannotChangePowerLevels()) }
-                    Spacer(Modifier.height(12.dp))
+                    SmallSpacer()
                 }
 
                 PowerLevelInput(i18n.mRoomUserDefaultHeading(), model.usersDefault, canChangePowerLevels)
@@ -97,7 +97,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
                     key(eventType) { PowerLevelInput(translateEventHeading(eventType), value, canChangePowerLevels) }
                 }
 
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(Modifier.padding(vertical = MaterialTheme.messengerDpConstants.small))
 
                 NewEvent(model)
             }
@@ -133,12 +133,12 @@ private fun NewEvent(model: PowerlevelViewModel) {
     var input by model.newEventInput.collectAsTextFieldValueState()
     val errMsg by model.newEventError.collectAsState()
     val isError = errMsg != null
+    var selected by remember(knownEvents) { mutableStateOf("") }
 
-    Column(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp)) {
+    Column(Modifier.fillMaxWidth(), Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall)) {
         Text(i18n.powerLevelChangeNewEventHeading())
 
         if (knownEvents.isNotEmpty()) {
-            var selected = knownEvents[0]
             ThemedSelect(
                 value = selected,
                 enabled = enabled,
@@ -148,14 +148,25 @@ private fun NewEvent(model: PowerlevelViewModel) {
                 },
                 options = knownEvents,
                 render = { translateEventHeading(it) },
+                placeholder = { Text(i18n.selectPowerLevelTemplateHeading()) },
             )
         }
 
-        Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp), Alignment.CenterVertically) {
+        Row(
+            Modifier.fillMaxWidth(),
+            Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
+            Alignment.CenterVertically,
+        ) {
             OutlinedTextField(
                 modifier = Modifier.weight(1f),
                 value = input,
-                onValueChange = { input = it },
+                onValueChange = {
+                    // Clear selected category if the input is modified
+                    if (input.text != it.text) {
+                        selected = ""
+                    }
+                    input = it
+                },
                 enabled = enabled,
                 label = { Text(i18n.newEventTypeLabel()) },
                 isError = isError,
@@ -211,7 +222,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
     val errorMsg = value.error.collectAsState().value
     val canChange = value.canChange.collectAsState().value
 
-    Column(Modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxWidth().padding(bottom = MaterialTheme.messengerDpConstants.small)) {
         Text(label)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             if (value.canBeRemoved && canChangeAnyPowerlevel) {

@@ -89,6 +89,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - DEPENDENCY: Fix remove foreground service permission
 - DEPENDENCY: FIx publish correct gradle module metadata
 - UI, ANDROID: Correctly require foreground permissions for media playback
+- UI: Fix various issues when adding, removing and interacting with optional room power levels
 
 ### Security
 

@@ -70,6 +70,7 @@ fun <T> ThemedSelect(
     label: @Composable (() -> Unit)? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     leadingIcon: @Composable ((T) -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
     render: @Composable (T) -> String,
 ) {
     val expanded = remember { mutableStateOf(false) }
@@ -123,7 +124,7 @@ fun <T> ThemedSelect(
                         minLines = 1,
                     )
                 },
-                placeholder = null,
+                placeholder = placeholder,
                 label = label,
                 leadingIcon = leadingIcon?.let { @Composable { leadingIcon(value) } },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded.value) },
