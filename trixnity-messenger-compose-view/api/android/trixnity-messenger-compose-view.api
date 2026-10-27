@@ -1723,6 +1723,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun searchUserProviderDeactivated ()Ljava/lang/String;
 	public fun security ()Ljava/lang/String;
 	public fun selectDirectory ()Ljava/lang/String;
+	public fun selectPowerLevelTemplateHeading ()Ljava/lang/String;
 	public fun selectProfileCreateInstead ()Ljava/lang/String;
 	public fun selectProfileHeader ()Ljava/lang/String;
 	public fun selected ()Ljava/lang/String;
@@ -6749,7 +6750,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedSelectKt {
-	public static final fun ThemedSelect (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Ljava/util/List;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;ZLkotlin/jvm/functions/Function2;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun ThemedSelect (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Ljava/util/List;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SelectStyle;ZLkotlin/jvm/functions/Function2;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedSelectionContainerKt {
