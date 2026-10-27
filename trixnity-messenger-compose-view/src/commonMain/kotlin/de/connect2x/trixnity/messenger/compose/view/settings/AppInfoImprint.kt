@@ -41,14 +41,17 @@ class AppInfoImprintViewImpl : AppInfoImprintView {
 @Composable
 internal fun Imprint(onClose: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    val imprint = DI.get<MatrixMessengerBaseConfiguration>().imprint ?: return
+    val configuration = DI.get<MatrixMessengerBaseConfiguration>()
+    val imprint = configuration.imprint ?: i18n.imprintUrl()
     val uriHandler = LocalUriHandler.current
     val markdownFlavour = DI.current.get<InformationMarkdownFlavour>()
-    val content = remember {
-        val parser = MarkdownParser(markdownFlavour)
-        val html = HtmlGenerator(imprint, parser.buildMarkdownTreeFromString(imprint), markdownFlavour).generateHtml()
-        AutoLinkifyVisitor.process(HtmlVisitor.process(html))
-    }
+    val content =
+        remember(imprint) {
+            val parser = MarkdownParser(markdownFlavour)
+            val html =
+                HtmlGenerator(imprint, parser.buildMarkdownTreeFromString(imprint), markdownFlavour).generateHtml()
+            AutoLinkifyVisitor.process(HtmlVisitor.process(html))
+        }
 
     ThemedAdaptiveDialog(onClose) {
         AdaptiveDialogHeader(onClose = onClose) { Text(i18n.appInfoImprint()) }

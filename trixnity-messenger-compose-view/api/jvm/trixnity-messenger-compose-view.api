@@ -1370,6 +1370,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun historyVisibilityWorldReadableEncryptedExplanation ()Ljava/lang/String;
 	public fun historyVisibilityWorldReadableExplanation ()Ljava/lang/String;
 	public fun imageCouldNotBeLoaded ()Ljava/lang/String;
+	public fun imprintUrl ()Ljava/lang/String;
 	public fun indicatorLeave (Ljava/lang/String;)Ljava/lang/String;
 	public fun indicatorUnreadMessages ()Ljava/lang/String;
 	public fun infoMessage ()Ljava/lang/String;
@@ -1540,6 +1541,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun presenceOffline ()Ljava/lang/String;
 	public fun presenceOnline ()Ljava/lang/String;
 	public fun presenceUnavailable ()Ljava/lang/String;
+	public fun privacyPolicyUrl ()Ljava/lang/String;
 	public fun privacyPresenceIsPublic ()Ljava/lang/String;
 	public fun privacyPresenceIsPublicExplanation (Ljava/lang/String;)Ljava/lang/String;
 	public fun privacyReadMarkerIsPublic ()Ljava/lang/String;

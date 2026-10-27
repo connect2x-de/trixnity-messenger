@@ -22,8 +22,6 @@ fun MatrixMultiMessengerConfiguration.configure() {
     appId = BuildConfig.appId
     appVersion = BuildConfig.version
     icon = DrawableResourceAppIcon(Res.drawable.status_icon)
-    privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
-    imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
 
