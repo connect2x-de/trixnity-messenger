@@ -1,11 +1,5 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalAbiValidation::class)
 
-import co.touchlab.skie.configuration.DefaultArgumentInterop
-import co.touchlab.skie.configuration.EnumInterop
-import co.touchlab.skie.configuration.FlowInterop
-import co.touchlab.skie.configuration.FunctionInterop
-import co.touchlab.skie.configuration.SealedInterop
-import co.touchlab.skie.configuration.SuspendInterop
 import de.connect2x.conventions.CI
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
@@ -24,8 +18,6 @@ plugins {
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.android.library)
     alias(sharedLibs.plugins.mokkery)
-    alias(sharedLibs.plugins.skie)
-    alias(sharedLibs.plugins.kmmBridge)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
@@ -198,38 +190,3 @@ android {
 }
 
 dependencies { implementation(sharedLibs.ktor.client.logging) }
-
-skie {
-    analytics { disableUpload.set(true) }
-    build {
-        produceDistributableFramework()
-        enableConcurrentSkieCompilation = true
-    }
-    features {
-        group {
-            enableSwiftUIObservingPreview = true
-            FlowInterop.Enabled(true)
-            EnumInterop.Enabled(false)
-            SealedInterop.Enabled(false)
-
-            // is disabled by default (see https://skie.touchlab.co/features/default-arguments),
-            // so we have to use annotations where necessary
-            DefaultArgumentInterop.Enabled(true)
-        }
-        group("$group.settings") {
-            FlowInterop.Enabled(false)
-            EnumInterop.Enabled(false)
-            SealedInterop.Enabled(false)
-            DefaultArgumentInterop.Enabled(false)
-            FunctionInterop.FileScopeConversion.Enabled(false)
-            SuspendInterop.Enabled(false)
-        }
-    }
-}
-
-if (CI.isCI) {
-    kmmbridge {
-        mavenPublishArtifacts("GitLab")
-        spm()
-    }
-}
