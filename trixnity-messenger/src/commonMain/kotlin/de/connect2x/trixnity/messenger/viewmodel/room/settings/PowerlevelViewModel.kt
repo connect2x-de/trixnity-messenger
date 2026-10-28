@@ -204,6 +204,13 @@ class PowerlevelViewModelImpl(
             max = maxPowerLevel,
         )
 
+    /** Caches the events text fields so they aren't reconstructed on every new state, which can lead to UI issues */
+    private val inputCache = mutableMapOf<String, TextFieldViewModel>()
+
+    private fun getInputForEvent(event: String, initial: Long): TextFieldViewModel {
+        return inputCache.getOrPut(event) { TextFieldViewModelImpl(maxLength = 50, initial.toString()) }
+    }
+
     override val events =
         combine(state, addedEvents, removedEvents, maxPowerLevel) { state, addedEvents, removedEvents, maxPowerLevel ->
                 Tuple4(state, addedEvents, removedEvents, maxPowerLevel)
@@ -218,6 +225,7 @@ class PowerlevelViewModelImpl(
                         old = MutableStateFlow(pl).asStateFlow(),
                         max = MutableStateFlow(maxPowerLevel).asStateFlow(),
                         onRemove = { removeEvent(event) },
+                        input = getInputForEvent(event, pl),
                     )
                 }
             }
@@ -358,7 +366,7 @@ class PowerlevelViewModelImpl(
         if (addedEvents.value.contains(event)) addedEvents.value -= event else removedEvents.value += event
     }
 
-    data class ValueImpl(
+    class ValueImpl(
         private val scope: CoroutineScope,
         private val i18n: I18n,
         private val old: StateFlow<Long>,
