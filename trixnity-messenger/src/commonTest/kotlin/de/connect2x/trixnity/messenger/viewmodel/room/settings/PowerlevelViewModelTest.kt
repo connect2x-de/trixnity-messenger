@@ -76,15 +76,15 @@ class PowerlevelViewModelTest {
         every { matrixClient.userId } returns alice
         every { matrixClient.di } returns
             koinApplication {
-                modules(
-                    module {
-                        single { roomService }
-                        single { userService }
-                        single { keyService }
-                        single { EventContentSerializerMappings.default }
-                    }
-                )
-            }
+                    modules(
+                        module {
+                            single { roomService }
+                            single { userService }
+                            single { keyService }
+                            single { EventContentSerializerMappings.default }
+                        }
+                    )
+                }
                 .koin
     }
 
@@ -560,9 +560,10 @@ class PowerlevelViewModelTest {
             viewModelContext =
                 testMatrixClientViewModelContext(
                     userId = alice,
-                    di = koinApplication {
-                            modules(createTestDefaultTrixnityMessengerModules(mapOf(alice to matrixClient)))
-                        }
+                    di =
+                        koinApplication {
+                                modules(createTestDefaultTrixnityMessengerModules(mapOf(alice to matrixClient)))
+                            }
                             .koin,
                 ),
             roomId = testRoom,
