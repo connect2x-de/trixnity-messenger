@@ -1,17 +1,15 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file
 
 import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 import de.connect2x.trixnity.core.model.events.m.room.VideoInfo
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -31,7 +29,7 @@ import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
-class VideoRoomMessageTimelineElementViewModelTest {
+class VideoTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val thumbnailsMock = mock<Thumbnails>()
 
@@ -52,16 +50,22 @@ class VideoRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail successfully`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(),
-                matrixClientMock,
-                any<RoomMessageEventContent.FileBased.Video>(),
-                any(),
-                any(),
-                any(),
+                coroutineScope = any(),
+                matrixClient = matrixClientMock,
+                thumbnailFile = any(),
+                thumbnailUrl = any(),
+                thumbnailInfo = any(),
+                file = any(),
+                fileUrl = any(),
+                fileInfo = any(),
+                sizeInBytes = any(),
+                thumbnailProgressFlow = any(),
+                maxMediaSizeInMemory = any(),
+                maxDownloadSize = any(),
             )
         } returns "thumbnail".encodeToByteArray()
 
-        val cut = videoRoomMessageTimelineElementViewModel()
+        val cut = cut()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
         delay(100.milliseconds)
@@ -72,12 +76,18 @@ class VideoRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail that takes a while to load`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(),
-                matrixClientMock,
-                any<RoomMessageEventContent.FileBased.Video>(),
-                any(),
-                any(),
-                any(),
+                coroutineScope = any(),
+                matrixClient = matrixClientMock,
+                thumbnailFile = any(),
+                thumbnailUrl = any(),
+                thumbnailInfo = any(),
+                file = any(),
+                fileUrl = any(),
+                fileInfo = any(),
+                sizeInBytes = any(),
+                thumbnailProgressFlow = any(),
+                maxMediaSizeInMemory = any(),
+                maxDownloadSize = any(),
             )
         } calls
             {
@@ -85,7 +95,7 @@ class VideoRoomMessageTimelineElementViewModelTest {
                 "thumbnail".encodeToByteArray()
             }
 
-        val cut = videoRoomMessageTimelineElementViewModel()
+        val cut = cut()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
         cut.thumbnail.value shouldBe null
@@ -101,24 +111,30 @@ class VideoRoomMessageTimelineElementViewModelTest {
     fun `return 'null' for a thumbnail that cannot be loaded`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(),
-                matrixClientMock,
-                any<RoomMessageEventContent.FileBased.Video>(),
-                any(),
-                any(),
-                any(),
+                coroutineScope = any(),
+                matrixClient = matrixClientMock,
+                thumbnailFile = any(),
+                thumbnailUrl = any(),
+                thumbnailInfo = any(),
+                file = any(),
+                fileUrl = any(),
+                fileInfo = any(),
+                sizeInBytes = any(),
+                thumbnailProgressFlow = any(),
+                maxMediaSizeInMemory = any(),
+                maxDownloadSize = any(),
             )
         } returns null
 
-        val cut = videoRoomMessageTimelineElementViewModel()
+        val cut = cut()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
         delay(100.milliseconds)
         cut.thumbnail.value shouldBe null
     }
 
-    fun TestScope.videoRoomMessageTimelineElementViewModel(): RoomMessageTimelineElementViewModel.FileBased.Video {
-        return VideoRoomMessageTimelineElementViewModelImpl(
+    fun TestScope.cut(): VideoTimelineElementViewModelImpl {
+        return VideoTimelineElementViewModelImpl(
             viewModelContext =
                 testMatrixClientViewModelContext(
                     di =
@@ -131,20 +147,16 @@ class VideoRoomMessageTimelineElementViewModelTest {
                             .koin,
                     userId = meUserId,
                 ),
-            content =
-                RoomMessageEventContent.FileBased.Video(
-                    "",
-                    info =
-                        VideoInfo(
-                            duration = 100L,
-                            height = 500,
-                            width = 500,
-                            thumbnailInfo = ThumbnailInfo(height = 100, width = 100),
-                        ),
+            url = "mxc://localhost/unencrypted123456",
+            encryptedFile = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf()),
+            info =
+                VideoInfo(
+                    duration = 100L,
+                    height = 500,
+                    width = 500,
+                    thumbnailInfo = ThumbnailInfo(height = 100, width = 100),
                 ),
-            roomId = roomId,
-            eventIdOrTransactionId = EventIdOrTransactionId(EventId("\$videomessage")),
-            onOpenMention = { _, _ -> },
+            fileName = "test.mp4",
         )
     }
 }

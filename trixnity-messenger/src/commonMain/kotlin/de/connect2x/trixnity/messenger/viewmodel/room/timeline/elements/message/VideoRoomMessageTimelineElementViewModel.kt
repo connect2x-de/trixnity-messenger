@@ -1,21 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.VideoTimelineElementViewModelImpl
 import kotlin.reflect.KClass
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import org.koin.core.component.get
 
 interface VideoRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<FileBased.Video> {
     override fun create(
@@ -25,13 +18,7 @@ interface VideoRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): RoomMessageTimelineElementViewModel.FileBased.Video? =
-        VideoRoomMessageTimelineElementViewModelImpl(
-            viewModelContext,
-            content,
-            roomId,
-            eventIdOrTransactionId,
-            onOpenMention,
-        )
+        VideoRoomMessageTimelineElementViewModelImpl(viewModelContext, content, roomId, onOpenMention)
 
     override val supports: KClass<FileBased.Video>
         get() = FileBased.Video::class
@@ -43,38 +30,16 @@ class VideoRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Video,
     roomId: RoomId,
-    eventIdOrTransactionId: EventIdOrTransactionId,
     onOpenMention: OpenMentionCallback,
 ) :
     RoomMessageTimelineElementViewModel.FileBased.Video,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(
-        viewModelContext,
-        content,
-        roomId,
-        eventIdOrTransactionId,
-        onOpenMention,
+    RoomMessageTimelineElementViewModelImpl<FileBased.Video>(viewModelContext, content, roomId, onOpenMention),
+    FileBasedTimelineElementViewModel.Video by VideoTimelineElementViewModelImpl(
+        viewModelContext = viewModelContext,
+        url = content.url,
+        encryptedFile = content.file,
+        info = content.info,
+        fileName = content.fileName ?: content.body,
     ) {
-    override val duration: Long? = content.info?.duration
-
-    private val thumbnails = get<Thumbnails>()
-
-    private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-
-    override val thumbnailAutoDownloadLimit: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
-
-    override val thumbnail: StateFlow<ByteArray?> =
-        combine(loadMediaResultBytes, downloadMediaResult) {
-                thumbnails.loadThumbnail(
-                    coroutineScope,
-                    matrixClient,
-                    content,
-                    thumbnailProgressFlow,
-                    maxMediaSizeInMemory,
-                    thumbnailAutoDownloadLimit,
-                )
-            }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
-
-    override val width: Int? = content.info?.width
-    override val height: Int? = content.info?.height
+    override val hasCaption: Boolean = content.fileName != null && content.body != content.fileName
 }

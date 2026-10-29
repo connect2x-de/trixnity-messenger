@@ -153,6 +153,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.detail
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.getPlatformPdfReaderModule
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.file.FileBasedTimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.file.FileBasedTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EncryptedErrorTimelineElementView
@@ -667,6 +669,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }
     single<MessageReactionsView> { MessageReactionsViewImpl() }
+    single<FileBasedTimelineElementView> { FileBasedTimelineElementViewImpl() }
     single<FileBasedRoomMessageTimelineElementView> { FileBasedRoomMessageTimelineElementViewImpl() }
     single<ReadMarkerView> { ReadMarkerViewImpl() }
     single<ReplyToAreaView> { ReplyToAreaViewImpl() }

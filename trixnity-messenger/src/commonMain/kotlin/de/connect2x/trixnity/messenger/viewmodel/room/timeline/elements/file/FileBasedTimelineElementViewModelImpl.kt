@@ -1,19 +1,17 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media.InsufficientSpaceException
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.core.model.events.m.room.FileBasedInfo
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import io.ktor.utils.io.*
@@ -26,19 +24,16 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
-abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEventContent.FileBased>(
+abstract class FileBasedTimelineElementViewModelImpl(
     private val viewModelContext: MatrixClientViewModelContext,
-    private val content: C,
-    private val roomId: RoomId,
-    private val eventIdOrTransactionId: EventIdOrTransactionId,
-    private val onOpenMention: OpenMentionCallback,
-) :
-    RoomMessageTimelineElementViewModel.FileBased<C>,
-    RoomMessageTimelineElementViewModelImpl<C>(viewModelContext, content, roomId, onOpenMention) {
-    override val name: String = content.fileName ?: content.body
-    override val size: String? = content.info?.size?.let { " (${formatSize(it)})" } ?: ""
-    override val mimeType: String? = content.info?.mimeType
-    override val hasCaption: Boolean = content.fileName != null && content.body != content.fileName
+    private val url: String?,
+    private val encryptedFile: EncryptedFile?,
+    private val info: FileBasedInfo?,
+    private val fileName: String,
+) : FileBasedTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val name: String = fileName
+    override val size: String? = info?.size?.let { " (${formatSize(it)})" } ?: ""
+    override val mimeType: String? = info?.mimeType
 
     private val config = get<MatrixMessengerConfiguration>()
 
@@ -49,11 +44,6 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val _loadMediaResultBytes: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
     override val loadMediaResultBytes: StateFlow<ByteArray?> = _loadMediaResultBytes.asStateFlow()
 
-    @Deprecated(
-        "This will be removed in the future for consistency with downloadMedia behaviour, please use loadMediaResultBytes instead",
-        replaceWith = ReplaceWith("loadMediaResultBytes"),
-    )
-    override val loadMediaResult: StateFlow<ByteArray?> = loadMediaResultBytes
     private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
     override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = _loadMediaProgress.asStateFlow()
     private val _loadMediaError: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -73,18 +63,19 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         _loadMediaResultPlatformMedia.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
-        _loadMediaProgress.value =
-            FileTransferProgressElement(0f, formatProgress(FileTransferProgress(0, content.info?.size)))
+        _loadMediaProgress.value = FileTransferProgressElement(0f, formatProgress(FileTransferProgress(0, info?.size)))
 
         coroutineScope
             .launch {
                 val resultAsync =
                     downloadManager.startDownloadAsync(
-                        viewModelContext.matrixClient,
-                        content,
-                        name,
-                        _loadMediaProgress,
-                        null,
+                        matrixClient = viewModelContext.matrixClient,
+                        url = url,
+                        encryptedFile = encryptedFile,
+                        info = info,
+                        fileName = fileName,
+                        progress = _loadMediaProgress,
+                        maxDownloadSize = null,
                     )
                 activeLoadMedia.value = resultAsync
                 resultAsync
@@ -92,11 +83,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                     .onSuccess {
                         _loadMediaResultPlatformMedia.value = it
                         _loadMediaResultBytes.value =
-                            it.toByteArray(
-                                coroutineScope,
-                                expectedSize = content.info?.size,
-                                maxSize = maxMediaSizeInMemory,
-                            )
+                            it.toByteArray(coroutineScope, expectedSize = info?.size, maxSize = maxMediaSizeInMemory)
                     }
                     .onFailure { error ->
                         _loadMediaError.value =
@@ -168,11 +155,13 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         try {
             val resultAsync =
                 downloadManager.startDownloadAsync(
-                    viewModelContext.matrixClient,
-                    content,
-                    name,
-                    _downloadMediaProgress,
-                    null,
+                    matrixClient = viewModelContext.matrixClient,
+                    url = url,
+                    encryptedFile = encryptedFile,
+                    info = info,
+                    fileName = fileName,
+                    progress = _downloadMediaProgress,
+                    maxDownloadSize = null,
                 )
 
             activeDownloadMedia.value = resultAsync

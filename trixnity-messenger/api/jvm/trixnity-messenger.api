@@ -3229,11 +3229,13 @@ public final class de/connect2x/trixnity/messenger/util/Download {
 
 public abstract interface class de/connect2x/trixnity/messenger/util/DownloadManager {
 	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
-	public abstract fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
+	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
+	public abstract fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManager$DefaultImpls {
 	public static fun startDownloadAsync (Lde/connect2x/trixnity/messenger/util/DownloadManager;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
+	public static fun startDownloadAsync (Lde/connect2x/trixnity/messenger/util/DownloadManager;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl : de/connect2x/trixnity/messenger/util/DownloadManager {
@@ -3243,6 +3245,7 @@ public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl : de
 	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
 	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
+	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl$Companion {
@@ -9568,6 +9571,132 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static final fun isUserMentioned-f0dHyF0 (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;)Z
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/AudioTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/AudioInfo;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
+	public fun getDuration-FghU774 ()Lkotlin/time/Duration;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun cancelDownloadMedia ()V
+	public abstract fun cancelLoadMedia ()V
+	public abstract fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public abstract fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getMimeType ()Ljava/lang/String;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSize ()Ljava/lang/String;
+	public abstract fun hideSaveDialog (Z)V
+	public abstract fun loadMedia ()V
+	public abstract fun showSaveDialog ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
+	public abstract fun getDuration-FghU774 ()Lkotlin/time/Duration;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$DefaultImpls {
+	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun getBlurhash ()Ljava/lang/String;
+	public abstract fun getHeight ()Ljava/lang/Integer;
+	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailAutoDownloadLimit ()J
+	public abstract fun getThumbnailHeight ()Ljava/lang/Integer;
+	public abstract fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailWidth ()Ljava/lang/Integer;
+	public abstract fun getWidth ()Ljava/lang/Integer;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun getDuration ()Ljava/lang/Long;
+	public abstract fun getHeight ()Ljava/lang/Integer;
+	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailAutoDownloadLimit ()J
+	public abstract fun getWidth ()Ljava/lang/Integer;
+}
+
+public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;Ljava/lang/String;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	protected final fun downloadMediaInternal-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
+	protected final fun getMaxMediaSizeInMemory ()J
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun showSaveDialog ()V
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileInfo;Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/ImageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;Ljava/lang/String;)V
+	public fun getBlurhash ()Ljava/lang/String;
+	public fun getHeight ()Ljava/lang/Integer;
+	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailAutoDownloadLimit ()J
+	public fun getThumbnailHeight ()Ljava/lang/Integer;
+	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailWidth ()Ljava/lang/Integer;
+	public fun getWidth ()Ljava/lang/Integer;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/VideoTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/VideoInfo;Ljava/lang/String;)V
+	public fun getDuration ()Ljava/lang/Long;
+	public fun getHeight ()Ljava/lang/Integer;
+	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailAutoDownloadLimit ()J
+	public fun getWidth ()Ljava/lang/Integer;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelFactory$Companion;
 	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
@@ -9586,10 +9715,29 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio {
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio {
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Audio;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
 	public fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getDuration-FghU774 ()Lkotlin/time/Duration;
+	public fun getHasCaption ()Z
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/EmoteRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -9698,31 +9846,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
-public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun cancelDownloadMedia ()V
-	public fun cancelLoadMedia ()V
-	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
-	protected final fun downloadMediaInternal-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getHasCaption ()Z
-	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun getMaxMediaSizeInMemory ()J
-	public fun getMimeType ()Ljava/lang/String;
-	public fun getName ()Ljava/lang/String;
-	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getSize ()Ljava/lang/String;
-	public fun hideSaveDialog (Z)V
-	public fun loadMedia ()V
-	public fun showSaveDialog ()V
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelFactory$Companion;
 	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
@@ -9741,8 +9864,27 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasCaption ()Z
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -9763,24 +9905,35 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
 	public fun getBlurhash ()Ljava/lang/String;
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasCaption ()Z
 	public fun getHeight ()Ljava/lang/Integer;
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getThumbnailHeight ()Ljava/lang/Integer;
 	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailWidth ()Ljava/lang/Integer;
 	public fun getWidth ()Ljava/lang/Integer;
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader {
-	public fun loadInlineImage (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/LocationRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -9829,88 +9982,51 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$TextBased$Notice;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$Message, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader {
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$Message {
 	public abstract fun getBody ()Ljava/lang/String;
 	public abstract fun getFormattedBody ()Ljava/lang/String;
 	public abstract fun getFormattedBodyContent ()Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;
 	public abstract fun getMentionsInBody ()Ljava/util/Map;
 	public abstract fun getMentionsInFormattedBody ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun loadInlineImage (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun openMention (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
-	public abstract fun cancelDownloadMedia ()V
-	public abstract fun cancelLoadMedia ()V
-	public abstract fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
-	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
-	public abstract fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
 	public abstract fun getHasCaption ()Z
-	public abstract fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getMimeType ()Ljava/lang/String;
-	public abstract fun getName ()Ljava/lang/String;
-	public abstract fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getSize ()Ljava/lang/String;
-	public abstract fun hideSaveDialog (Z)V
-	public abstract fun loadMedia ()V
-	public abstract fun showSaveDialog ()V
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public abstract fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
-	public abstract fun getDuration-FghU774 ()Lkotlin/time/Duration;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$DefaultImpls {
-	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public abstract fun getBlurhash ()Ljava/lang/String;
-	public abstract fun getHeight ()Ljava/lang/Integer;
-	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getThumbnailAutoDownloadLimit ()J
-	public abstract fun getThumbnailHeight ()Ljava/lang/Integer;
-	public abstract fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getThumbnailWidth ()Ljava/lang/Integer;
-	public abstract fun getWidth ()Ljava/lang/Integer;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public abstract fun getDuration ()Ljava/lang/Long;
-	public abstract fun getHeight ()Ljava/lang/Integer;
-	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getThumbnailAutoDownloadLimit ()J
-	public abstract fun getWidth ()Ljava/lang/Integer;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
@@ -9918,44 +10034,20 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getName ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Emote : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased {
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Emote$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Emote;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased {
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Notice;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Text : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased {
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Text$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$TextBased$Text;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Unknown : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
 	public abstract fun getFallbackBody ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Unknown$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Unknown;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$VerificationRequest : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
@@ -9964,11 +10056,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun isActive ()Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$VerificationRequest$DefaultImpls {
-	public static fun loadInlineImage (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$VerificationRequest;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/InlineImageLoader {
+public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext {
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
@@ -9995,7 +10083,7 @@ public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/el
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public final fun isMentioned ()Z
-	public fun loadInlineImage (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun loadInlineImage (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun openMention (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
@@ -10239,13 +10327,32 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/VideoRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/VideoRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/VideoRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getDuration ()Ljava/lang/Long;
+	public fun getHasCaption ()Z
 	public fun getHeight ()Ljava/lang/Integer;
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getWidth ()Ljava/lang/Integer;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/state/AvatarStateTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$State {

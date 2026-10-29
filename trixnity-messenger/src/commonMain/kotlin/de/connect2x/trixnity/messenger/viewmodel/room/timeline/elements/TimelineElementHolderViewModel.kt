@@ -775,6 +775,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
                 override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
+
+                override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
             }
         )
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -850,6 +852,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
+
+                override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
             }
         )
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)

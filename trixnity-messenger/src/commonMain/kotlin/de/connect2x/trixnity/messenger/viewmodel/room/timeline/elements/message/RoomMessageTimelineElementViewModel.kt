@@ -2,42 +2,15 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.core.MSC2448
-import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
-import de.connect2x.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
-import de.connect2x.trixnity.messenger.util.MatrixReferences
-import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
-import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
-import de.connect2x.trixnity.messenger.util.isMatrixMediaUri
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMentioned
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
-import kotlin.time.Duration
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import org.koin.core.component.get
 
-interface InlineImageLoader {
-    suspend fun loadInlineImage(uri: String, size: Int): ByteArray? = null
-}
-
-sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C>, InlineImageLoader {
+sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
     /** This event's message (stripped of any fallbacks for rich replies). */
     val body: String
 
@@ -60,6 +33,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
     /** Open the mention in the UI */
     fun openMention(mention: TimelineElementMention)
 
+    suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray?
+
     interface TextBased<C : RoomMessageEventContent> : RoomMessageTimelineElementViewModel<C> {
         interface Text : TextBased<RoomMessageEventContent.TextBased.Text>
 
@@ -68,10 +43,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         interface Emote : TextBased<RoomMessageEventContent.TextBased.Emote>
     }
 
-    interface FileBased<C : RoomMessageEventContent.FileBased> : RoomMessageTimelineElementViewModel<C> {
-        val name: String
-        val size: String?
-        val mimeType: String?
+    interface FileBased<C : RoomMessageEventContent.FileBased> :
+        RoomMessageTimelineElementViewModel<C>, FileBasedTimelineElementViewModel {
 
         /** If true, [body] and [formattedBody] contain the files caption */
         val hasCaption: Boolean
@@ -81,54 +54,15 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             replaceWith = ReplaceWith("loadMediaResultBytes"),
         )
         val loadMediaResult: StateFlow<ByteArray?>
-        val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?>
-        val loadMediaResultBytes: StateFlow<ByteArray?>
-        val loadMediaProgress: StateFlow<FileTransferProgressElement?>
-        val loadMediaError: StateFlow<String?>
+            get() = loadMediaResultBytes
 
-        fun loadMedia()
+        interface File : FileBased<RoomMessageEventContent.FileBased.File>, FileBasedTimelineElementViewModel.File
 
-        fun cancelLoadMedia()
+        interface Image : FileBased<RoomMessageEventContent.FileBased.Image>, FileBasedTimelineElementViewModel.Image
 
-        val downloadMediaResult: StateFlow<PlatformMedia?>
-        val downloadMediaProgress: StateFlow<FileTransferProgressElement?>
-        val downloadMediaError: StateFlow<String?>
-        val saveDialogOpen: StateFlow<Boolean>
+        interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio>, FileBasedTimelineElementViewModel.Audio
 
-        fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit = {}, onDownloadCancelled: () -> Unit = {})
-
-        fun cancelDownloadMedia()
-
-        fun showSaveDialog()
-
-        fun hideSaveDialog(errorShown: Boolean)
-
-        interface File : FileBased<RoomMessageEventContent.FileBased.File>
-
-        interface Image : FileBased<RoomMessageEventContent.FileBased.Image> {
-            val thumbnail: StateFlow<ByteArray?>
-            val thumbnailLoading: StateFlow<Boolean>
-            val width: Int?
-            val height: Int?
-            val thumbnailWidth: Int?
-            val thumbnailHeight: Int?
-            val thumbnailAutoDownloadLimit: Long
-
-            @MSC2448 val blurhash: String?
-        }
-
-        interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {
-            val duration: Duration?
-            val audioPlayer: MediaPlayerViewModel?
-        }
-
-        interface Video : FileBased<RoomMessageEventContent.FileBased.Video> {
-            val duration: Long?
-            val thumbnail: StateFlow<ByteArray?>
-            val width: Int?
-            val height: Int?
-            val thumbnailAutoDownloadLimit: Long
-        }
+        interface Video : FileBased<RoomMessageEventContent.FileBased.Video>, FileBasedTimelineElementViewModel.Video
     }
 
     interface Location : RoomMessageTimelineElementViewModel<RoomMessageEventContent.Location> {
@@ -145,69 +79,5 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
     interface Unknown : RoomMessageTimelineElementViewModel<RoomMessageEventContent.Unknown> {
         val fallbackBody: String
-    }
-}
-
-// This only implements common functionality for the actual classes
-@Suppress("unused")
-abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventContent>(
-    private val viewModelContext: MatrixClientViewModelContext,
-    content: C,
-    private val roomId: RoomId,
-    private val onOpenMention: OpenMentionCallback,
-) :
-    InlineImageLoader,
-    MatrixClientViewModelContext by viewModelContext { // Do not inherit from RoomMessageTimelineElementViewModel to
-    // simplify pattern matching, etc.
-    private val mentionHelper =
-        MentionHelper(
-            coroutineScope,
-            matrixClient,
-            roomId,
-            get<Initials>(),
-            get<RoomName>(),
-            get<MatrixMessengerConfiguration>().downloadLimits.thumbnail,
-        )
-
-    val body: String = content.bodyWithoutFallback
-    val formattedBody: String? = content.formattedBodyWithoutFallback
-    val formattedBodyContent: HtmlNode.HtmlElement =
-        content.formattedBodyWithoutFallback?.let(HtmlVisitor::process)?.let(AutoLinkifyVisitor::process)
-            ?: HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(content.body)))
-                .let(AutoLinkifyVisitor::process)
-
-    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> by lazy {
-        MatrixReferences.findInText(body).mapValues { (_, mention) -> mentionHelper.processMention(mention) }
-    }
-
-    val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
-        mentionHelper.processMentions(formattedBodyContent).stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
-
-    val isMentioned: Boolean = content.isUserMentioned(userId)
-
-    override suspend fun loadInlineImage(uri: String, size: Int): ByteArray? {
-        if (!isMatrixMediaUri(uri)) return null
-        val maxSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
-        return get<Thumbnails>()
-            .loadThumbnail(
-                coroutineScope,
-                matrixClient,
-                thumbnailFile = null,
-                thumbnailUrl = null,
-                thumbnailInfo = null,
-                file = null,
-                fileUrl = uri,
-                fileInfo = null,
-                sizeInBytes = maxSize,
-                thumbnailProgressFlow = MutableStateFlow(null),
-                maxMediaSizeInMemory = maxSize,
-                maxDownloadSize = maxSize,
-                width = size.toLong(),
-                height = size.toLong(),
-            )
-    }
-
-    fun openMention(mention: TimelineElementMention) {
-        onOpenMention(userId, mention)
     }
 }
