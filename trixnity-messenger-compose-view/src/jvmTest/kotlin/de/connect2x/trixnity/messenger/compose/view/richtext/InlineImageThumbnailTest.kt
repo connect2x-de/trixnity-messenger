@@ -38,8 +38,8 @@ class InlineImageThumbnailTest {
                 .apply { ImageIO.write(BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB), "png", this) }
                 .toByteArray()
         val requests = mutableListOf<Pair<String, Int>>()
-        val loadImage: suspend (String, Int) -> ByteArray? = { source, size ->
-            requests.add(source to size)
+        val loadImage: suspend (String, Int?, Int) -> ByteArray? = { source, height, width ->
+            requests.add(source to width)
             bytes
         }
         val storage =

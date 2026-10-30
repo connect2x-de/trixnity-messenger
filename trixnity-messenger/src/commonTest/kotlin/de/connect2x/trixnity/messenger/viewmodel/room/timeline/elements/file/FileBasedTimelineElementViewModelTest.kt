@@ -1,12 +1,9 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file
 
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
@@ -15,7 +12,6 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -35,8 +31,7 @@ import org.koin.core.component.get
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
-@Suppress("NonAsciiCharacters")
-class FileBasedRoomMessageTimelineElementViewModelTest {
+class FileBasedTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val downloadManagerMock = mock<DownloadManager>()
     val mediaServiceMock = mock<MediaService>()
@@ -55,10 +50,11 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » download a file and process result`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
-            async { Result.success(InMemoryPlatformMedia(file)) }
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns async { Result.success(InMemoryPlatformMedia(file)) }
 
-        val cut = fileBasedMessageViewModel()
+        val cut = cut()
         var downloadResult: ByteArray? = null
         cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, {})
 
@@ -71,10 +67,11 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » download a file and set Result to 'failure' if not successful`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
-            async { Result.failure(RuntimeException("Oh no!")) }
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns async { Result.failure(RuntimeException("Oh no!")) }
 
-        val cut = fileBasedMessageViewModel()
+        val cut = cut()
         var downloadResult: ByteArray? = null
         cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, {})
 
@@ -87,13 +84,15 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » download a file and reset everything if the download is cancelled`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns
             async {
                 delay(5.seconds)
                 Result.failure(RuntimeException("Oh no!"))
             }
 
-        val cut = fileBasedMessageViewModel()
+        val cut = cut()
         var downloadResult: ByteArray? = null
         cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, {})
 
@@ -109,12 +108,11 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » don't download if disabled in configs`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } calls
-            {
-                throw IllegalStateException("We should never be able to reach this")
-            }
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } calls { throw IllegalStateException("We should never be able to reach this") }
 
-        val cut = fileBasedMessageViewModel()
+        val cut = cut()
         var downloadResult: ByteArray? = null
         cut.get<MatrixMessengerConfiguration>().downloadsDisabled = true
 
@@ -133,9 +131,10 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `loading » load a file into memory`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
-            async { Result.success(InMemoryPlatformMedia(file)) }
-        val cut = fileBasedMessageViewModel()
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns async { Result.success(InMemoryPlatformMedia(file)) }
+        val cut = cut()
 
         cut.loadMedia()
         delay(500.milliseconds)
@@ -144,41 +143,25 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
         cut.loadMediaError.value shouldBe null
     }
 
-    @Test
-    fun `caption » show body as caption`() = runTest {
-        fileBasedMessageViewModel(caption = "Amazing File!").hasCaption shouldBe true
-    }
-
-    @Test
-    fun `caption » don't show body as caption`() = runTest {
-        fileBasedMessageViewModel(caption = null).hasCaption shouldBe false
-    }
-
-    private fun TestScope.fileBasedMessageViewModel(
-        caption: String? = null
-    ): FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File> =
+    private fun TestScope.cut(): FileBasedTimelineElementViewModelImpl =
         object :
-            FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File>(
-                testMatrixClientViewModelContext(
-                    di =
-                        koinApplication {
-                                modules(
-                                    createTestDefaultTrixnityMessengerModules(
-                                        mapOf(UserId("test", "server") to matrixClientMock)
-                                    ) + module { single { downloadManagerMock } }
-                                )
-                            }
-                            .koin,
-                    userId = UserId("test", "server"),
-                ),
-                RoomMessageEventContent.FileBased.File(
-                    caption ?: "test.pdf",
-                    fileName = "test.pdf",
-                    url = "mxc://localhost/unencrypted123456",
-                    file = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf()),
-                ),
-                roomId = RoomId("!testpdf:server"),
-                eventIdOrTransactionId = EventIdOrTransactionId.EventIdOrTransactionId(EventId("\$very1demure1event")),
-                onOpenMention = { _, _ -> },
+            FileBasedTimelineElementViewModelImpl(
+                viewModelContext =
+                    testMatrixClientViewModelContext(
+                        di =
+                            koinApplication {
+                                    modules(
+                                        createTestDefaultTrixnityMessengerModules(
+                                            mapOf(UserId("test", "server") to matrixClientMock)
+                                        ) + module { single { downloadManagerMock } }
+                                    )
+                                }
+                                .koin,
+                        userId = UserId("test", "server"),
+                    ),
+                url = "mxc://localhost/unencrypted123456",
+                encryptedFile = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf()),
+                info = null,
+                fileName = "test.pdf",
             ) {}
 }

@@ -1,0 +1,257 @@
+package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.file
+
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.common.DownloadProgress
+import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.files.SaveFileDialog
+import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.pointerMoveFilter
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.BaseTimelineElementHolderContextMenuAction
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.FileContentOverlay
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.shortenFileName
+import de.connect2x.trixnity.messenger.compose.view.util.ifNotNull
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+
+interface FileBasedTimelineElementView {
+    @Composable
+    fun create(
+        holder: BaseTimelineElementHolderViewModel,
+        element: FileBasedTimelineElementViewModel,
+        isPreview: Boolean,
+        displayProgressOverElement: Boolean,
+        index: Int,
+        overlay: (@Composable BoxScope.() -> Unit)?,
+        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+        caption: @Composable ColumnScope.() -> Unit,
+        details: @Composable (onClose: () -> Unit) -> Unit,
+    )
+}
+
+@Composable
+fun FileBasedTimelineElement(
+    holder: BaseTimelineElementHolderViewModel,
+    element: FileBasedTimelineElementViewModel,
+    isPreview: Boolean = false,
+    displayProgressOverElement: Boolean = false,
+    index: Int,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
+    content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+    caption: @Composable ColumnScope.() -> Unit,
+    details: @Composable (onClose: () -> Unit) -> Unit,
+) {
+    DI.get<FileBasedTimelineElementView>()
+        .create(holder, element, isPreview, displayProgressOverElement, index, overlay, content, caption, details)
+}
+
+class FileBasedTimelineElementViewImpl : FileBasedTimelineElementView {
+    @Composable
+    override fun create(
+        holder: BaseTimelineElementHolderViewModel,
+        element: FileBasedTimelineElementViewModel,
+        isPreview: Boolean,
+        displayProgressOverElement: Boolean,
+        index: Int,
+        overlay: (@Composable BoxScope.() -> Unit)?,
+        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+        caption: @Composable ColumnScope.() -> Unit,
+        details: @Composable (onClose: () -> Unit) -> Unit,
+    ) {
+        val error = element.downloadMediaError.collectAsState().value
+        val saveDialogOpen = element.saveDialogOpen.collectAsState().value
+        if (saveDialogOpen) {
+            SaveFileDialog(element.name, element.mimeType, error, element::downloadMedia) {
+                element.hideSaveDialog(error != null)
+            }
+        }
+
+        FileBasedTimelineElementMessageBubble(
+            holder = holder,
+            element = element,
+            onSave = { element.showSaveDialog() },
+            isPreview = isPreview,
+            displayProgressOverElement = displayProgressOverElement,
+            index = index,
+            overlay = overlay,
+            content = content,
+            caption = caption,
+            details = details,
+        )
+    }
+}
+
+@Composable
+fun FileBasedTimelineElementMessageBubble(
+    holder: BaseTimelineElementHolderViewModel,
+    element: FileBasedTimelineElementViewModel,
+    onSave: () -> Unit,
+    isPreview: Boolean = false,
+    displayProgressOverElement: Boolean,
+    index: Int,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
+    content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit,
+    caption: @Composable ColumnScope.() -> Unit,
+    details: @Composable (onClose: () -> Unit) -> Unit,
+) {
+    val i18n = DI.get<I18nView>()
+    val configuration = DI.get<MatrixMessengerConfiguration>()
+
+    MessageBubble(
+        holder,
+        needsMaxWidth = true,
+        additionalContextActions = { onClose ->
+            // name
+            Tooltip({ Text("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
+                ) {
+                Text(
+                    "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}", // shortened name
+                    modifier = Modifier.padding(5.dp),
+                    maxLines = 1,
+                )
+            }
+            HorizontalDivider()
+            if (!configuration.downloadsDisabled) {
+                BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.Download,
+                        label = i18n.downloadMessage(),
+                        action = onSave,
+                    )
+                    .render(onClose)
+            }
+        },
+        isPreview = isPreview,
+        isMentioned = false,
+        index = index,
+    ) { showActionMenu ->
+        Column {
+            FileBasedView(
+                holder = holder,
+                element = element,
+                showActionMenu = showActionMenu,
+                displayProgressOverElement = displayProgressOverElement,
+                isPreview = isPreview,
+                overlay = overlay,
+                content = content,
+                details = details,
+            )
+
+            caption()
+        }
+    }
+}
+
+@Composable
+internal fun FileBasedView(
+    holder: BaseTimelineElementHolderViewModel,
+    element: FileBasedTimelineElementViewModel,
+    showActionMenu: () -> Unit,
+    displayProgressOverElement: Boolean,
+    isPreview: Boolean,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
+    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit,
+    details: @Composable (onClose: () -> Unit) -> Unit,
+) {
+    val hoverMessage = remember { mutableStateOf(false) }
+
+    var openElementDetails by remember { mutableStateOf(false) }
+    val widthModifier =
+        when (element) {
+            is RoomMessageTimelineElementViewModel.FileBased.File -> Modifier.width(300.dp)
+            is RoomMessageTimelineElementViewModel.FileBased.Audio -> Modifier.width(300.dp)
+            else -> Modifier
+        }
+    Box(widthModifier) {
+        Column(
+            Modifier.pointerInput(Unit) {
+                    detectTapGestures(onTap = { openElementDetails = true }, onLongPress = { showActionMenu() })
+                }
+                .buttonPointerModifier()
+                .then(
+                    if (isPreview) Modifier
+                    else
+                        Modifier.pointerMoveFilter(
+                            onEnter = {
+                                hoverMessage.value = true
+                                true
+                            },
+                            onExit = {
+                                hoverMessage.value = false
+                                true
+                            },
+                        )
+                )
+        ) {
+            Box(modifier = Modifier.width(IntrinsicSize.Min)) {
+                Column {
+                    // content based on the actual file
+                    content(showActionMenu) { openElementDetails = true }
+                }
+                if (!isPreview) {
+                    FileContentOverlay(hoverMessage, overlay)
+                }
+            }
+            if (!displayProgressOverElement) {
+                LoadingProgresses(holder, element, Modifier.align(Alignment.CenterHorizontally))
+            }
+        }
+        if (displayProgressOverElement) {
+            LoadingProgresses(holder, element, Modifier.align(Alignment.Center))
+        }
+    }
+    if (openElementDetails) {
+        details { openElementDetails = false }
+    }
+}
+
+@Composable
+fun LoadingProgresses(
+    holder: BaseTimelineElementHolderViewModel,
+    element: FileBasedTimelineElementViewModel,
+    modifier: Modifier,
+) {
+    val downloadProgressElement = element.downloadMediaProgress.collectAsState().value
+    val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
+    if (uploadProgress != null) {
+        Box(modifier) {
+            DownloadProgress(
+                uploadProgress,
+                cancel = {
+                    if (holder is OutboxElementHolderViewModel) {
+                        holder.abortSend()
+                    }
+                },
+            )
+        }
+    }
+    if (downloadProgressElement != null)
+        Box(modifier) { DownloadProgress(downloadProgressElement, { element.cancelDownloadMedia() }) }
+}

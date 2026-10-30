@@ -34,24 +34,21 @@ private fun String?.imageDimension(): Float? = this?.toIntOrNull()?.takeIf { it 
 @Composable
 internal fun rememberInlineImage(
     uri: String,
-    size: Int,
-    loadImage: (suspend (String, Int) -> ByteArray?)?,
+    width: Int,
+    height: Int,
+    loadImage: (suspend (String, Int, Int) -> ByteArray?)?,
 ): ImageBitmap? {
     val bytes by
-        produceState<ByteArray?>(null, uri, size, loadImage) {
+        produceState<ByteArray?>(null, uri, width, height, loadImage) {
             value = null
-            value = loadInlineImageOrNull(uri, size, loadImage)
+            value = loadInlineImageOrNull { loadImage?.invoke(uri, width, height) }
         }
-    return rememberImageBitmapOrNull(bytes, maxSize = IntSize(size, size))
+    return rememberImageBitmapOrNull(bytes, maxSize = IntSize(width, height))
 }
 
-internal suspend fun loadInlineImageOrNull(
-    uri: String,
-    size: Int,
-    loadImage: (suspend (String, Int) -> ByteArray?)?,
-): ByteArray? =
+internal suspend fun loadInlineImageOrNull(loadImage: (suspend () -> ByteArray?)): ByteArray? =
     try {
-        loadImage?.invoke(uri, size)
+        loadImage()
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {

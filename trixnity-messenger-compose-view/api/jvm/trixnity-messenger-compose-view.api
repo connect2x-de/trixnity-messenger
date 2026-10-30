@@ -1971,7 +1971,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/richtext/RichTex
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/RichTextDisplayKt {
-	public static final fun RichTextDisplay (Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;Lkotlinx/coroutines/flow/StateFlow;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/richtext/RichTextColors;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun RichTextDisplay (Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;Lkotlinx/coroutines/flow/StateFlow;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/richtext/RichTextColors;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function4;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/table/ComposableSingletons$DataTableKt {
@@ -3069,6 +3069,22 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public static synthetic fun zoomModifier$default (Landroidx/compose/ui/Modifier;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/MutableState;Ljava/lang/Float;Ljava/lang/Float;ILjava/lang/Object;)Landroidx/compose/ui/Modifier;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementViewKt {
+	public static final fun FileBasedTimelineElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun FileBasedTimelineElementMessageBubble (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Lkotlin/jvm/functions/Function0;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun LoadingProgresses (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/BaseTimelineElementHolderContextMenuAction : de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedActionMenuItem {
 	public static final field $stable I
 	public fun <init> (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
@@ -3202,8 +3218,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/FileBasedRoomMessageTimelineElementViewKt {
 	public static final fun FileBasedRoomMessageTimelineElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;II)V
-	public static final fun FileBasedRoomMessageTimelineElementMessageBubble (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function0;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;II)V
-	public static final fun LoadingProgresses (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/FileRoomMessageTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {
@@ -3919,7 +3933,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/util/ShortenFileNameKt {
-	public static final fun shortenFileName (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Landroidx/compose/runtime/Composer;I)Ljava/lang/String;
+	public static final fun shortenFileName (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Landroidx/compose/runtime/Composer;I)Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/roomlist/ComposableSingletons$RoomListKt {

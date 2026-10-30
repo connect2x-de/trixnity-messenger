@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
@@ -16,7 +15,6 @@ import de.connect2x.trixnity.messenger.compose.view.previews.util.InitMessengerP
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.FileBasedDetailsHeader
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.FileBasedDetailsHeaderButton
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
@@ -35,7 +33,6 @@ private fun ElementDetailsHeaderPreview() {
                         ),
                     content = FileBased.Image(body = "image.png"),
                     roomId = RoomId("!testimage:server"),
-                    eventIdOrTransactionId = EventIdOrTransactionId(EventId("\$very1demure1event")),
                     onOpenMention = { _, _ -> },
                 ),
             {},
