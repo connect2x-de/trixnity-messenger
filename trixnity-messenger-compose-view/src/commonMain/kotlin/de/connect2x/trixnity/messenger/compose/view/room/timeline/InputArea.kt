@@ -40,6 +40,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,6 +69,7 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextRange
@@ -109,10 +112,14 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.collectAsStateDebounced
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.Res
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.sticker
+import de.connect2x.trixnity.messenger.viewmodel.room.ImagePackViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import okio.FileSystem
+import org.jetbrains.compose.resources.painterResource
 
 private fun TextFieldState.insert(insertion: String) {
     edit {
@@ -174,7 +181,11 @@ class InputAreaViewImpl : InputAreaView {
         val isReplyTo = inputAreaViewModel.isReply.collectAsState().value
         val canSendMessages = inputAreaViewModel.isAllowedToSendMessages.collectAsState().value
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
+        val focusManager = LocalFocusManager.current
         val emojisOpen = remember { mutableStateOf(false) }
+        val stickerPacks = inputAreaViewModel.stickerPacks
+        val stickersSelected = remember { mutableStateOf(false) }
+        val canSendStickers = stickerPacks?.canSendStickers?.collectAsState()?.value == true
         val focusRequester = remember { FocusRequester() }
         val mentionFocusRequester = remember { FocusRequester() }
         val textFieldState = inputAreaViewModel.textField.collectAsTextFieldState()
@@ -190,7 +201,7 @@ class InputAreaViewImpl : InputAreaView {
 
         @Composable
         fun RowScope.TextInput(canRecordAudio: Boolean) {
-            EmojiButton(emojisOpen)
+            EmojiButton(emojisOpen) { focusManager.clearFocus(force = true) }
 
             InputAreaTextField(
                 inputAreaViewModel,
@@ -249,18 +260,44 @@ class InputAreaViewImpl : InputAreaView {
                     ReplyToArea(inputAreaViewModel)
                 }
                 if (emojisOpen.value) {
-                    Box(Modifier.fillMaxWidth().height(120.dp)) {
-                        EmojiSelector(
-                            modifier = Modifier.fillMaxSize(),
-                            onTextAdded = {
-                                textFieldState.insert(it)
-                                focusRequester.requestFocus()
-                            },
-                            onDismiss = {
+                    Column(Modifier.fillMaxWidth()) {
+                        val showStickers = stickersSelected.value && canSendStickers
+                        if (stickerPacks != null) {
+                            PrimaryTabRow(selectedTabIndex = if (showStickers) 1 else 0) {
+                                Tab(
+                                    selected = !showStickers,
+                                    onClick = { stickersSelected.value = false },
+                                    text = { Text(i18n.inputAreaEmojis()) },
+                                )
+                                Tab(
+                                    selected = showStickers,
+                                    enabled = canSendStickers,
+                                    onClick = {
+                                        focusManager.clearFocus(force = true)
+                                        stickersSelected.value = true
+                                    },
+                                    text = { Text(i18n.imagePacks()) },
+                                )
+                            }
+                        }
+                        Box(Modifier.fillMaxWidth().height(220.dp)) {
+                            val onDismiss = {
                                 emojisOpen.value = false
                                 focusRequester.requestFocus()
-                            },
-                        )
+                            }
+                            if (showStickers && stickerPacks != null) {
+                                StickerPackPicker(model = stickerPacks, onDismiss = { onDismiss() })
+                            } else {
+                                EmojiSelector(
+                                    modifier = Modifier.fillMaxSize(),
+                                    onTextAdded = {
+                                        textFieldState.insert(it)
+                                        focusRequester.requestFocus()
+                                    },
+                                    onDismiss = { onDismiss() },
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -305,6 +342,9 @@ class InputAreaViewImpl : InputAreaView {
                     }
                 }
             }
+        }
+        if (stickerPacks != null) {
+            StickerPackErrorDialog(stickerPacks)
         }
     }
 }
@@ -570,16 +610,43 @@ fun SendButton(inputAreaViewModel: InputAreaViewModel) {
 }
 
 @Composable
-fun EmojiButton(emojisOpen: MutableState<Boolean>) {
+fun EmojiButton(emojisOpen: MutableState<Boolean>, onOpen: () -> Unit = {}) {
     val i18n = DI.get<I18nView>()
 
     Tooltip({ Text(i18n.inputAreaEmojis()) }) {
         ThemedIconButton(
             style = MaterialTheme.components.commonIconButton,
-            onClick = { emojisOpen.value = emojisOpen.value.not() },
+            onClick = {
+                emojisOpen.value = emojisOpen.value.not()
+                if (emojisOpen.value) {
+                    onOpen()
+                }
+            },
             modifier = Modifier.expandable(emojisOpen),
         ) {
             Icon(Icons.Default.Mood, i18n.inputAreaEmojis())
+        }
+    }
+}
+
+@Composable
+fun StickerButton(model: ImagePackViewModel, stickersOpen: MutableState<Boolean>, onOpen: () -> Unit = {}) {
+    val i18n = DI.get<I18nView>()
+    val enabled = model.canSendStickers.collectAsState().value
+
+    Tooltip({ Text(i18n.imagePacks()) }) {
+        ThemedIconButton(
+            style = MaterialTheme.components.commonIconButton,
+            enabled = enabled,
+            onClick = {
+                stickersOpen.value = stickersOpen.value.not()
+                if (stickersOpen.value) {
+                    onOpen()
+                }
+            },
+            modifier = Modifier.expandable(stickersOpen),
+        ) {
+            Icon(painterResource(Res.drawable.sticker), i18n.imagePacks())
         }
     }
 }

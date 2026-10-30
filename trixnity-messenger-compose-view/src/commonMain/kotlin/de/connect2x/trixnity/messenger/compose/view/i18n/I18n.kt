@@ -1411,9 +1411,141 @@ open class I18nView(
         DE - "Emojis"
     }
 
+    open fun imagePacks() = translate {
+        EN - "sticker packs"
+        DE - "Sticker-Pakete"
+    }
+
+    open fun imagePacksGlobal() = translate {
+        EN - "Global stickers"
+        DE - "Globale Sticker"
+    }
+
+    open fun imagePacksRoom() = translate {
+        EN - "Stickers in this room"
+        DE - "Sticker in diesem Raum"
+    }
+
+    open fun imagePacksEmpty() = translate {
+        EN - "This room has no sticker packs."
+        DE - "Dieser Raum hat keine Sticker-Pakete."
+    }
+
+    open fun imagePackAvailableEverywhere() = translate {
+        EN - "Favourite"
+        DE - "Favorit"
+    }
+
+    open fun imagePackAddToFavourites() = translate {
+        EN - "Add to favourites"
+        DE - "Zu Favoriten hinzufügen"
+    }
+
+    open fun imagePackRemoveFromFavourites() = translate {
+        EN - "Remove from favourites"
+        DE - "Aus Favoriten entfernen"
+    }
+
+    open fun imagePackFavourites() = translate {
+        EN - "Favourite sticker packs"
+        DE - "Favorisierte Sticker-Pakete"
+    }
+
+    open fun imagePackFavouritesEmpty() = translate {
+        EN - "There are no favourite sticker packs."
+        DE - "Es gibt keine favorisierten Sticker-Pakete."
+    }
+
+    open fun imagePackFromRoom(roomName: String) = translate {
+        EN - "From $roomName"
+        DE - "Aus $roomName"
+    }
+
     open fun stickerAnimatedOrUnsupportedWarning() = translate {
         EN - "Animated or unsupported sticker formats may not be displayed correctly."
         DE - "Animierte oder nicht unterstützte Stickerformate werden möglicherweise nicht korrekt angezeigt."
+    }
+
+    open fun imagePackAvailableInThisRoom() = translate {
+        EN - "Available in this room"
+        DE - "In diesem Raum verfügbar"
+    }
+
+    open fun imagePackRemoveFromRoom() = translate {
+        EN - "Remove sticker pack from room"
+        DE - "Sticker-Paket aus dem Raum entfernen"
+    }
+
+    open fun imagePackRemoveConfirmation(name: String) = translate {
+        EN - "Remove the sticker pack '$name' from this room?"
+        DE - "Soll das Sticker-Paket '$name' aus diesem Raum entfernt werden?"
+    }
+
+    open fun imagePackCreate() = translate {
+        EN - "Create sticker pack"
+        DE - "Sticker-Paket erstellen"
+    }
+
+    open fun imagePackAddSticker() = translate {
+        EN - "Add sticker"
+        DE - "Sticker hinzufügen"
+    }
+
+    open fun imagePackUnencryptedUploadWarning() = translate {
+        EN - "Sticker images and metadata are not encrypted, even in encrypted rooms. Do not upload private images."
+        DE -
+            "Sticker-Bilder und Metadaten sind auch in verschlüsselten Räumen unverschlüsselt. Lade keine privaten Bilder hoch."
+    }
+
+    open fun imagePackUnencryptedUploadConsent() = translate {
+        EN - "I understand and agree to upload this image and its sticker data unencrypted."
+        DE -
+            "Ich habe den Hinweis verstanden und stimme dem unverschlüsselten Upload dieses Bildes und seiner Sticker-Daten zu."
+    }
+
+    open fun imagePackUploadUnencrypted() = translate {
+        EN - "Upload unencrypted"
+        DE - "Unverschlüsselt hochladen"
+    }
+
+    open fun imagePackName() = translate {
+        EN - "Pack name"
+        DE - "Paketname"
+    }
+
+    open fun imagePackShortcode() = translate {
+        EN - "Sticker key"
+        DE - "Sticker-Kürzel"
+    }
+
+    open fun imagePackShortcodeAlreadyExists() = translate {
+        EN - "A sticker with this shortcode already exists in this pack. Choose a different shortcode."
+        DE - "In diesem Paket existiert bereits ein Sticker mit diesem Shortcode. Wähle einen anderen Shortcode."
+    }
+
+    open fun imagePackShortcodeInvalid() = translate {
+        EN - "Maximum of 100 characters allowed. No special characters except '-' or '_'."
+        DE - "Maximal 100 Zeichen und keine Sonderzeichen außer '-' oder '_' erlaubt."
+    }
+
+    open fun imagePackDescription() = translate {
+        EN - "Sticker description"
+        DE - "Sticker-Beschreibung"
+    }
+
+    open fun imagePackRemoveSticker() = translate {
+        EN - "Remove sticker"
+        DE - "Sticker entfernen"
+    }
+
+    open fun imagePackRemoveStickerConfirmation(name: String) = translate {
+        EN - "Remove the sticker '$name' from this pack?"
+        DE - "Soll der Sticker '$name' aus diesem Paket entfernt werden?"
+    }
+
+    open fun imagePackActionFailed() = translate {
+        EN - "The sticker pack action failed."
+        DE - "Die Sticker-Paket-Aktion ist fehlgeschlagen."
     }
 
     open fun inputAreaStartAudioRecording() = translate {

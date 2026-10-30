@@ -36,6 +36,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Add the `enableSpaces` feature flag (enabled by default)
 - UI: Browse Matrix spaces and subspaces with desktop and mobile navigation, search, account selection,
   and an Explore space view for discovering rooms and joining eligible rooms or spaces
+- SDK,UI: Add view allowing to add, remove, favorise and view stickers; disable by setting `features.enableStickers = false`
 
 ### Changed
 

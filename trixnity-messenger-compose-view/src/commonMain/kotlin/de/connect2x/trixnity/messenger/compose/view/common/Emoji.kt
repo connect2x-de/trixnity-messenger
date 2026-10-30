@@ -45,7 +45,7 @@ fun EmojiSelector(modifier: Modifier = Modifier, onTextAdded: (String) -> Unit, 
     var focusedItem by remember { mutableStateOf(emojis.firstOrNull()) }
 
     Box(modifier) {
-        Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.Center)) {
+        Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.TopCenter)) {
             BoxWithConstraints(Modifier.padding(12.dp)) {
                 EmojiPicker(
                     Modifier.onKeyEvent { event ->
