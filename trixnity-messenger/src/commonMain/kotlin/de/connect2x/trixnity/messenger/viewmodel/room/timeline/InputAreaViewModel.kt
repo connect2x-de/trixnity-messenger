@@ -41,6 +41,8 @@ import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.ImagePackViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.ImagePackViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
@@ -159,6 +161,7 @@ interface InputAreaViewModelFactory {
 }
 
 interface InputAreaViewModel {
+    val stickerPacks: ImagePackViewModel?
     val isAllowedToSendMessages: StateFlow<Boolean>
     val textField: TextFieldViewModel
     val isSendEnabled: StateFlow<Boolean>
@@ -220,6 +223,10 @@ open class InputAreaViewModelImpl(
     private val onShowAttachmentSendView: (file: FileDescriptor) -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
+
+    override val stickerPacks: ImagePackViewModel? by lazy {
+        get<ImagePackViewModelFactory>().create(viewModelContext.childContext("StickerPacks"), roomId)
+    }
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val timeZone = get<TimeZone>()
@@ -807,6 +814,7 @@ private fun IntRange(value: Int) = IntRange(value, value)
 private fun IntRange.firstIsLast() = first == last
 
 class PreviewInputAreaViewModel : InputAreaViewModel {
+    override val stickerPacks = de.connect2x.trixnity.messenger.viewmodel.room.PreviewImagePackViewModel()
     override val isAllowedToSendMessages: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val textField = TextFieldViewModelImpl(maxLength = 20_000)
     override val isSendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)

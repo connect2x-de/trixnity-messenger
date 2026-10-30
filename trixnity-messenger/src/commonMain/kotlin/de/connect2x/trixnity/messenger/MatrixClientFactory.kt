@@ -10,8 +10,10 @@ import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.EventContent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.StickerEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
@@ -150,12 +152,7 @@ class MatrixClientFactoryImpl(
             experimentalFeatures.enableMSC4354 = true
         }
 
-        lastRelevantEventFilter = {
-            val content = it.content
-            val isReplace = content is MessageEventContent && content.relatesTo is RelatesTo.Replace
-            val isMessage = content is RoomMessageEventContent || content is EncryptedMessageEventContent
-            (!isReplace && isMessage)
-        }
+        lastRelevantEventFilter = { isRelevantRoomListEvent(it.content) }
         modulesFactories += {
             module {
                 single<EventContentSerializerMappings> {
@@ -176,4 +173,11 @@ interface CustomEventContentSerializerMappings : EventContentSerializerMappings 
                 CustomEventContentSerializerMappings,
                 EventContentSerializerMappings by EventContentSerializerMappingsBuilder().apply(builder).build() {}
     }
+}
+
+internal fun isRelevantRoomListEvent(content: EventContent): Boolean {
+    val isReplace = content is MessageEventContent && content.relatesTo is RelatesTo.Replace
+    val isMessage =
+        content is RoomMessageEventContent || content is EncryptedMessageEventContent || content is StickerEventContent
+    return !isReplace && isMessage
 }

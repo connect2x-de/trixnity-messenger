@@ -512,6 +512,11 @@ open class I18n(
         DE - "Es gab einen Fehler. Bitte versuchen Sie es später erneut."
     }
 
+    open fun roomListContentSticker() = translate {
+        EN - "Sticker"
+        DE - "Sticker"
+    }
+
     open fun roomListContentImage() = translate {
         EN - "Image"
         DE - "Bild"
@@ -1848,6 +1853,51 @@ open class I18n(
     open fun userSearchHomeserver() = translate {
         EN - "Homeserver"
         DE - "Homeserver"
+    }
+
+    open fun imagePackFailedToSend() = translate {
+        EN - "Failed to send sticker"
+        DE - "Sticker konnte nicht gesendet werden"
+    }
+
+    open fun imagePackFailedToFavorize() = translate {
+        EN - "Failed to favorize sticker pack"
+        DE - "Sticker Paket konnte nicht zu den Favoriten hinzugefügt werden"
+    }
+
+    open fun imagePackFailedToAddSticker() = translate {
+        EN - "Failed to add sticker to sticker pack"
+        EN - "Sticker konnte nicht zum Sticker Paket hinzugefügt werden"
+    }
+
+    open fun imagePackFailedToRemoveSticker() = translate {
+        EN - "Failed to remove sticker from sticker pack"
+        EN - "Sticker konnte nicht vom Sticker Paket entfernt werden"
+    }
+
+    open fun imagePackInvalidImagePackDisplayName() = translate {
+        EN - "Sticker pack's display name must not be blank"
+        DE - "Sticker Paket Name darf nicht leer sein"
+    }
+
+    open fun imagePackInvalidImagePackShortCode() = translate {
+        EN - "The sticker pack's short code is invalid"
+        DE - "Der Shortcode vom Sticker Paket ist nicht valide"
+    }
+
+    open fun imagePackShortcodeAlreadyExists() = translate {
+        EN - "A sticker with this shortcode already exists in this pack. Choose a different shortcode."
+        DE - "In diesem Paket existiert bereits ein Sticker mit diesem Shortcode. Wähle einen anderen Shortcode."
+    }
+
+    open fun imagePackInvalidImagePackMustBeImage() = translate {
+        EN - "Sticker must be an image"
+        DE - "Sticker muss eine Bilddatei sein"
+    }
+
+    open fun imagePackFailedToRemove() = translate {
+        EN - "Failed to remove sticker pack"
+        DE - "Sticker Paket konnte nicht entfernt werden"
     }
 }
 

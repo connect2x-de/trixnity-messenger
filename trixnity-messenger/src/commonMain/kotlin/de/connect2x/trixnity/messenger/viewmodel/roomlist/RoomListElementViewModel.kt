@@ -17,6 +17,7 @@ import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.StickerEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
@@ -579,6 +580,7 @@ open class RoomListElementViewModelImpl(
     private fun timelineEventTypeDescription(event: TimelineEvent): String =
         event.content?.getOrNull().let { content ->
             when (content) {
+                is StickerEventContent -> i18n.roomListContentSticker()
                 is FileBased.Image -> i18n.roomListContentImage()
                 is FileBased.Video -> i18n.roomListContentVideo()
                 is FileBased.Audio -> i18n.roomListContentAudio()

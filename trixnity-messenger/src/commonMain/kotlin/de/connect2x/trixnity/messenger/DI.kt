@@ -74,6 +74,8 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.ImagePackViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.ImagePackViewModelFactoryImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModelFactory
@@ -126,6 +128,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.LocationRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.NoticeRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RtcMemberMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.StickerTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneTimelineElementViewModelFactory
@@ -575,6 +578,7 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<RtcMemberMessageTimelineElementViewModelFactory> {
         RtcMemberMessageTimelineElementViewModelFactory
     }
+    timelineElementViewModelFactory<StickerTimelineElementViewModelFactory> { StickerTimelineElementViewModelFactory }
     timelineElementViewModelFactory<TextRoomMessageTimelineElementViewModelFactory> {
         TextRoomMessageTimelineElementViewModelFactory
     }
@@ -699,6 +703,7 @@ private fun mediaViewModels() = module {
 }
 
 private fun timelineViewModels() = module {
+    single<ImagePackViewModelFactory> { ImagePackViewModelFactoryImpl(get()) }
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<AudioRecordingAreaViewModelFactory> { AudioRecordingAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
