@@ -134,7 +134,7 @@ actual fun SaveFileDialog(
                             is IndexeddbPlatformMedia -> it.getTemporaryFile().getOrNull()?.file
                             else -> null
                         } ?: throw Exception("Unable to create temporary file")
-                    val fileUri = URL.createObjectURL(file)
+                    val fileUri = URL.createObjectURL(file.slice(contentType = mimeType ?: file.type))
                     log.debug { "completed saving: $fileName" }
 
                     // Invoke the download method that FileKit for web uses internally.
