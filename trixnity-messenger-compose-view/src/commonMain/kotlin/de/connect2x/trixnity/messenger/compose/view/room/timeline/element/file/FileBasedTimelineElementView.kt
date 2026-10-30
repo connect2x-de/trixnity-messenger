@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.shortenFileName
+import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.trixnity.messenger.compose.view.util.ifNotNull
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
@@ -54,6 +55,10 @@ interface FileBasedTimelineElementView {
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
         caption: @Composable ColumnScope.() -> Unit,
         details: @Composable (onClose: () -> Unit) -> Unit,
+        messageBubbleStyle: SurfaceStyle?,
+        needsMaxWidth: Boolean,
+        isMentioned: Boolean,
+        openSaveDialogOnClick: Boolean,
     )
 }
 
@@ -68,9 +73,27 @@ fun FileBasedTimelineElement(
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     caption: @Composable ColumnScope.() -> Unit,
     details: @Composable (onClose: () -> Unit) -> Unit,
+    messageBubbleStyle: SurfaceStyle? = null,
+    needsMaxWidth: Boolean = true,
+    isMentioned: Boolean = false,
+    openSaveDialogOnClick: Boolean = false,
 ) {
     DI.get<FileBasedTimelineElementView>()
-        .create(holder, element, isPreview, displayProgressOverElement, index, overlay, content, caption, details)
+        .create(
+            holder,
+            element,
+            isPreview,
+            displayProgressOverElement,
+            index,
+            overlay,
+            content,
+            caption,
+            details,
+            messageBubbleStyle,
+            needsMaxWidth,
+            isMentioned,
+            openSaveDialogOnClick,
+        )
 }
 
 class FileBasedTimelineElementViewImpl : FileBasedTimelineElementView {
@@ -85,6 +108,10 @@ class FileBasedTimelineElementViewImpl : FileBasedTimelineElementView {
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
         caption: @Composable ColumnScope.() -> Unit,
         details: @Composable (onClose: () -> Unit) -> Unit,
+        messageBubbleStyle: SurfaceStyle?,
+        needsMaxWidth: Boolean,
+        isMentioned: Boolean,
+        openSaveDialogOnClick: Boolean,
     ) {
         val error = element.downloadMediaError.collectAsState().value
         val saveDialogOpen = element.saveDialogOpen.collectAsState().value
@@ -105,6 +132,10 @@ class FileBasedTimelineElementViewImpl : FileBasedTimelineElementView {
             content = content,
             caption = caption,
             details = details,
+            messageBubbleStyle = messageBubbleStyle,
+            needsMaxWidth = needsMaxWidth,
+            isMentioned = isMentioned,
+            openSaveDialogOnClick = openSaveDialogOnClick,
         )
     }
 }
@@ -121,13 +152,17 @@ fun FileBasedTimelineElementMessageBubble(
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit,
     caption: @Composable ColumnScope.() -> Unit,
     details: @Composable (onClose: () -> Unit) -> Unit,
+    messageBubbleStyle: SurfaceStyle? = null,
+    needsMaxWidth: Boolean = true,
+    isMentioned: Boolean = false,
+    openSaveDialogOnClick: Boolean = false,
 ) {
     val i18n = DI.get<I18nView>()
     val configuration = DI.get<MatrixMessengerConfiguration>()
 
     MessageBubble(
         holder,
-        needsMaxWidth = true,
+        needsMaxWidth = needsMaxWidth,
         additionalContextActions = { onClose ->
             // name
             Tooltip({ Text("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
@@ -149,8 +184,9 @@ fun FileBasedTimelineElementMessageBubble(
             }
         },
         isPreview = isPreview,
-        isMentioned = false,
+        isMentioned = isMentioned,
         index = index,
+        messageBubbleStyle = messageBubbleStyle,
     ) { showActionMenu ->
         Column {
             FileBasedView(
@@ -162,6 +198,10 @@ fun FileBasedTimelineElementMessageBubble(
                 overlay = overlay,
                 content = content,
                 details = details,
+                onOpen =
+                    if (openSaveDialogOnClick) {
+                        { if (!configuration.downloadsDisabled) onSave() }
+                    } else null,
             )
 
             caption()
@@ -179,10 +219,12 @@ internal fun FileBasedView(
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit,
     details: @Composable (onClose: () -> Unit) -> Unit,
+    onOpen: (() -> Unit)? = null,
 ) {
     val hoverMessage = remember { mutableStateOf(false) }
 
     var openElementDetails by remember { mutableStateOf(false) }
+    val open = onOpen ?: { openElementDetails = true }
     val widthModifier =
         when (element) {
             is RoomMessageTimelineElementViewModel.FileBased.File -> Modifier.width(300.dp)
@@ -191,9 +233,7 @@ internal fun FileBasedView(
         }
     Box(widthModifier) {
         Column(
-            Modifier.pointerInput(Unit) {
-                    detectTapGestures(onTap = { openElementDetails = true }, onLongPress = { showActionMenu() })
-                }
+            Modifier.pointerInput(Unit) { detectTapGestures(onTap = { open() }, onLongPress = { showActionMenu() }) }
                 .buttonPointerModifier()
                 .then(
                     if (isPreview) Modifier
@@ -211,10 +251,7 @@ internal fun FileBasedView(
                 )
         ) {
             Box(modifier = Modifier.width(IntrinsicSize.Min)) {
-                Column {
-                    // content based on the actual file
-                    content(showActionMenu) { openElementDetails = true }
-                }
+                Column { content(showActionMenu, open) }
                 if (!isPreview) {
                     FileContentOverlay(hoverMessage, overlay)
                 }

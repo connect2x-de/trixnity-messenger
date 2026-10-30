@@ -19,6 +19,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.RedactionWarning
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
+import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
 interface MessageBubbleView {
@@ -30,6 +31,18 @@ interface MessageBubbleView {
         isPreview: Boolean,
         isMentioned: Boolean,
         index: Int,
+        content: @Composable (showActionMenu: () -> Unit) -> Unit,
+    )
+
+    @Composable
+    fun createWithStyle(
+        holder: BaseTimelineElementHolderViewModel,
+        needsMaxWidth: Boolean,
+        additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
+        isPreview: Boolean,
+        isMentioned: Boolean,
+        index: Int,
+        messageBubbleStyle: SurfaceStyle,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
 }
@@ -48,6 +61,34 @@ fun MessageBubble(
         .create(holder, needsMaxWidth, additionalContextActions, isPreview, isMentioned, index, content)
 }
 
+@Composable
+internal fun MessageBubble(
+    holder: BaseTimelineElementHolderViewModel,
+    needsMaxWidth: Boolean,
+    additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
+    isPreview: Boolean,
+    isMentioned: Boolean,
+    index: Int,
+    messageBubbleStyle: SurfaceStyle?,
+    content: @Composable (showActionMenu: () -> Unit) -> Unit,
+) {
+    if (messageBubbleStyle == null) {
+        MessageBubble(holder, needsMaxWidth, additionalContextActions, isPreview, isMentioned, index, content)
+        return
+    }
+    DI.get<MessageBubbleView>()
+        .createWithStyle(
+            holder,
+            needsMaxWidth,
+            additionalContextActions,
+            isPreview,
+            isMentioned,
+            index,
+            messageBubbleStyle,
+            content,
+        )
+}
+
 class MessageBubbleViewImpl : MessageBubbleView {
     @Composable
     override fun create(
@@ -57,6 +98,52 @@ class MessageBubbleViewImpl : MessageBubbleView {
         isPreview: Boolean,
         isMentioned: Boolean,
         index: Int,
+        content: @Composable (showActionMenu: () -> Unit) -> Unit,
+    ) {
+        createMessageBubble(
+            holder,
+            needsMaxWidth,
+            additionalContextActions,
+            isPreview,
+            isMentioned,
+            index,
+            null,
+            content,
+        )
+    }
+
+    @Composable
+    override fun createWithStyle(
+        holder: BaseTimelineElementHolderViewModel,
+        needsMaxWidth: Boolean,
+        additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
+        isPreview: Boolean,
+        isMentioned: Boolean,
+        index: Int,
+        messageBubbleStyle: SurfaceStyle,
+        content: @Composable (showActionMenu: () -> Unit) -> Unit,
+    ) {
+        createMessageBubble(
+            holder,
+            needsMaxWidth,
+            additionalContextActions,
+            isPreview,
+            isMentioned,
+            index,
+            messageBubbleStyle,
+            content,
+        )
+    }
+
+    @Composable
+    private fun createMessageBubble(
+        holder: BaseTimelineElementHolderViewModel,
+        needsMaxWidth: Boolean,
+        additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
+        isPreview: Boolean,
+        isMentioned: Boolean,
+        index: Int,
+        messageBubbleStyle: SurfaceStyle?,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val timelineElementHolder = holder.asTimelineElementHolder()
@@ -79,7 +166,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = if (holder.isByMe) Alignment.End else Alignment.Start,
             ) {
-                MessageBubbleContainer(
+                StyledMessageBubbleContainer(
                     holder = holder,
                     needsMaxWidth = needsMaxWidth,
                     reactionsOpen = reactionsOpen,
@@ -88,6 +175,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                     isMentioned = isMentioned,
                     interactionSource = interactionSource,
                     index = index,
+                    messageBubbleStyle = messageBubbleStyle,
                     onRedact = { timelineElementHolder?.redact() },
                     content = content,
                 )

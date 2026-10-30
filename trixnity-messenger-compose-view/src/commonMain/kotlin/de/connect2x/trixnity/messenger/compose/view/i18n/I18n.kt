@@ -1411,6 +1411,11 @@ open class I18nView(
         DE - "Emojis"
     }
 
+    open fun stickerAnimatedOrUnsupportedWarning() = translate {
+        EN - "Animated or unsupported sticker formats may not be displayed correctly."
+        DE - "Animierte oder nicht unterstützte Stickerformate werden möglicherweise nicht korrekt angezeigt."
+    }
+
     open fun inputAreaStartAudioRecording() = translate {
         EN - "record voice message"
         DE - "Sprachnachricht aufnehmen"
