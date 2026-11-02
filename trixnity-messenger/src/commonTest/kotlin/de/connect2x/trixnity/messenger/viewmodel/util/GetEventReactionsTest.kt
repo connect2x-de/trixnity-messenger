@@ -42,6 +42,7 @@ import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.TimeZone
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -97,6 +98,60 @@ class GetEventReactionsTest {
         every { userServiceMock.getById(roomId, user3) } returns
             MutableStateFlow(RoomUser(roomId, user3, "user 3", memberEvent()))
         every { roomServiceMock.getOutbox(any()) } returns MutableStateFlow(listOf())
+    }
+
+    @Test
+    fun `should retain reactions when sender is missing`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getTimelineEvent(any(), reaction1) } returns
+            MutableStateFlow(timelineEvent(user2, reaction1, ReactionEventContent(RelatesTo.Annotation(eventId, "🎉"))))
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+            MutableStateFlow(mapOf(annotation1 to MutableStateFlow(timelineEventRelation(reaction1))))
+        every { userServiceMock.getById(roomId, user2) } returns MutableStateFlow(null)
+
+        val reaction = getEventReactions().all.single()
+        reaction.value shouldBe "🎉"
+        reaction.sender.userId shouldBe user2
+        reaction.sender.name shouldBe user2.full
+    }
+
+    @Test
+    fun `should emit empty reactions when current user is missing`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getById(roomId, user1) } returns MutableStateFlow(null)
+
+        withTimeoutOrNull(1000) { getEventReactions() } shouldBe EventReactions.Empty
+    }
+
+    @Test
+    fun `should retain outbox reactions when current user is missing`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getById(roomId, user1) } returns MutableStateFlow(null)
+        every { roomServiceMock.getOutbox(any()) } returns
+            MutableStateFlow(
+                listOf(
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "123",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                            createdAt = Instant.fromEpochSeconds(123),
+                        )
+                    )
+                )
+            )
+
+        val reactions = withTimeoutOrNull(1000) { getEventReactions() }
+        reactions?.all?.size shouldBe 1
+        val reaction = reactions!!.all.single()
+        reaction.sender.userId shouldBe user1
+        reaction.sender.name shouldBe user1.full
+        reaction.status shouldBe ReactionStatus.Pending
     }
 
     @Test

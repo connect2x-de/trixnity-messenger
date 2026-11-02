@@ -28,7 +28,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -119,21 +118,20 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                     val mappedUsers = users.filterNotNull().associateBy { it.userId }
                     reactions.reactions.entries
                         .flatMap { (value, events) ->
-                            events.mapNotNull { event ->
-                                mappedUsers[event.sender]?.let { sender ->
-                                    EventReaction(
-                                        value = value,
-                                        eventOrTransactionId = EventIdOrTransactionId(event.eventId),
-                                        sender =
-                                            sender.toUserInfoElement(
-                                                this,
-                                                matrixClient,
-                                                initials,
-                                                maxMediaSizeInMemory,
-                                            ),
-                                        status = event.getReactionStatus(matrixClient.userId),
-                                    )
-                                }
+                            events.map { event ->
+                                EventReaction(
+                                    value = value,
+                                    eventOrTransactionId = EventIdOrTransactionId(event.eventId),
+                                    sender =
+                                        mappedUsers[event.sender].toUserInfoElement(
+                                            this,
+                                            matrixClient,
+                                            initials,
+                                            event.sender,
+                                            maxMediaSizeInMemory,
+                                        ),
+                                    status = event.getReactionStatus(matrixClient.userId),
+                                )
                             }
                         }
                         .toSet()
@@ -153,7 +151,6 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
     ): Flow<List<EventReaction>> {
         return matrixClient.user
             .getById(roomId, matrixClient.userId)
-            .filterNotNull()
             .flatMapLatest { user ->
                 matrixClient.room.getOutbox(roomId).scopedFlatMapLatest {
                     if (it.isEmpty()) {
@@ -211,7 +208,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
     private fun CoroutineScope.getEventReactionFromOutboxEvent(
         reactionKey: String,
         outboxEvent: RoomOutboxMessage<*>,
-        user: RoomUser,
+        user: RoomUser?,
         matrixClient: MatrixClient,
         initials: Initials,
         maxMediaSizeInMemory: Long,
@@ -221,7 +218,7 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
             eventOrTransactionId =
                 outboxEvent.eventId?.let { id -> EventIdOrTransactionId(id) }
                     ?: EventIdOrTransactionId(outboxEvent.transactionId),
-            sender = user.toUserInfoElement(this, matrixClient, initials, maxMediaSizeInMemory),
+            sender = user.toUserInfoElement(this, matrixClient, initials, matrixClient.userId, maxMediaSizeInMemory),
             status = outboxEvent.getReactionStatus(),
         )
     }
