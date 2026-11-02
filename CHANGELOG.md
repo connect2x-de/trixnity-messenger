@@ -28,6 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Add timeline elements for MatrixRTC membership changes
 - SDK,UI: Add I18n functions for providing URL to privacy policy and imprint website
 - SDK: Replace old imprint and privacy policy with newer connect2x website
+- UI,DESKTOP,WEB: Support keyboard navigation for @ mention
 
 ### Changed
 
