@@ -267,13 +267,15 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
 }
 
 @Composable
-fun UserSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+fun UserSelectorRow(
+    suggestedMention: InputAreaViewModel.SuggestedMention,
+    onClick: () -> Unit,
+    i18n: I18nView,
+    modifier: Modifier = Modifier,
+) {
     val userInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.User).user
     val avatar = userInfoElement.image?.collectAsState(null)?.value
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.mentionSelectorRow(onClick)) {
         ThemedUserAvatar(userInfoElement.initials, avatar)
         Spacer(Modifier.size(5.dp))
         Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
@@ -282,17 +284,23 @@ fun UserSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onCli
 }
 
 @Composable
-fun RoomSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+fun RoomSelectorRow(
+    suggestedMention: InputAreaViewModel.SuggestedMention,
+    onClick: () -> Unit,
+    i18n: I18nView,
+    modifier: Modifier = Modifier,
+) {
     val roomInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.AllRoomMembers).room
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.mentionSelectorRow(onClick)) {
         ThemedUserAvatar(roomInfoElement.roomImageInitials, roomInfoElement.roomImage)
         Spacer(Modifier.size(5.dp))
         Text(i18n.allRoomMembers(), style = MaterialTheme.typography.bodyLarge)
         Text(" (${suggestedMention.id})", style = MaterialTheme.typography.bodyMedium)
     }
+}
+
+private fun Modifier.mentionSelectorRow(onClick: () -> Unit): Modifier {
+    return clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
