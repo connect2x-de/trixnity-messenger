@@ -55,6 +55,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: account setup is skipped after logout and login with the same account
 - SDK: oauth and sso should only be resumed when url changes
 - SDK,UI: (**breaking change**) Introduced intermediate view models for file based timeline elements
+- SDK,UI: Refactoring of the user profile UI into reusable components
 
 ### Deprecated
 

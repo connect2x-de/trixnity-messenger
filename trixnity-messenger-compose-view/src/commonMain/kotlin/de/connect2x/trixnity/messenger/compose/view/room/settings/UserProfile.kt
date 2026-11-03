@@ -12,12 +12,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -46,7 +45,6 @@ import androidx.compose.ui.unit.min
 import de.connect2x.trixnity.client.user.PowerLevel
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
@@ -77,6 +75,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.util.CopyableUserId
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
@@ -101,129 +100,157 @@ fun UserProfile(userProfileViewModel: UserProfileViewModel) {
 class UserProfileViewImpl : UserProfileView {
     @Composable
     override fun create(userProfileViewModel: UserProfileViewModel) {
-        val error = userProfileViewModel.error.collectAsState()
-        val i18n = DI.get<I18nView>()
-        val userInfoElement = userProfileViewModel.userInfo.collectAsState().value
-        val image = userInfoElement?.image?.collectAsState(null)?.value
-        val userId = userProfileViewModel.userId
-        val messengerConfiguration = DI.get<MatrixMessengerConfiguration>()
+        UserProfileLayout(
+            userProfileViewModel = userProfileViewModel,
+            profile = { UserProfileInfo(userProfileViewModel) },
+            options = { UserProfileOptions(userProfileViewModel) },
+        )
+    }
+}
 
-        val membership = userProfileViewModel.membership.collectAsState().value
-        val membershipReason = userProfileViewModel.membershipReason.collectAsState().value
+@Composable
+fun UserProfileLayout(
+    userProfileViewModel: UserProfileViewModel,
+    modifier: Modifier = Modifier,
+    profile: @Composable () -> Unit,
+    options: @Composable () -> Unit,
+) {
+    val error by userProfileViewModel.error.collectAsState()
+    val i18n = DI.get<I18nView>()
 
-        val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
+    Column(modifier.fillMaxSize()) {
+        DialogHandler(userProfileViewModel)
+        Header(userProfileViewModel::back, i18n.profileTitle())
+        error?.let { ErrorView(it) }
 
-        Column(Modifier.fillMaxSize()) {
-            DialogHandler(userProfileViewModel)
-            Header(userProfileViewModel::back, i18n.profileTitle())
-            error.value?.let { ErrorView(it) }
+        Column(
+            modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.middle),
+        ) {
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) { profile() }
 
-            BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).heightIn(min = maxHeight),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 20.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        if (userInfoElement != null) {
-                            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                                Box(Modifier.align(Alignment.Center)) {
-                                    ThemedUserAvatar(
-                                        initials = userInfoElement.initials,
-                                        image = image,
-                                        presence = null,
-                                        size =
-                                            min(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight)
-                                                .coerceAtMost(180.dp),
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.height(20.dp))
-                            ThemedSelectableText(
-                                userInfoElement.name,
-                                MaterialTheme.components.selectionOnSurface,
-                                style = MaterialTheme.typography.titleLarge,
-                                textAlign = TextAlign.Center,
-                            )
+            Column(Modifier.fillMaxWidth()) { options() }
+        }
+    }
+}
 
-                            if (userInfoElement.name != userId.full) {
-                                CopyableUserId(userId, MaterialTheme.typography.bodyLarge)
-                            }
-                        } else {
-                            CopyableUserId(userId, MaterialTheme.typography.titleLarge)
-                        }
+@Composable
+fun UserProfileInfo(userProfileViewModel: UserProfileViewModel, modifier: Modifier = Modifier) {
+    val i18n = DI.get<I18nView>()
+    val userInfoElement = userProfileViewModel.userInfo.collectAsState().value
+    val image = userInfoElement?.image?.collectAsState(null)?.value
+    val userId = userProfileViewModel.userId
+    val membership = userProfileViewModel.membership.collectAsState().value
+    val membershipReason = userProfileViewModel.membershipReason.collectAsState().value
+    val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
 
-                        Spacer(Modifier.height(5.dp))
-                        when (userTrustLevel) {
-                            is UserTrustLevel.CrossSigned -> {
-                                if (userTrustLevel.verified) {
-                                    ThemedInfoChip(
-                                        style = MaterialTheme.components.primaryChip,
-                                        icon = { VerifiedIcon(VerificationLevel.USER) },
-                                        label = { Text(i18n.userTrustSecureVerified()) },
-                                    )
-                                } else {
-                                    ThemedInfoChip(
-                                        style = MaterialTheme.components.secondaryChip,
-                                        icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
-                                        label = { Text(i18n.userTrustSecureUnverified()) },
-                                    )
-                                }
-                            }
-
-                            is UserTrustLevel.NotAllDevicesCrossSigned -> {
-                                ThemedInfoChip(
-                                    style = MaterialTheme.components.destructiveChip,
-                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.userTrustInsecureUnverifiedDevices()) },
-                                )
-                            }
-
-                            UserTrustLevel.Blocked -> {
-                                ThemedInfoChip(
-                                    style = MaterialTheme.components.destructiveChip,
-                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.userTrustInsecureBlocked()) },
-                                )
-                            }
-
-                            is UserTrustLevel.Invalid -> {
-                                ThemedInfoChip(
-                                    style = MaterialTheme.components.destructiveChip,
-                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.userTrustInsecureInvalid()) },
-                                )
-                            }
-
-                            UserTrustLevel.Unknown,
-                            null -> {
-                                ThemedInfoChip(
-                                    style = MaterialTheme.components.destructiveChip,
-                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.userTrustInsecureUnknown()) },
-                                )
-                            }
-                        }
-                        if (membership == Membership.BAN) {
-                            ThemedInfoChip(
-                                style = MaterialTheme.components.destructiveChip,
-                                icon = { BanIcon() },
-                                label = { Text(membershipReason ?: i18n.banned()) },
-                            )
-                        }
-                    }
-
-                    Column {
-                        SmallSpacer()
-                        RoomOptions(userProfileViewModel, i18n)
-                        UserOptions(userProfileViewModel, i18n)
-                    }
+    Column(
+        modifier = modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (userInfoElement != null) {
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                Box(Modifier.align(Alignment.Center)) {
+                    ThemedUserAvatar(
+                        initials = userInfoElement.initials,
+                        image = image,
+                        presence = null,
+                        size =
+                            min(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight)
+                                .coerceAtMost(180.dp),
+                    )
                 }
             }
+            Spacer(Modifier.height(20.dp))
+            ThemedSelectableText(
+                userInfoElement.name,
+                MaterialTheme.components.selectionOnSurface,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            if (userInfoElement.name != userId.full) {
+                CopyableUserId(userId, MaterialTheme.typography.bodyLarge)
+            }
+        } else {
+            CopyableUserId(userId, MaterialTheme.typography.titleLarge)
         }
+
+        Spacer(Modifier.height(5.dp))
+        UserProfileTrustLevel(userTrustLevel, i18n)
+        if (membership == Membership.BAN) {
+            ThemedInfoChip(
+                style = MaterialTheme.components.destructiveChip,
+                icon = { BanIcon() },
+                label = { Text(membershipReason ?: i18n.banned()) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun UserProfileTrustLevel(userTrustLevel: UserTrustLevel?, i18n: I18nView) {
+    when (userTrustLevel) {
+        is UserTrustLevel.CrossSigned -> {
+            if (userTrustLevel.verified) {
+                ThemedInfoChip(
+                    style = MaterialTheme.components.primaryChip,
+                    icon = { VerifiedIcon(VerificationLevel.USER) },
+                    label = { Text(i18n.userTrustSecureVerified()) },
+                )
+            } else {
+                ThemedInfoChip(
+                    style = MaterialTheme.components.secondaryChip,
+                    icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
+                    label = { Text(i18n.userTrustSecureUnverified()) },
+                )
+            }
+        }
+
+        is UserTrustLevel.NotAllDevicesCrossSigned -> {
+            ThemedInfoChip(
+                style = MaterialTheme.components.destructiveChip,
+                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                label = { Text(i18n.userTrustInsecureUnverifiedDevices()) },
+            )
+        }
+
+        UserTrustLevel.Blocked -> {
+            ThemedInfoChip(
+                style = MaterialTheme.components.destructiveChip,
+                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                label = { Text(i18n.userTrustInsecureBlocked()) },
+            )
+        }
+
+        is UserTrustLevel.Invalid -> {
+            ThemedInfoChip(
+                style = MaterialTheme.components.destructiveChip,
+                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                label = { Text(i18n.userTrustInsecureInvalid()) },
+            )
+        }
+
+        UserTrustLevel.Unknown,
+        null -> {
+            ThemedInfoChip(
+                style = MaterialTheme.components.destructiveChip,
+                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                label = { Text(i18n.userTrustInsecureUnknown()) },
+            )
+        }
+    }
+}
+
+@Composable
+fun UserProfileOptions(userProfileViewModel: UserProfileViewModel, modifier: Modifier = Modifier) {
+    val i18n = DI.get<I18nView>()
+
+    Column(modifier) {
+        SmallSpacer()
+        RoomOptions(userProfileViewModel, i18n)
+        UserOptions(userProfileViewModel, i18n)
     }
 }
 

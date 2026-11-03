@@ -2075,18 +2075,18 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Co
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/settings/ComposableSingletons$UserProfileKt;
 	public fun <init> ()V
 	public final fun getLambda$-1100554426$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1261416169$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-1265236986$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1269437323$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1279935550$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1858526730$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-2040069789$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-519801311$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1342342426$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1511486201$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1680629976$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1849773751$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-486261445$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-600732910$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$1322123055$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1494763268$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$2009401150$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$2018239344$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$663331519$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$22773380$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$808115565$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 }
 
@@ -2348,6 +2348,9 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Us
 	public static final fun UnbanUserWarning (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun UserProfile (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun UserProfileContainer (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun UserProfileInfo (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
+	public static final fun UserProfileLayout (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun UserProfileOptions (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/UserProfileView {
