@@ -20,6 +20,7 @@ internal data class CallParticipant(
     val user: UserInfoElement,
     val isLocal: Boolean,
     val microphoneEnabled: Boolean,
+    val isSpeaking: Boolean,
     val video: CallVideo?,
 )
 

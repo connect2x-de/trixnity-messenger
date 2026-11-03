@@ -31,6 +31,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI,DESKTOP,WEB: Support keyboard navigation for @ mention
 - SDK: Add new VerificationViewModel (`v2.VerificationViewModel`), consolidating the viewModel childStack approach of
   the current VerificationViewModel into a single viewModel
+- UI: Speaking indicator for MatrixRTC calls
 
 ### Changed
 

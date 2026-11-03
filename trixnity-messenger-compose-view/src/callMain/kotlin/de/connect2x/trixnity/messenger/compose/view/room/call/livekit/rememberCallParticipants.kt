@@ -69,6 +69,7 @@ internal fun rememberCallParticipants(
             val participant = item?.camera?.participant
             key(id, item?.room, participant) {
                 val microphoneEnabled = participant?.isMicrophoneEnabled?.collectAsState()?.value ?: false
+                val isSpeaking = participant?.isSpeaking?.collectAsState()?.value ?: false
                 val cameraMuted = item?.let { rememberTrackMuted(it.camera).value } ?: true
                 val lastSpokeAt = participant?.lastSpokeAt?.collectAsState()?.value ?: 0L
                 CallParticipant(
@@ -76,6 +77,7 @@ internal fun rememberCallParticipants(
                     user = user,
                     isLocal = id == localIdentity,
                     microphoneEnabled = microphoneEnabled,
+                    isSpeaking = isSpeaking,
                     video = if (item != null && !cameraMuted) CallVideo(item.room, item.camera) else null,
                 ) to lastSpokeAt
             }
