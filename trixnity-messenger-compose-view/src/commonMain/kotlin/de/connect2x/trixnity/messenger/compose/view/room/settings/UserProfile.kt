@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
@@ -110,109 +113,114 @@ class UserProfileViewImpl : UserProfileView {
 
         val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
 
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(Modifier.fillMaxSize()) {
             DialogHandler(userProfileViewModel)
-            Column(Modifier.weight(1f)) {
-                Header(userProfileViewModel::back, i18n.profileTitle())
-                error.value?.let { ErrorView(it) }
+            Header(userProfileViewModel::back, i18n.profileTitle())
+            error.value?.let { ErrorView(it) }
 
+            BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
                 Column(
-                    Modifier.fillMaxWidth().weight(1f).padding(horizontal = 10.dp),
-                    Arrangement.Center,
-                    Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).heightIn(min = maxHeight),
+                    verticalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    if (userInfoElement != null) {
-                        BoxWithConstraints(Modifier.fillMaxWidth()) {
-                            Box(Modifier.align(Alignment.Center)) {
-                                ThemedUserAvatar(
-                                    initials = userInfoElement.initials,
-                                    image = image,
-                                    presence = null,
-                                    size =
-                                        min(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight)
-                                            .coerceAtMost(180.dp),
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 20.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        if (userInfoElement != null) {
+                            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                                Box(Modifier.align(Alignment.Center)) {
+                                    ThemedUserAvatar(
+                                        initials = userInfoElement.initials,
+                                        image = image,
+                                        presence = null,
+                                        size =
+                                            min(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight)
+                                                .coerceAtMost(180.dp),
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(20.dp))
+                            ThemedSelectableText(
+                                userInfoElement.name,
+                                MaterialTheme.components.selectionOnSurface,
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+
+                            if (userInfoElement.name != userId.full) {
+                                CopyableUserId(userId, MaterialTheme.typography.bodyLarge)
+                            }
+                        } else {
+                            CopyableUserId(userId, MaterialTheme.typography.titleLarge)
+                        }
+
+                        Spacer(Modifier.height(5.dp))
+                        when (userTrustLevel) {
+                            is UserTrustLevel.CrossSigned -> {
+                                if (userTrustLevel.verified) {
+                                    ThemedInfoChip(
+                                        style = MaterialTheme.components.primaryChip,
+                                        icon = { VerifiedIcon(VerificationLevel.USER) },
+                                        label = { Text(i18n.userTrustSecureVerified()) },
+                                    )
+                                } else {
+                                    ThemedInfoChip(
+                                        style = MaterialTheme.components.secondaryChip,
+                                        icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
+                                        label = { Text(i18n.userTrustSecureUnverified()) },
+                                    )
+                                }
+                            }
+
+                            is UserTrustLevel.NotAllDevicesCrossSigned -> {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.destructiveChip,
+                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.userTrustInsecureUnverifiedDevices()) },
+                                )
+                            }
+
+                            UserTrustLevel.Blocked -> {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.destructiveChip,
+                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.userTrustInsecureBlocked()) },
+                                )
+                            }
+
+                            is UserTrustLevel.Invalid -> {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.destructiveChip,
+                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.userTrustInsecureInvalid()) },
+                                )
+                            }
+
+                            UserTrustLevel.Unknown,
+                            null -> {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.destructiveChip,
+                                    icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.userTrustInsecureUnknown()) },
                                 )
                             }
                         }
-                        Spacer(Modifier.height(20.dp))
-                        ThemedSelectableText(
-                            userInfoElement.name,
-                            MaterialTheme.components.selectionOnSurface,
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-
-                        if (userInfoElement.name != userId.full) {
-                            CopyableUserId(userId, MaterialTheme.typography.bodyLarge)
-                        }
-                    } else {
-                        CopyableUserId(userId, MaterialTheme.typography.titleLarge)
-                    }
-
-                    Spacer(Modifier.height(5.dp))
-                    when (userTrustLevel) {
-                        is UserTrustLevel.CrossSigned -> {
-                            if (userTrustLevel.verified) {
-                                ThemedInfoChip(
-                                    style = MaterialTheme.components.primaryChip,
-                                    icon = { VerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.userTrustSecureVerified()) },
-                                )
-                            } else {
-                                ThemedInfoChip(
-                                    style = MaterialTheme.components.secondaryChip,
-                                    icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.userTrustSecureUnverified()) },
-                                )
-                            }
-                        }
-
-                        is UserTrustLevel.NotAllDevicesCrossSigned -> {
+                        if (membership == Membership.BAN) {
                             ThemedInfoChip(
                                 style = MaterialTheme.components.destructiveChip,
-                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.userTrustInsecureUnverifiedDevices()) },
-                            )
-                        }
-
-                        UserTrustLevel.Blocked -> {
-                            ThemedInfoChip(
-                                style = MaterialTheme.components.destructiveChip,
-                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.userTrustInsecureBlocked()) },
-                            )
-                        }
-
-                        is UserTrustLevel.Invalid -> {
-                            ThemedInfoChip(
-                                style = MaterialTheme.components.destructiveChip,
-                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.userTrustInsecureInvalid()) },
-                            )
-                        }
-
-                        UserTrustLevel.Unknown,
-                        null -> {
-                            ThemedInfoChip(
-                                style = MaterialTheme.components.destructiveChip,
-                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.userTrustInsecureUnknown()) },
+                                icon = { BanIcon() },
+                                label = { Text(membershipReason ?: i18n.banned()) },
                             )
                         }
                     }
-                    if (membership == Membership.BAN) {
-                        ThemedInfoChip(
-                            style = MaterialTheme.components.destructiveChip,
-                            icon = { BanIcon() },
-                            label = { Text(membershipReason ?: i18n.banned()) },
-                        )
+
+                    Column {
+                        SmallSpacer()
+                        RoomOptions(userProfileViewModel, i18n)
+                        UserOptions(userProfileViewModel, i18n)
                     }
                 }
-            }
-
-            Column {
-                SmallSpacer()
-                RoomOptions(userProfileViewModel, i18n)
-                UserOptions(userProfileViewModel, i18n)
             }
         }
     }

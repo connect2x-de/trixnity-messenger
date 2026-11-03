@@ -91,6 +91,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - DEPENDENCY: FIx publish correct gradle module metadata
 - UI, ANDROID: Correctly require foreground permissions for media playback
 - UI: Fix various issues when adding, removing and interacting with optional room power levels
+- UI: Profile options overlapping user information on small screens
 - UI: Restore message bubble edges after state events from the same sender
 
 ### Security
