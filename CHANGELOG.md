@@ -92,6 +92,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI, ANDROID: Correctly require foreground permissions for media playback
 - UI: Fix various issues when adding, removing and interacting with optional room power levels
 - UI: Profile options overlapping user information on small screens
+- UI: Long usernames wrapping with centered alignment in the profile view
 - UI: Restore message bubble edges after state events from the same sender
 
 ### Security

@@ -146,6 +146,7 @@ class UserProfileViewImpl : UserProfileView {
                                 userInfoElement.name,
                                 MaterialTheme.components.selectionOnSurface,
                                 style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center,
                             )
 
                             if (userInfoElement.name != userId.full) {
