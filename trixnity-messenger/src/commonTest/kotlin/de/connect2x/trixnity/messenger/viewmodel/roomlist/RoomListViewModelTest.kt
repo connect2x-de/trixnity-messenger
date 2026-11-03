@@ -446,20 +446,16 @@ class RoomListViewModelTest {
                 )
             )
         every { roomServiceMock.getState(spaceId1, PowerLevelsEventContent::class, "") } returns parentPower
-        every { roomServiceMock.getAllState(spaceId1, MemberEventContent::class) } returns
+        every { roomServiceMock.getState(spaceId1, ChildEventContent::class, roomId4.full) } returns flowOf(null)
+        every { roomServiceMock.getState(spaceId1, MemberEventContent::class, user2.full) } returns
             flowOf(
-                mapOf(
-                    user2.full to
-                        flowOf(
-                            StateEvent(
-                                MemberEventContent(membership = Membership.JOIN),
-                                EventId("$" + "member"),
-                                user2,
-                                spaceId1,
-                                3L,
-                                stateKey = user2.full,
-                            )
-                        )
+                StateEvent(
+                    MemberEventContent(membership = Membership.JOIN),
+                    EventId("$" + "member"),
+                    user2,
+                    spaceId1,
+                    3L,
+                    stateKey = user2.full,
                 )
             )
         val cut = roomListViewModel(space = RoomListSpace(user1, spaceId1))

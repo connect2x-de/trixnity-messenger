@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.client.user.GetPowerLevelImpl
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -24,16 +25,21 @@ import de.connect2x.trixnity.core.model.events.m.space.ParentEventContent
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+
+internal data class SpaceParentCandidate(val childId: RoomId, val parentEvent: StateBaseEvent<ParentEventContent>)
 
 internal data class SpaceParent(
     val roomId: RoomId,
@@ -83,12 +89,12 @@ internal fun getSpaceParents(client: MatrixClient, onlyParent: RoomId? = null): 
                             events.values
                                 .filterNotNull()
                                 .filter {
-                                    !it.content.via.isNullOrEmpty() &&
+                                    it.content.via.isNotEmpty() &&
                                         RoomId.isValid(it.stateKey) &&
                                         it.stateKey != child.full &&
                                         (onlyParent == null || it.stateKey == onlyParent.full)
                                 }
-                                .map { child to it }
+                                .map { SpaceParentCandidate(child, it) }
                         }
                     }
                 ) {
@@ -97,51 +103,154 @@ internal fun getSpaceParents(client: MatrixClient, onlyParent: RoomId? = null): 
         }
         .distinctUntilChanged()
         .flatMapLatest { links ->
-            val parents = links.groupBy { RoomId(it.second.stateKey) }
-            if (parents.isEmpty()) flowOf(emptyList())
-            else
-                combine(
-                    parents.map { (parent, candidates) ->
-                        getParentState(client, parent).map { state ->
-                            val valid = candidates.filter { (child, event) -> isValidSpaceParent(child, event, state) }
-                            if (valid.isEmpty()) null
-                            else
-                                SpaceParent(
-                                    parent,
-                                    valid.map { it.first }.toSet(),
-                                    valid.flatMap { it.second.content.via }.toSet(),
-                                    state,
-                                )
-                        }
-                    }
-                ) {
-                    it.filterNotNull()
-                }
+            val parents = links.groupBy { RoomId(it.parentEvent.stateKey) }
+            if (parents.isEmpty()) flowOf(emptyList()) else getValidatedSpaceParents(client, parents)
         }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-private fun getParentState(client: MatrixClient, parent: RoomId): Flow<List<StateBaseEvent<*>>> =
-    client.room
-        .getById(parent)
-        .map { it?.membership == Membership.JOIN }
-        .distinctUntilChanged()
-        .flatMapLatest { joined ->
-            if (joined)
-                combine(
-                    client.room.getState<CreateEventContent>(parent),
-                    client.room.getState<PowerLevelsEventContent>(parent),
-                    client.room.getAllState(parent, ChildEventContent::class).flatten(),
-                    client.room.getAllState(parent, MemberEventContent::class).flatten(),
-                ) { create, power, children, members ->
-                    listOfNotNull(create, power) + children.values.filterNotNull() + members.values.filterNotNull()
+private fun getValidatedSpaceParents(
+    client: MatrixClient,
+    parents: Map<RoomId, List<SpaceParentCandidate>>,
+): Flow<List<SpaceParent>> = flow {
+    val loadedParents = mutableMapOf<RoomId, SpaceParent?>()
+    val joinedParentIds =
+        combine(
+                parents.keys.map { parent ->
+                    client.room.getById(parent).map { room -> parent.takeIf { room?.membership == Membership.JOIN } }
                 }
-            else
-                flow<List<StateBaseEvent<*>>> {
-                        emit(withTimeoutOrNull(15.seconds) { client.api.room.getState(parent).getOrThrow() }.orEmpty())
+            ) {
+                it.filterNotNull().toSet()
+            }
+            .distinctUntilChanged()
+
+    emitAll(
+        joinedParentIds.flatMapLatest { joinedIds ->
+            joinedIds.forEach { loadedParents.remove(it) }
+            val (joined, unjoined) = parents.entries.partition { it.key in joinedIds }
+            val joinedParents =
+                if (joined.isEmpty()) flowOf(emptyList())
+                else
+                    combine(joined.map { (parent, candidates) -> getJoinedParent(client, parent, candidates) }) {
+                        it.filterNotNull()
                     }
-                    .onStart { emit(emptyList()) }
-                    .catch { if (it is CancellationException) throw it else emit(emptyList()) }
+            val pending = unjoined.filterNot { it.key in loadedParents }.associate { it.key to it.value }
+            val remoteParents =
+                loadUnjoinedParents(client, pending)
+                    .map { (parent, result) ->
+                        loadedParents[parent] = result
+                        loadedParents.values.filterNotNull()
+                    }
+                    .onStart { emit(loadedParents.values.filterNotNull()) }
+            combine(joinedParents, remoteParents) { local, remote -> local + remote }
         }
+    )
+}
+
+private fun loadUnjoinedParents(
+    client: MatrixClient,
+    parents: Map<RoomId, List<SpaceParentCandidate>>,
+): Flow<Pair<RoomId, SpaceParent?>> = channelFlow {
+    for (batch in parents.entries.chunked(4)) {
+        coroutineScope {
+            batch.forEach { (parent, candidates) ->
+                launch { send(parent to loadUnjoinedParent(client, parent, candidates)) }
+            }
+        }
+    }
+}
+
+private fun createSpaceParent(
+    parent: RoomId,
+    candidates: List<SpaceParentCandidate>,
+    state: List<StateBaseEvent<*>>,
+): SpaceParent? {
+    val valid = filterValidSpaceParents(candidates, state)
+    if (valid.isEmpty()) return null
+    return SpaceParent(
+        parent,
+        valid.map { it.childId }.toSet(),
+        valid.flatMap { it.parentEvent.content.via }.toSet(),
+        state,
+    )
+}
+
+private fun getJoinedParent(
+    client: MatrixClient,
+    parent: RoomId,
+    candidates: List<SpaceParentCandidate>,
+): Flow<SpaceParent?> =
+    combine(
+        listOf(
+            client.room.getState<CreateEventContent>(parent),
+            client.room.getState<PowerLevelsEventContent>(parent),
+        ) +
+            candidates
+                .map { it.childId }
+                .distinct()
+                .map { child -> client.room.getState<ChildEventContent>(parent, child.full) } +
+            candidates
+                .map { it.parentEvent.sender }
+                .distinct()
+                .map { sender -> client.room.getState<MemberEventContent>(parent, sender.full) }
+    ) { events ->
+        val state = events.filterNotNull()
+        val missingMembership = candidates.any { (child, event) ->
+            state.event<ChildEventContent>(child.full)?.content?.via?.isNotEmpty() != true &&
+                state.event<MemberEventContent>(event.sender.full) == null
+        }
+        if (missingMembership) client.user.loadMembers(parent, wait = false)
+        createSpaceParent(parent, candidates, state)
+    }
+
+private suspend fun loadUnjoinedParent(
+    client: MatrixClient,
+    parent: RoomId,
+    candidates: List<SpaceParentCandidate>,
+): SpaceParent? =
+    try {
+        val state = withTimeoutOrNull(15.seconds) { client.api.room.getState(parent).getOrThrow() }.orEmpty()
+        val children = candidates.map { it.childId.full }.toSet()
+        val senders = candidates.map { it.parentEvent.sender.full }.toSet()
+        val relevantState = state.filter { event ->
+            when (event.content) {
+                is ChildEventContent -> event.stateKey in children
+                is MemberEventContent -> event.stateKey in senders
+                is CreateEventContent,
+                is PowerLevelsEventContent,
+                is NameEventContent,
+                is CanonicalAliasEventContent,
+                is AvatarEventContent,
+                is JoinRulesEventContent -> event.stateKey.isEmpty()
+                else -> false
+            }
+        }
+        createSpaceParent(parent, candidates, relevantState)
+    } catch (error: CancellationException) {
+        throw error
+    } catch (_: Exception) {
+        null
+    }
+
+internal fun filterValidSpaceParents(
+    candidates: List<SpaceParentCandidate>,
+    state: List<StateBaseEvent<*>>,
+): List<SpaceParentCandidate> {
+    val events = state.asReversed().associateBy { it.content::class to it.stateKey }
+    val create = events[CreateEventContent::class to ""]
+    val power = events[PowerLevelsEventContent::class to ""]
+    return candidates.filter { (child, event) ->
+        isValidSpaceParent(
+            child,
+            event,
+            listOfNotNull(
+                create,
+                power,
+                events[ChildEventContent::class to child.full],
+                events[MemberEventContent::class to event.sender.full],
+            ),
+        )
+    }
+}
 
 internal fun isValidSpaceParent(
     child: RoomId,

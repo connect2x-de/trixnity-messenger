@@ -8,7 +8,16 @@ interface SpaceNavigationRailViewModel : SpaceContentViewModel
 interface SpaceNavigationRailViewModelFactory {
     fun create(viewModelContext: ViewModelContext, onSelect: (SpaceBrowserItem) -> Unit): SpaceNavigationRailViewModel =
         SpaceNavigationRailViewModelImpl(
-            viewModelContext.get<SpaceContentViewModelFactory>().create(viewModelContext, null, null, onSelect, {})
+            viewModelContext
+                .get<SpaceContentViewModelFactory>()
+                .create(
+                    viewModelContext = viewModelContext,
+                    userId = null,
+                    spaceId = null,
+                    onSelect = onSelect,
+                    onBack = {},
+                    loadDetails = false,
+                )
         )
 
     companion object : SpaceNavigationRailViewModelFactory

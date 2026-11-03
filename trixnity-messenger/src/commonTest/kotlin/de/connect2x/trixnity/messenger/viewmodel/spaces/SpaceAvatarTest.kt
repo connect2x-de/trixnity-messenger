@@ -56,6 +56,7 @@ class SpaceAvatarTest {
             {},
             {},
             loadHierarchy = false,
+            loadDetails = false,
         )
     }
 

@@ -39,7 +39,7 @@ import org.koin.dsl.module
 class SpaceAccountNavigationTest {
     private fun contentFactory(): SpaceContentViewModelFactory {
         val factory = mock<SpaceContentViewModelFactory>()
-        every { factory.create(any(), any(), any(), any(), any(), any()) } returns mock()
+        every { factory.create(any(), any(), any(), any(), any(), any(), any()) } returns mock()
         return factory
     }
 
@@ -87,7 +87,7 @@ class SpaceAccountNavigationTest {
     fun `browser content and account scopes close with their shared owner`() = runTest {
         val contexts = mutableListOf<ViewModelContext>()
         val contentFactory = mock<SpaceContentViewModelFactory>()
-        every { contentFactory.create(any(), any(), any(), any(), any(), any()) } calls
+        every { contentFactory.create(any(), any(), any(), any(), any(), any(), any()) } calls
             { args ->
                 contexts += args.arg<ViewModelContext>(0)
                 mock<SpaceContentViewModel>()

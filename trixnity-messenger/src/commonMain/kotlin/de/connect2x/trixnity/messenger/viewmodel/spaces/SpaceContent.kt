@@ -53,33 +53,49 @@ private suspend fun MatrixClient.waitForMembershipSync(roomId: RoomId, matches: 
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal fun ViewModelContext.getSpaceOverview(userId: UserId?): Flow<SpaceContent> =
-    matrixClients.flatMapLatest { clients ->
-        val selected = clients.filterKeys { userId == null || it == userId }
-        if (selected.isEmpty()) flowOf(SpaceContent())
-        else
-            combine(
-                selected.map { (account, client) ->
-                    combine(client.room.getAll().flatten(), getSpaceParents(client)) { rooms, parents ->
-                            val joined =
-                                rooms.values
-                                    .filterNotNull()
-                                    .filter {
-                                        it.membership in setOf(Membership.JOIN, Membership.INVITE) &&
-                                            it.type == CreateEventContent.RoomType.Space
-                                    }
-                                    .map { it.toBrowserItem(account) }
-                            (joined + parents.map { it.toBrowserItem(account, rooms) }).distinctBy { it.roomId } to
-                                parents.associate { it.roomId to it.children }
-                        }
-                        .distinctUntilChanged()
-                        .flatMapLatest { (items, parents) -> spaceChildStatistics(items, client, parents) }
-                        .flatMapLatest { items -> getNamedItems(items, client) }
+internal fun ViewModelContext.getSpaceOverview(
+    selectedAccount: UserId?,
+    membershipFilter: SpaceMembershipFilter = SpaceMembershipFilter(),
+    loadDetails: Boolean = true,
+): Flow<SpaceContent> =
+    matrixClients
+        .map { clients -> clients.filterKeys { selectedAccount == null || it == selectedAccount } }
+        .distinctUntilChanged()
+        .flatMapLatest { clients ->
+            if (clients.isEmpty()) flowOf(SpaceContent())
+            else
+                combine(
+                    clients.map { (account, client) ->
+                        val parents = if (loadDetails) getSpaceParents(client) else flowOf(emptyList())
+                        combine(client.room.getAll().flatten(), parents) { rooms, parents ->
+                                val local =
+                                    rooms.values
+                                        .filterNotNull()
+                                        .filter {
+                                            it.type == CreateEventContent.RoomType.Space &&
+                                                (it.membership == Membership.JOIN || it.membership == Membership.INVITE)
+                                        }
+                                        .map { it.toBrowserItem(account) }
+                                (local + parents.map { it.toBrowserItem(account, rooms) })
+                                    .distinctBy { it.roomId }
+                                    .filter { item ->
+                                        when {
+                                            item.joined -> membershipFilter.joined
+                                            item.invited -> membershipFilter.invited
+                                            else -> loadDetails
+                                        }
+                                    } to parents.associate { it.roomId to it.children }
+                            }
+                            .distinctUntilChanged()
+                            .flatMapLatest { (items, parents) ->
+                                if (loadDetails) spaceChildStatistics(items, client, parents) else flowOf(items)
+                            }
+                            .flatMapLatest { getNamedItems(it, client) }
+                    }
+                ) { items ->
+                    SpaceContent(items = items.flatMap { it }.sortedByName().sortedByDescending { it.invited })
                 }
-            ) {
-                SpaceContent(items = it.flatMap { items -> items }.sortedByName().sortedByDescending { it.invited })
-            }
-    }
+        }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal fun ViewModelContext.getJoinedSpaceContent(userId: UserId, spaceId: RoomId): Flow<SpaceContent> =
@@ -96,6 +112,7 @@ internal fun ViewModelContext.getJoinedSpaceContent(userId: UserId, spaceId: Roo
                         avatarUrl = space.avatarUrl,
                     )
                 }
+                .distinctUntilChanged()
                 .flatMapLatest { content ->
                     combine(
                         getNamedItems(content.items, client).flatMapLatest { spaceChildStatistics(it, client) },
@@ -146,49 +163,49 @@ private fun ViewModelContext.getJoinedSpaceExploreContent(
     spaceId: RoomId,
 ): Flow<SpaceContent> {
     val children = client.room.getAllState(spaceId, ChildEventContent::class).flatten()
-    return combine(
-            client.room.getById(spaceId),
-            client.room.getAll().flatten(),
-            children,
-            children
-                .map { events -> events.mapValues { it.value?.content?.via } }
-                .distinctUntilChanged()
-                .flatMapLatest {
-                    loadSpaceHierarchy { from -> client.api.room.getHierarchy(spaceId, from = from, maxDepth = 1) }
-                },
-            getSpaceParents(client, spaceId),
-        ) { space, rooms, childEvents, hierarchy, parents ->
-            check(space?.membership == Membership.JOIN) { "Space is no longer joined" }
-            val items = buildSpaceHierarchyItems(userId, spaceId, rooms, childEvents, hierarchy.rooms, parents)
-            SpaceContent(
-                space.name?.explicitName ?: spaceId.full,
-                items,
-                loadingHierarchy = hierarchy.loading,
-                hierarchyFailed = hierarchy.failed,
-                userId = userId,
-                avatarUrl = space.avatarUrl,
-                memberCount =
-                    space.joinedMemberCount ?: hierarchy.rooms.find { it.roomId == spaceId }?.joinedMembersCount,
-            )
-        }
-        .flatMapLatest { content ->
-            combine(
-                getNamedItems(content.items, client, sortByName = false).flatMapLatest {
-                    spaceChildStatistics(it, client)
-                },
-                get<RoomName>().getRoomName(spaceId, client, formatted = false),
-                client.room.getState<TopicEventContent>(spaceId),
-            ) { items, name, topic ->
-                content.copy(
-                    items = items,
-                    name = name,
-                    topic =
-                        (topic?.content?.topic?.text?.plain ?: topic?.content?.legacy?.topic)?.takeIf {
-                            it.isNotBlank()
-                        },
+    val hierarchy =
+        children
+            .map { events -> events.mapValues { it.value?.content?.via } }
+            .distinctUntilChanged()
+            .flatMapLatest {
+                loadSpaceHierarchy { from -> client.api.room.getHierarchy(spaceId, from = from, maxDepth = 1) }
+            }
+    val content =
+        combine(client.room.getAll().flatten(), children, hierarchy, getSpaceParents(client, spaceId)) {
+                rooms,
+                childEvents,
+                hierarchy,
+                parents ->
+                val space = rooms[spaceId]
+                check(space?.membership == Membership.JOIN) { "Space is no longer joined" }
+                val items = buildSpaceHierarchyItems(userId, spaceId, rooms, childEvents, hierarchy.rooms, parents)
+                SpaceContent(
+                    space.name?.explicitName ?: spaceId.full,
+                    items,
+                    loadingHierarchy = hierarchy.loading,
+                    hierarchyFailed = hierarchy.failed,
+                    userId = userId,
+                    avatarUrl = space.avatarUrl,
+                    memberCount =
+                        space.joinedMemberCount ?: hierarchy.rooms.find { it.roomId == spaceId }?.joinedMembersCount,
                 )
             }
-        }
+            .distinctUntilChanged()
+            .flatMapLatest { content ->
+                getNamedItems(content.items, client, sortByName = false)
+                    .flatMapLatest { spaceChildStatistics(it, client) }
+                    .map { content.copy(items = it) }
+            }
+    return combine(
+        content,
+        get<RoomName>().getRoomName(spaceId, client, formatted = false),
+        client.room.getState<TopicEventContent>(spaceId),
+    ) { content, name, topic ->
+        content.copy(
+            name = name,
+            topic = (topic?.content?.topic?.text?.plain ?: topic?.content?.legacy?.topic)?.takeIf { it.isNotBlank() },
+        )
+    }
 }
 
 private fun ViewModelContext.getNamedItems(

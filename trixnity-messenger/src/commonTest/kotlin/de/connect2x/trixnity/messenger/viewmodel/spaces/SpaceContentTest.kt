@@ -39,8 +39,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
@@ -61,6 +63,89 @@ class SpaceContentTest {
         every { service.getAll() } returns flowOf(rooms.associate { it.roomId to flowOf(it) })
         every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
         return client
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `unrelated room updates do not restart space content subscriptions`() = runTest {
+        for (explore in listOf(false, true)) {
+            val service = mock<RoomService>()
+            val client = client(emptyList(), service)
+            val otherId = RoomId("!unrelated:example.org")
+            val other = MutableStateFlow<Room?>(Room(otherId))
+            every { service.getAll() } returns
+                flowOf(mapOf(spaceId to flowOf(space), roomId to flowOf(Room(roomId)), otherId to other))
+            every { service.getById(spaceId) } returns flowOf(space)
+            every { service.getAllState(spaceId, ChildEventContent::class) } returns
+                flowOf(
+                    mapOf(
+                        roomId.full to
+                            flowOf(
+                                ClientEvent.StrippedStateEvent(
+                                    ChildEventContent(via = setOf("example.org")),
+                                    sender = alice,
+                                    stateKey = roomId.full,
+                                )
+                            )
+                    )
+                )
+            val api = mock<MatrixClientServerApiClient>()
+            val roomApi = mock<RoomApiClient>()
+            every { client.api } returns api
+            every { api.room } returns roomApi
+            everySuspend { roomApi.getHierarchy(spaceId, from = any(), maxDepth = 1) } returns
+                Result.success(GetHierarchy.Response(rooms = listOf(hierarchyRoom(roomId))))
+            var nameCollections = 0
+            val names = mock<RoomName>()
+            every { names.getRoomName(any<RoomId>(), client, false) } returns
+                flowOf("Room").onStart { nameCollections++ }
+            val source = testSpaceBrowserContext(MutableStateFlow(mapOf(alice to client)), names)
+            val content =
+                if (explore) source.getSpaceExploreContent(alice, spaceId)
+                else source.getJoinedSpaceContent(alice, spaceId)
+            val subscription = backgroundScope.launch { content.collect() }
+            runCurrent()
+            val initialCollections = nameCollections
+            repeat(20) { index ->
+                other.value = other.value!!.copy(avatarUrl = "mxc://example.org/$index")
+                runCurrent()
+            }
+            nameCollections shouldBe initialCollections
+            subscription.cancel()
+            runCurrent()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `explore keeps name and topic subscriptions when content changes`() = runTest {
+        val fixture = SpaceBrowserFixture(alice, spaceId)
+        val name = MutableStateFlow("Space")
+        val topic = MutableStateFlow<ClientEvent.StateBaseEvent<TopicEventContent>?>(null)
+        var nameCollections = 0
+        var topicCollections = 0
+        every { fixture.roomName.getRoomName(spaceId, fixture.client, false) } returns
+            name.onStart { nameCollections++ }
+        every { fixture.rooms.getState(spaceId, TopicEventContent::class, "") } returns
+            topic.onStart { topicCollections++ }
+        var latest = SpaceContent()
+        backgroundScope.launch {
+            fixture.context(this@runTest).getSpaceExploreContent(alice, spaceId).collect { latest = it }
+        }
+        runCurrent()
+        fixture.content.value = SpaceContent(items = listOf(SpaceBrowserItem(alice, roomId, "Child", false, true)))
+        runCurrent()
+        advanceTimeBy(1_000)
+        runCurrent()
+        latest.items.single().roomId shouldBe roomId
+        fixture.space.value = fixture.space.value!!.copy(avatarUrl = "mxc://example.org/avatar")
+        runCurrent()
+        latest.avatarUrl shouldBe "mxc://example.org/avatar"
+        name.value = "Renamed"
+        runCurrent()
+        latest.name shouldBe "Renamed"
+        nameCollections shouldBe 1
+        topicCollections shouldBe 1
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -90,6 +175,7 @@ class SpaceContentTest {
                         summary = RoomSummary(joinedMemberCount = 5),
                     )
             )
+        advanceTimeBy(1_000)
         runCurrent()
         latest.memberCount shouldBe 5
         spaceState.value =
@@ -103,6 +189,7 @@ class SpaceContentTest {
                         summary = RoomSummary(joinedMemberCount = 3),
                     )
             )
+        advanceTimeBy(1_000)
         runCurrent()
         latest.memberCount shouldBe 3
     }
@@ -184,8 +271,36 @@ class SpaceContentTest {
                 MutableStateFlow(mapOf(alice to client(listOf(space, child, invited, Room(roomId)))))
             )
         val items = source.getSpaceOverview(null).first().items
+        source.getSpaceOverview(null, loadDetails = false).first().items.map { it.roomId } shouldBe
+            items.map { it.roomId }
         items.map { it.roomId }.toSet() shouldBe setOf(spaceId, child.roomId, invited.roomId)
         items.single { it.roomId == invited.roomId }.let { it.invited && it.canJoin && !it.joined } shouldBe true
+    }
+
+    @Test
+    fun `overview membership filter independently selects joined spaces and invitations`() = runTest {
+        val invited = space.copy(roomId = RoomId("!invited:example.org"), membership = Membership.INVITE)
+        val source = testSpaceBrowserContext(MutableStateFlow(mapOf(alice to client(listOf(space, invited)))))
+        for (joined in listOf(false, true)) {
+            for (invite in listOf(false, true)) {
+                for (discovery in listOf(false, true)) {
+                    val items =
+                        source
+                            .getSpaceOverview(
+                                alice,
+                                membershipFilter = SpaceMembershipFilter(joined = joined, invited = invite),
+                                loadDetails = discovery,
+                            )
+                            .first()
+                            .items
+                    items.map { it.roomId }.toSet() shouldBe
+                        buildSet {
+                            if (joined) add(spaceId)
+                            if (invite) add(invited.roomId)
+                        }
+                }
+            }
+        }
     }
 
     @Test
@@ -210,6 +325,8 @@ class SpaceContentTest {
         val client = client(listOf(space, Room(roomId, membership = childMembership)), service)
         every { service.getState(spaceId, TopicEventContent::class, any()) } returns topic
         every { service.getById(spaceId) } returns spaceState
+        every { service.getAll() } returns
+            flowOf(mapOf(spaceId to spaceState, roomId to flowOf(Room(roomId, membership = childMembership))))
         every { service.getAllState(spaceId, ChildEventContent::class) } returns
             flowOf(
                 children
@@ -516,6 +633,7 @@ internal fun TestScope.testSpaceBrowserContext(
                 modules(
                     module {
                         single { registry }
+                        single<SpaceContentViewModelFactory> { SpaceContentViewModelFactory }
                         single { createTestMatrixMessengerSettingsHolder() }
                         single { roomName }
                         single<BackHandler> { BackHandlerImpl() }
