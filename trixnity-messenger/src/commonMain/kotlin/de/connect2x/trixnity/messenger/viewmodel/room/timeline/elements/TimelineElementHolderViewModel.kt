@@ -504,7 +504,9 @@ class TimelineElementHolderViewModelImpl(
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         previousSupportedTimelineEvent
-            .map { timelineEvent -> timelineEvent?.sender != senderUserId }
+            .map { timelineEvent ->
+                timelineEvent?.sender != senderUserId || timelineEvent.event is ClientEvent.RoomEvent.StateEvent
+            }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     // TODO: images are loaded for each holder into memory! This should be fixed.
