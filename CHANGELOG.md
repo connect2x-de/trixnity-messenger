@@ -99,6 +99,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Restore message bubble edges after state events from the same sender
 - SDK,IOS: Behaviour of the external media player controls do not align with Android and other platforms
 - UI: Wrong padding of the time element in message bubble for incoming messages
+- SDK: Complete mention suggestions for full mxid
 
 ### Security
 
