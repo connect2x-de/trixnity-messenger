@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -69,7 +70,9 @@ private fun CallParticipants(state: CallState.Active, modifier: Modifier) {
     val speakerFraction = 0.6f
     Column(modifier, verticalArrangement = Arrangement.spacedBy(CallSpacing)) {
         Box(Modifier.fillMaxWidth().weight(speakerFraction)) {
-            state.featured?.let { CallParticipantTile(Modifier.fillMaxSize(), item = it) }
+            state.featured?.let { participant ->
+                key(participant.id) { CallParticipantTile(Modifier.fillMaxSize(), item = participant) }
+            }
         }
         Box(Modifier.fillMaxWidth().weight(1 - speakerFraction), contentAlignment = Alignment.CenterStart) {
             LazyRow(
