@@ -55,6 +55,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: account setup is skipped after logout and login with the same account
 - SDK: oauth and sso should only be resumed when url changes
 - SDK,UI: (**breaking change**) Introduced intermediate view models for file based timeline elements
+- SDK,UI: Refactoring of the user profile UI into reusable components
 
 ### Deprecated
 
@@ -91,6 +92,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - DEPENDENCY: FIx publish correct gradle module metadata
 - UI, ANDROID: Correctly require foreground permissions for media playback
 - UI: Fix various issues when adding, removing and interacting with optional room power levels
+- UI: Profile options overlapping user information on small screens
+- UI: Long usernames wrapping with centered alignment in the profile view
 - UI: Restore message bubble edges after state events from the same sender
 - SDK,IOS: Behaviour of the external media player controls do not align with Android and other platforms
 
