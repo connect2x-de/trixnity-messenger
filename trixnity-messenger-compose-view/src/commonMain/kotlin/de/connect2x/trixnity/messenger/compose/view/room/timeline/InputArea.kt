@@ -106,9 +106,12 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
+import de.connect2x.trixnity.messenger.compose.view.util.collectAsStateDebounced
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import okio.FileSystem
 
 private fun TextFieldState.insert(insertion: String) {
@@ -312,7 +315,10 @@ fun MentionSelector(
     focusRequester: FocusRequester,
     mentionFocusRequester: FocusRequester,
 ) {
-    val loading = inputAreaViewModel.suggestedMentionsLoading.collectAsState().value
+    val loading =
+        inputAreaViewModel.suggestedMentionsLoading
+            .collectAsStateDebounced { isLoading -> if (isLoading) 200.milliseconds else Duration.ZERO }
+            .value
     val listOfMentions = inputAreaViewModel.suggestedMentions.collectAsState().value
     val focusedMention = remember(listOfMentions) { mutableStateOf(listOfMentions?.firstOrNull()?.id) }
     val mentionFocusRequesters = remember(listOfMentions) { List(listOfMentions.orEmpty().size) { FocusRequester() } }
