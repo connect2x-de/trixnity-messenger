@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -38,34 +39,48 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
-private object MessageBubbleMeasurePolicy : MeasurePolicy {
+internal object MessageBubbleMeasurePolicy : MeasurePolicy {
     val spacing = 10.dp
 
     enum class LayoutId {
+        SENDER,
         MESSAGE,
         TIMESTAMP,
     }
 
     override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
         val spacing = spacing.roundToPx()
-        val message = measurables.firstOrNull { it.layoutId == LayoutId.MESSAGE }?.measure(constraints)
+        val contentConstraints = constraints.copy(minWidth = 0, minHeight = 0)
+        val sender = measurables.firstOrNull { it.layoutId == LayoutId.SENDER }?.measure(contentConstraints)
+        val senderHeight = sender?.height ?: 0
+        val message = measurables.firstOrNull { it.layoutId == LayoutId.MESSAGE }?.measure(contentConstraints)
         requireNotNull(message) { "Cannot layout message bubble without message content" }
-        val date = measurables.firstOrNull { it.layoutId == LayoutId.TIMESTAMP }?.measure(constraints)
+        val date = measurables.firstOrNull { it.layoutId == LayoutId.TIMESTAMP }?.measure(contentConstraints)
         return date?.let {
             if (message.width + spacing + date.width < constraints.maxWidth) {
                 // add extra padding to bottom that is missing otherwise
-                val height = message.height + 10.dp.roundToPx()
-                layout(width = message.width + spacing + date.width, height = height) {
-                    message.place(0, 0)
-                    date.place(message.width + spacing, height - date.height)
+                val height = senderHeight + message.height + 10.dp.roundToPx()
+                val width = constraints.constrainWidth(maxOf(sender?.width ?: 0, message.width + spacing + date.width))
+                layout(width = width, height = height) {
+                    sender?.place(0, 0)
+                    message.place(0, senderHeight)
+                    date.place(width - date.width, height - date.height)
                 }
             } else {
-                layout(width = constraints.maxWidth, height = message.height + date.height) {
-                    message.place(0, 0)
-                    date.place(constraints.maxWidth - date.width, message.height)
+                layout(width = constraints.maxWidth, height = senderHeight + message.height + date.height) {
+                    sender?.place(0, 0)
+                    message.place(0, senderHeight)
+                    date.place(constraints.maxWidth - date.width, senderHeight + message.height)
                 }
             }
-        } ?: layout(message.width, message.height) { message.place(0, 0) }
+        }
+            ?: layout(
+                constraints.constrainWidth(maxOf(sender?.width ?: 0, message.width)),
+                senderHeight + message.height,
+            ) {
+                sender?.place(0, 0)
+                message.place(0, senderHeight)
+            }
     }
 
     override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int {
@@ -123,37 +138,44 @@ fun MessageBubbleContent(
         if (sendError != null) {
             Icon(Icons.Default.Warning, "send error", Modifier.padding(5.dp).align(Alignment.CenterVertically))
         }
-        Column(Modifier.padding(0.dp).then(highlighted).then(mentionBorder)) {
-            if (showSender) {
-                Box(Modifier.padding(start = 10.dp, end = 10.dp, top = 5.dp)) {
-                    val sender = holder.sender.collectAsState().value
-                    if (sender == null) {
-                        // TODO placeholder instead
-                        ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
-                    } else {
-                        Text(
-                            text = sender.name,
-                            modifier =
-                                Modifier.pointerHoverIcon(PointerIcon.Hand)
-                                    .clickable(onClick = holder::openSenderProfile),
-                            style =
-                                MaterialTheme.typography.labelLarge.copy(
-                                    color =
-                                        MaterialTheme.messengerColors.getUserColor(
-                                            sender.userId,
-                                            messageBubbleStyle.color,
-                                        )
-                                ),
-                        )
+        Column(Modifier.then(highlighted).then(mentionBorder)) {
+            val senderContent: @Composable () -> Unit = {
+                if (showSender) {
+                    Box(
+                        Modifier.layoutId(MessageBubbleMeasurePolicy.LayoutId.SENDER)
+                            .padding(start = 10.dp, end = 10.dp, top = 5.dp)
+                    ) {
+                        val sender = holder.sender.collectAsState().value
+                        if (sender == null) {
+                            // TODO placeholder instead
+                            ThemedProgressIndicator(
+                                style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                            )
+                        } else {
+                            Text(
+                                text = sender.name,
+                                modifier =
+                                    Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                        .clickable(onClick = holder::openSenderProfile),
+                                style =
+                                    MaterialTheme.typography.labelLarge.copy(
+                                        color =
+                                            MaterialTheme.messengerColors.getUserColor(
+                                                sender.userId,
+                                                messageBubbleStyle.color,
+                                            )
+                                    ),
+                            )
+                        }
                     }
                 }
             }
 
-            RepliedElement(holder)
-
-            // the hasRepliedElement is needed to avoid layouting already layouted elements which leads to this: "Asking
-            // for intrinsic measurements of SubcomposeLayout layouts is not supported."
+            // Replies and media keep their separate metadata row. Compact messages measure
+            // the sender together with the body without querying intrinsic sizes.
             if (needsMaxWidth || hasRepliedElement) {
+                senderContent()
+                RepliedElement(holder)
                 content(showActionMenu)
                 Row(Modifier.align(Alignment.End).padding(5.dp), verticalAlignment = Alignment.Bottom) {
                     MessageBubbleContentInfo(isReplaced, holder)
@@ -161,6 +183,7 @@ fun MessageBubbleContent(
             } else {
                 Layout(
                     content = {
+                        senderContent()
                         Box(Modifier.layoutId(MessageBubbleMeasurePolicy.LayoutId.MESSAGE)) { content(showActionMenu) }
                         Row(
                             modifier =
