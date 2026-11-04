@@ -77,6 +77,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   process to AccountSetupViewModel
 - SDK, UI: (**breaking change**) Add spaces support to `MatrixMessengerConfiguration.Features`, `AvatarStyle`,
   and `RoomListViewModelImpl`
+- UI: Fade out text based reply previews if they would exceed the preview size
 
 ### Deprecated
 
