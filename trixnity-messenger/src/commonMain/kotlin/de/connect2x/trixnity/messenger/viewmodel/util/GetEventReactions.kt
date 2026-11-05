@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.flatten
+import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getTimelineEventReactionAggregation
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
@@ -10,10 +11,13 @@ import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.MSC4027
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.MxcUri
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.getErrorMessage
@@ -27,11 +31,16 @@ import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.FromOtherAc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 interface GetEventReactions {
     operator fun invoke(
@@ -51,50 +60,75 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
         eventId: EventId,
         initials: Initials,
         maxMediaSizeInMemory: Long,
-    ): Flow<EventReactions> =
-        matrixClient.room.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
-            when (timelineEvent?.content?.getOrNull()) {
-                null,
-                is RedactedRoomEventContent -> flowOf(EventReactions(emptySet()))
-                else -> {
-                    val timelineReactions =
-                        getReactionsFromTimeline(matrixClient, roomId, eventId, initials, maxMediaSizeInMemory)
+    ): Flow<EventReactions> = channelFlow {
+        matrixClient.room
+            .getTimelineEvent(roomId, eventId)
+            .flatMapLatest { timelineEvent ->
+                when (timelineEvent?.content?.getOrNull()) {
+                    null,
+                    is RedactedRoomEventContent -> flowOf(EventReactions(emptySet()))
+                    else -> {
+                        val timelineReactions =
+                            getReactionsFromTimeline(matrixClient, roomId, eventId, initials, maxMediaSizeInMemory)
 
-                    val outboxRedactions = getRedactionsFromOutbox(matrixClient, roomId)
+                        val outboxRedactions = getRedactionsFromOutbox(matrixClient, roomId)
 
-                    val outboxReactions =
-                        getReactionsFromOutbox(matrixClient, roomId, eventId, initials, maxMediaSizeInMemory)
+                        val outboxReactions =
+                            getReactionsFromOutbox(matrixClient, roomId, eventId, initials, maxMediaSizeInMemory)
 
-                    combine(timelineReactions, outboxReactions, outboxRedactions) {
-                        timelineEventReaction,
-                        outboxEventReaction,
-                        outboxRedactions ->
-                        val allUniqueReactions =
-                            outboxEventReaction.toSet() +
-                                timelineEventReaction.filter { timelineMessage ->
-                                    val hasNewerReactionInOutbox =
-                                        timelineMessage.status.isByMe() &&
-                                            outboxEventReaction.any { it.value == timelineMessage.value }
-                                    !hasNewerReactionInOutbox
-                                }
-                        val pendingRedactionStatusUpdated =
-                            allUniqueReactions
-                                .map { timelineMessage ->
-                                    val isPendingRedaction = outboxRedactions.any {
-                                        it == timelineMessage.eventOrTransactionId.eventIdOrNull()
+                        combine(timelineReactions, outboxReactions, outboxRedactions) {
+                            timelineEventReaction,
+                            outboxEventReaction,
+                            outboxRedactions ->
+                            val allUniqueReactions =
+                                outboxEventReaction.toSet() +
+                                    timelineEventReaction.filter { timelineMessage ->
+                                        val hasNewerReactionInOutbox =
+                                            timelineMessage.status.isByMe() &&
+                                                outboxEventReaction.any { it.value == timelineMessage.value }
+                                        !hasNewerReactionInOutbox
                                     }
-                                    if (isPendingRedaction) {
-                                        timelineMessage.copy(status = ReactionStatus.RedactionPending)
-                                    } else timelineMessage
-                                }
-                                .toSet()
-                        EventReactions(pendingRedactionStatusUpdated)
+                            val pendingRedactionStatusUpdated =
+                                allUniqueReactions
+                                    .map { timelineMessage ->
+                                        val isPendingRedaction = outboxRedactions.any {
+                                            it == timelineMessage.eventOrTransactionId.eventIdOrNull()
+                                        }
+                                        if (isPendingRedaction) {
+                                            timelineMessage.copy(status = ReactionStatus.RedactionPending)
+                                        } else timelineMessage
+                                    }
+                                    .toSet()
+                            EventReactions(pendingRedactionStatusUpdated)
+                        }
                     }
                 }
             }
-        }
+            .scopedMapLatest { reactions ->
+                val images =
+                    reactions.byReaction.keys.filter(MxcUri::isValid).associateWith { uri ->
+                        flow {
+                                emit(
+                                    matrixClient.media
+                                        .getThumbnail(uri, 64L, 64L, maxMediaSizeInMemory)
+                                        .fold(
+                                            onSuccess = {
+                                                it.toByteArray(this@scopedMapLatest, maxSize = maxMediaSizeInMemory)
+                                            },
+                                            onFailure = { null },
+                                        )
+                                )
+                            }
+                            .catch { emit(null) }
+                            .stateIn(this, WhileSubscribed(), null)
+                    }
+                reactions.copy(images = images)
+            }
+            .collect { send(it) }
+    }
 
     /** Get all reactions associated with a given event from the timeline */
+    @OptIn(MSC4027::class)
     private fun getReactionsFromTimeline(
         matrixClient: MatrixClient,
         roomId: RoomId,
@@ -119,21 +153,21 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
                     val mappedUsers = users.filterNotNull().associateBy { it.userId }
                     reactions.reactions.entries
                         .flatMap { (value, events) ->
-                            events.mapNotNull { event ->
-                                mappedUsers[event.sender]?.let { sender ->
-                                    EventReaction(
-                                        value = value,
-                                        eventOrTransactionId = EventIdOrTransactionId(event.eventId),
-                                        sender =
-                                            sender.toUserInfoElement(
-                                                this,
-                                                matrixClient,
-                                                initials,
-                                                maxMediaSizeInMemory,
-                                            ),
-                                        status = event.getReactionStatus(matrixClient.userId),
-                                    )
-                                }
+                            events.map { event ->
+                                EventReaction(
+                                    value = value,
+                                    eventOrTransactionId = EventIdOrTransactionId(event.eventId),
+                                    sender =
+                                        mappedUsers[event.sender].toUserInfoElement(
+                                            this,
+                                            matrixClient,
+                                            initials,
+                                            event.sender,
+                                            maxMediaSizeInMemory,
+                                        ),
+                                    status = event.getReactionStatus(matrixClient.userId),
+                                    shortcode = (event.content?.getOrNull() as? ReactionEventContent)?.shortcode,
+                                )
                             }
                         }
                         .toSet()
@@ -153,7 +187,6 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
     ): Flow<List<EventReaction>> {
         return matrixClient.user
             .getById(roomId, matrixClient.userId)
-            .filterNotNull()
             .flatMapLatest { user ->
                 matrixClient.room.getOutbox(roomId).scopedFlatMapLatest {
                     if (it.isEmpty()) {
@@ -208,10 +241,11 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
             .flatten()
     }
 
+    @OptIn(MSC4027::class)
     private fun CoroutineScope.getEventReactionFromOutboxEvent(
         reactionKey: String,
         outboxEvent: RoomOutboxMessage<*>,
-        user: RoomUser,
+        user: RoomUser?,
         matrixClient: MatrixClient,
         initials: Initials,
         maxMediaSizeInMemory: Long,
@@ -221,8 +255,9 @@ class GetEventReactionsImpl(private val i18n: I18n) : GetEventReactions {
             eventOrTransactionId =
                 outboxEvent.eventId?.let { id -> EventIdOrTransactionId(id) }
                     ?: EventIdOrTransactionId(outboxEvent.transactionId),
-            sender = user.toUserInfoElement(this, matrixClient, initials, maxMediaSizeInMemory),
+            sender = user.toUserInfoElement(this, matrixClient, initials, matrixClient.userId, maxMediaSizeInMemory),
             status = outboxEvent.getReactionStatus(),
+            shortcode = (outboxEvent.content as? ReactionEventContent)?.shortcode,
         )
     }
 
@@ -247,6 +282,7 @@ data class EventReaction(
     val sender: UserInfoElement,
     val eventOrTransactionId: EventIdOrTransactionId,
     val status: ReactionStatus,
+    val shortcode: String? = null,
 ) {
     @Deprecated(
         "For backwards compatibility, prefer using the status parameter instead as it provides more granular information"
@@ -268,7 +304,7 @@ sealed class ReactionStatus(val priority: Int) {
     fun ReactionStatus.isByMe() = this != FromOtherAccount
 }
 
-data class EventReactions(val all: Set<EventReaction>) {
+data class EventReactions(val all: Set<EventReaction>, val images: Map<String, StateFlow<ByteArray?>> = emptyMap()) {
     val byUser: Map<UserId, ByUserInfo> by lazy {
         all.groupBy { it.sender.userId }
             .mapValues { (_, value) ->
@@ -282,7 +318,7 @@ data class EventReactions(val all: Set<EventReaction>) {
     }
     val byReaction: Map<String, ByReactionsInfo> by lazy {
         all.groupBy { it.value }
-            .mapValues { (_, value) ->
+            .mapValues { (key, value) ->
                 val reactions =
                     value
                         .map {
@@ -294,7 +330,7 @@ data class EventReactions(val all: Set<EventReaction>) {
                         }
                         .toSet()
                 val highestStatus = reactions.map { it.status }.maxByOrNull { it.priority }
-                ByReactionsInfo(reactions, highestStatus)
+                ByReactionsInfo(reactions, highestStatus, value.firstNotNullOfOrNull { it.shortcode }, images[key])
             }
     }
 
@@ -309,7 +345,12 @@ data class EventReactions(val all: Set<EventReaction>) {
         val isMe = status.isByMe()
     }
 
-    data class ByReactionsInfo(val reactions: Set<ByReactionInfo>, val highestStatus: ReactionStatus?)
+    data class ByReactionsInfo(
+        val reactions: Set<ByReactionInfo>,
+        val highestStatus: ReactionStatus?,
+        val shortcode: String? = null,
+        val image: StateFlow<ByteArray?>? = null,
+    )
 
     data class ByReactionInfo(
         val eventOrTransactionId: EventIdOrTransactionId,

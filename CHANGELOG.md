@@ -9,6 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- UI: Display custom image reactions with shortcode or reaction key fallback
 - UI: Render inline images and custom emotes in messages and formatted reply previews
 - UI: Open user info in room settings by clicking or tapping a sender's name in the timeline
 - UI: Add a leave room action with confirmation to the room list's more options menu
