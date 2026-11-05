@@ -53,6 +53,7 @@ data class AvatarStyle(
     val shape: Shape,
     val badgeSize: Dp,
     val badgeShape: Shape,
+    val imageBackgroundColor: Color? = null,
 ) {
     companion object {
         @Composable
@@ -102,7 +103,10 @@ fun ThemedUserAvatar(
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     val bitmap = rememberImageBitmapOrNull(image)
-    ThemedUserAvatarBase(presence, size, style, modifier, overlay) {
+    val resolvedStyle =
+        if (bitmap != null && style.imageBackgroundColor != null) style.copy(color = style.imageBackgroundColor)
+        else style
+    ThemedUserAvatarBase(presence, size, resolvedStyle, modifier, overlay) {
         if (bitmap != null) {
             AvatarContentImage(bitmap, size)
         } else {
@@ -122,7 +126,10 @@ fun ThemedUserAvatarStack(
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     val bitmaps = images.mapNotNull { rememberImageBitmapOrNull(it) }
-    ThemedUserAvatarBase(presence, size, style, modifier, overlay) {
+    val resolvedStyle =
+        if (bitmaps.isNotEmpty() && style.imageBackgroundColor != null) style.copy(color = style.imageBackgroundColor)
+        else style
+    ThemedUserAvatarBase(presence, size, resolvedStyle, modifier, overlay) {
         if (bitmaps.isNotEmpty()) {
             AvatarContentImageStack(bitmaps, size)
         } else {
