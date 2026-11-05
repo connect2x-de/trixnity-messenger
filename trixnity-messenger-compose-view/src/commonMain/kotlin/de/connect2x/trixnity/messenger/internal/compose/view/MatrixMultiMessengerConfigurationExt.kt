@@ -16,6 +16,8 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.BlockedCont
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.CreateNewChatEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.CreateNewGroupEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.CrossSigningBootstrapEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.CrossSigningBootstrapExplanationEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.CrossSigningBootstrapRecoveryKeyEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.DeviceSettingsEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.ExperimentalSettingsEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.ExportRoomEntry
@@ -132,6 +134,8 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::CreateNewChatEntry)
         navigationOf(::CreateNewGroupEntry)
         navigationOf(::CrossSigningBootstrapEntry)
+        navigationOf(::CrossSigningBootstrapExplanationEntry)
+        navigationOf(::CrossSigningBootstrapRecoveryKeyEntry)
         navigationOf(::DeviceSettingsEntry)
         navigationOf(::ExportRoomEntry)
         navigationOf(::ExperimentalSettingsEntry)
