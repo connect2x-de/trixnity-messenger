@@ -28,6 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Add timeline elements for MatrixRTC membership changes
 - SDK,UI: Add I18n functions for providing URL to privacy policy and imprint website
 - SDK: Replace old imprint and privacy policy with newer connect2x website
+- UI,DESKTOP,WEB: Support keyboard navigation for @ mention
 
 ### Changed
 
@@ -98,6 +99,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Restore message bubble edges after state events from the same sender
 - SDK,IOS: Behaviour of the external media player controls do not align with Android and other platforms
 - UI: Wrong padding of the time element in message bubble for incoming messages
+- SDK: Complete mention suggestions for full mxid
+- UI: Debounce mention loading indicator
 
 ### Security
 

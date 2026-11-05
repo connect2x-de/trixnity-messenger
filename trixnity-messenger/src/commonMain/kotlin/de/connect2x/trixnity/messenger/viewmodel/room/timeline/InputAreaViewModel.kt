@@ -739,7 +739,8 @@ open class InputAreaViewModelImpl(
                     roomUser.membership == Membership.JOIN &&
                     (roomUser.name.contains(search, ignoreCase = true) ||
                         userId.localpart.contains(search, ignoreCase = true) ||
-                        userId.domain.contains(search, ignoreCase = true))
+                        userId.domain.contains(search, ignoreCase = true) ||
+                        userId.full.removePrefix("@").contains(search, ignoreCase = true))
             }
             .take(10)
             .map { roomUser -> roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxThumbnailSize) }
