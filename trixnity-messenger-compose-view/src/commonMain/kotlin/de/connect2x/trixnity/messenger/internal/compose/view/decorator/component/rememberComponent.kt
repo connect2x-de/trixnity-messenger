@@ -6,9 +6,15 @@ import kotlin.reflect.KClass
 
 @TrixnityMessengerPrivateApi
 @Composable
-fun <T : Any> rememberComponent(
+fun <T : Any> rememberComponent(clazz: KClass<out T>, stores: ComponentStores = LocalComponentStores.current): T {
+    return rememberComponentForKey(clazz, CurrentComponentStoreKey, stores)
+}
+
+@TrixnityMessengerPrivateApi
+@Composable
+fun <T : Any> rememberComponentForKey(
     clazz: KClass<out T>,
-    key: ComponentStoreKey = CurrentComponentStoreKey,
+    key: ComponentStoreKey,
     stores: ComponentStores = LocalComponentStores.current,
 ): T {
     return stores.forKey(key).getOrCreate(clazz)
@@ -16,9 +22,21 @@ fun <T : Any> rememberComponent(
 
 @TrixnityMessengerPrivateApi
 @Composable
-inline fun <reified T : Any> rememberComponent(
-    key: ComponentStoreKey = CurrentComponentStoreKey,
+inline fun <reified T : Any> rememberComponent(stores: ComponentStores = LocalComponentStores.current): T {
+    return rememberComponent(clazz = T::class, stores = stores)
+}
+
+/**
+ * Remembers a component via a [ComponentStoreKey], allowing for sharing of components between entries when used with a
+ * [ComponentStoreContext]
+ *
+ * @param key the [ComponentStoreKey] that is used to access the shared components
+ */
+@TrixnityMessengerPrivateApi
+@Composable
+inline fun <reified T : Any> rememberComponentForKey(
+    key: ComponentStoreKey,
     stores: ComponentStores = LocalComponentStores.current,
 ): T {
-    return rememberComponent(clazz = T::class, key = key, stores = stores)
+    return rememberComponentForKey(clazz = T::class, key = key, stores = stores)
 }

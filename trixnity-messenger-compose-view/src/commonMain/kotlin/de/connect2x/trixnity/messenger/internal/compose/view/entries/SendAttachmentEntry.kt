@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecorator
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecorator.Companion.plus
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.rememberComponent
+import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.rememberComponentForKey
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.NavigationEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.threepane.ThreePaneScene
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.twopane.TwoPaneScene
@@ -37,7 +38,7 @@ internal class SendAttachmentEntry(private val getRouteNavigation: GetRouteNavig
 
     @Composable
     override fun Content(route: SendAttachmentRoute) {
-        val timelineViewModel = rememberComponent<TimelineViewModel>(key = TimelineStoreKey)
+        val timelineViewModel = rememberComponentForKey<TimelineViewModel>(key = TimelineStoreKey)
         val sendAttachmentViewModel = rememberComponent<SendAttachmentViewModel>()
         val routes by getRouteNavigation.routes.collectAsState()
 

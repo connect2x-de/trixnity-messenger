@@ -12,6 +12,8 @@ import androidx.navigation3.runtime.get
 import androidx.navigation3.runtime.metadata
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.internal.component.CloseableComponentFactory
+import kotlin.collections.orEmpty
+import kotlin.collections.plus
 
 @TrixnityMessengerPrivateApi
 class ComponentStoreNavEntryDecorator<T : Any>(
@@ -36,6 +38,12 @@ class ComponentStoreNavEntryDecorator<T : Any>(
         operator fun Map<String, Any>.plus(componentStoreContext: ComponentStoreContext): Map<String, Any> {
             val context = get(ComponentStoreNavEntryDecoratorContextMetadataKey).orEmpty() + componentStoreContext
             return this + metadata { put(key = ComponentStoreNavEntryDecoratorContextMetadataKey, value = context) }
+        }
+
+        fun ComponentStoreContext.toMetadata(): Map<String, Any> {
+            return metadata {
+                put(key = ComponentStoreNavEntryDecoratorContextMetadataKey, value = listOf(this@toMetadata))
+            }
         }
     }
 

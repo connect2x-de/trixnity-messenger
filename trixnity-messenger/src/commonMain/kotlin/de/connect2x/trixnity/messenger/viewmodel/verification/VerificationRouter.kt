@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.serialization.Serializable
 import org.koin.core.component.get
+import org.koin.core.qualifier.named
 
 class VerificationRouter(
     private val viewModelContext: ViewModelContext,
@@ -33,7 +34,7 @@ class VerificationRouter(
             is Config.DeviceVerification ->
                 Wrapper.Verification(
                     viewModelContext
-                        .get<VerificationViewModelFactory>()
+                        .get<VerificationViewModelFactory>(named("v1"))
                         .create(
                             viewModelContext =
                                 viewModelContext.childContext("DeviceVerification", componentContext, config.userId),
@@ -47,7 +48,7 @@ class VerificationRouter(
             is Config.UserVerification ->
                 Wrapper.Verification(
                     viewModelContext
-                        .get<VerificationViewModelFactory>()
+                        .get<VerificationViewModelFactory>(named("v1"))
                         .create(
                             viewModelContext =
                                 viewModelContext.childContext("UserVerification", componentContext, config.userId),

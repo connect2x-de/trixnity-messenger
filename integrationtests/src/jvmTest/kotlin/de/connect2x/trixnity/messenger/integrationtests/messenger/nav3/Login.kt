@@ -58,6 +58,7 @@ suspend fun Nav3MatrixMessengerWithRoot.login(
 
     if (verification == null) {
         val mxid = UserId("@$username:localhost:8008")
+        log.info { "Got no cross signing bootstrap, starting self verification" }
         push(SelfVerificationRoute(mxid))
         val selfVerificationViewModel =
             (waitForViewModel<SelfVerificationRoute, AnySelfVerificationViewModel>() as AnySelfVerificationViewModel.V2)

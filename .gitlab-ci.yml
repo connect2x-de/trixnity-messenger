@@ -208,7 +208,7 @@ test:sdk:integration:jvm:
   needs:
     - job: "compile:linux"
       artifacts: false
-  tags: [ "c2x","shell","small" ]
+  tags: [ "c2x","shell","small","linux" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request

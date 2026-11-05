@@ -836,6 +836,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/Wi
 public final class de/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelKt {
 	public static final fun BackButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
 	public static final fun NextButton (ZLjava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun OkButton (Lkotlin/jvm/functions/Function0;ZLandroidx/compose/runtime/Composer;II)V
 	public static final fun WizardPanel (Lde/connect2x/trixnity/messenger/compose/view/common/wizard/WizardPanelContent;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 	public static final fun WizardPanel (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
 }
@@ -7258,6 +7259,17 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/
 	public final fun getLambda$43328694$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$VerificationWizardPanelsKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/v2/ComposableSingletons$VerificationWizardPanelsKt;
+	public fun <init> ()V
+	public final fun getLambda$-1569431601$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1620311504$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1713164718$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1214140205$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1573527673$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1833950237$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationStepsKt {
 	public static final fun NoVerification (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PasswordPhrase (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
@@ -7281,6 +7293,44 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/VerificationStepsContentKt {
+	public static final fun VerificationAcceptSasStartContent (Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationAcceptedByOtherClientContent (Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationCancelledContent (ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationCompareEmojisOrNumbersContent (Landroidx/compose/foundation/layout/BoxScope;Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationRejectedContent (ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationRequestContent (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationSelectVerificationMethodContent (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationSuccessContent (ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationTimeoutContent (ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationWaitForOtherContent (Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/VerificationStepsKt {
+	public static final fun VerificationAcceptSasStart (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationAcceptedByOtherClient (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationCancelled (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationCompareEmojisOrNumbers (Landroidx/compose/foundation/layout/BoxScope;Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationRejected (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationRequest (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationSelectVerificationMethod (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationSuccess (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationTimeout (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;ZLandroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationWaitForOther (Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/VerificationWizardPanelsKt {
+	public static final fun VerificationAcceptSasStartWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationCancelledWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationCompareEmojisOrNumbersWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationRejectedWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationRequestWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationSelectVerificationMethodWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationSuccessWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationTimeoutWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun VerificationWaitForOtherWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/notification/GetNotificationIconImpl_androidKt {
