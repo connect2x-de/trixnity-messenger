@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.compose.view.room.call
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +44,12 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 @Composable
 internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant) {
     val i18n = DI.get<I18nView>()
-    Card(modifier) {
+    val speakingAlpha by
+        animateFloatAsState(
+            targetValue = if (item.isSpeaking) 1f else 0f,
+            animationSpec = if (item.isSpeaking) snap() else tween(durationMillis = 500),
+        )
+    Card(modifier, border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = speakingAlpha))) {
         BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
             if (item.video != null) {
                 CallVideoView(item.video, Modifier.fillMaxSize())
