@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.internal
 
-import com.arkivanov.decompose.InternalDecomposeApi
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -76,6 +75,7 @@ import de.connect2x.trixnity.messenger.internal.navigation.GetRouteNavigation
 import de.connect2x.trixnity.messenger.internal.navigation.ResultEventBus
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
 import de.connect2x.trixnity.messenger.internal.navigation.UpdateRouteNavigation
+import de.connect2x.trixnity.messenger.internal.navigation.viewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.navigation.viewModelFactoryAdapterOf
 import de.connect2x.trixnity.messenger.internal.uia.UIAController
 import de.connect2x.trixnity.messenger.internal.uia.UIALogic
@@ -109,7 +109,6 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-@OptIn(InternalDecomposeApi::class)
 @TrixnityMessengerPrivateApi
 fun MatrixMultiMessengerConfiguration.nav3ViewModelOptIn() {
     modulesFactories += ::nav3OptInModuleFactory
@@ -118,6 +117,12 @@ fun MatrixMultiMessengerConfiguration.nav3ViewModelOptIn() {
         modulesFactories += ::nav3OptInModuleFactory
         modulesFactories += ::nav3ViewModelModuleFactory
     }
+}
+
+@TrixnityMessengerPrivateApi
+fun MatrixMessengerConfiguration.nav3ViewModelOptIn() {
+    modulesFactories += ::nav3OptInModuleFactory
+    modulesFactories += ::nav3ViewModelModuleFactory
 }
 
 private fun nav3ViewModelModuleFactory(): Module {
@@ -148,7 +153,7 @@ private fun nav3ViewModelModuleFactory(): Module {
 
         viewModelFactoryAdapterOf(::AccountSetupViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::AccountsViewModelFactoryAdapter)
-        viewModelFactoryAdapterOf(::AddMatrixAccountViewModelFactoryAdapter)
+        viewModelFactoryAdapter { AddMatrixAccountViewModelFactoryAdapter(get(), get(), getOrNull(), get(), get()) }
         viewModelFactoryAdapterOf(::AddMembersViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::AppearanceSettingsViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::AppInfoViewModelFactoryAdapter)

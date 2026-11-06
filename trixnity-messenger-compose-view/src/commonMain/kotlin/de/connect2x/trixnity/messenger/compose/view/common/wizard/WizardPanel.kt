@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -165,5 +167,16 @@ fun BackButton(enabled: Boolean = true, text: String? = null, onBack: () -> Unit
     val i18n = DI.get<I18nView>()
     ThemedButton(style = MaterialTheme.components.commonButton, onClick = onBack, enabled = enabled) {
         Text(text ?: i18n.actionBack())
+    }
+}
+
+@Composable
+fun OkButton(onClick: () -> Unit, enabled: Boolean = true) {
+    val i18n = DI.get<I18nView>()
+    Row(Modifier.fillMaxWidth()) {
+        Spacer(Modifier.weight(1.0f, fill = true))
+        ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onClick, enabled = enabled) {
+            Text(i18n.commonOk())
+        }
     }
 }

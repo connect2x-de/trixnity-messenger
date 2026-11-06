@@ -5,7 +5,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.internal.logic.ActiveDeviceVerificationStatesLogic
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
-import de.connect2x.trixnity.messenger.internal.routes.VerificationRoute
+import de.connect2x.trixnity.messenger.internal.routes.verification.VerificationRoute
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull

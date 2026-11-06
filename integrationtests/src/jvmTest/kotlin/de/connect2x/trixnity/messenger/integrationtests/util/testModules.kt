@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.integrationtests.util
 
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.store.repository.inMemory
 import de.connect2x.trixnity.core.model.UserId
@@ -7,16 +9,26 @@ import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.create
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
+import de.connect2x.trixnity.messenger.integrationtests.messenger.nav3.Nav3MatrixMessengerWithRoot
+import de.connect2x.trixnity.messenger.internal.nav3ViewModelOptIn
+import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
+import de.connect2x.trixnity.messenger.internal.routes.SyncRoute
+import de.connect2x.trixnity.messenger.internal.routes.root.MatrixClientInitializationRoute
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import de.connect2x.trixnity.messenger.secrets.GetKey
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyProvider
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
+import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModel
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
@@ -75,6 +87,31 @@ suspend fun createTestMatrixMessenger(): MatrixMessengerWithRoot {
         it.copy(preferredLang = "en")
     }
     return MatrixMessengerWithRoot(matrixMessenger)
+}
+
+@OptIn(TrixnityMessengerPrivateApi::class)
+suspend fun CoroutineScope.createTestNav3MatrixMessenger(): Nav3MatrixMessengerWithRoot {
+    val matrixMessenger =
+        MatrixMessenger.create(Dispatchers.Default) {
+            modulesFactories += { createTrixnityMessengerTestModule() }
+            nav3ViewModelOptIn()
+        }
+    matrixMessenger.di.get<MatrixMessengerSettingsHolder>().update<MatrixMessengerSettingsBase> {
+        it.copy(preferredLang = "en")
+    }
+    return Nav3MatrixMessengerWithRoot(matrixMessenger).also {
+        it.di.get<LifecycleRegistry>().start()
+        it.waitForViewModel<MatrixClientInitializationRoute, MatrixClientInitializationViewModel>()
+        launch {
+            // Start sync via viewModel once requested
+            it.di.get<RouteNavigation>().routes.collect { routes ->
+                val lastRoute = routes.last()
+                if (lastRoute is SyncRoute) {
+                    it.createViewModelFromAdapter<SyncViewModel>(lastRoute)
+                }
+            }
+        }
+    }
 }
 
 suspend fun createTestMatrixMultiMessenger(coroutineContext: CoroutineContext = Dispatchers.Default) =

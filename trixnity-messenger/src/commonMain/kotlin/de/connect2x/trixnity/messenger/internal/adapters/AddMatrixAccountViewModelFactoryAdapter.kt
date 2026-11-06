@@ -23,7 +23,7 @@ import org.koin.core.parameter.ParametersHolder
 internal class AddMatrixAccountViewModelFactoryAdapter(
     private val factory: AddMatrixAccountViewModelFactory,
     private val routeNavigation: RouteNavigation,
-    private val profileManager: ProfileManager,
+    private val profileManager: ProfileManager?,
     private val matrixClients: MatrixClients,
     private val closeAppIfPossible: CloseAppIfPossible,
 ) : ViewModelFactoryAdapter<AddMatrixAccountViewModel> {
@@ -50,7 +50,7 @@ internal class AddMatrixAccountViewModelFactoryAdapter(
                 },
             onCancel =
                 routeNavigation.navigationCallback {
-                    val isMultiProfile = profileManager.isMultiProfileEnabled.value
+                    val isMultiProfile = profileManager?.isMultiProfileEnabled?.value
                     when {
                         matrixClients.value.isNotEmpty() -> {
                             replace<RootRouteMarker>(MatrixClientInitializationRoute)

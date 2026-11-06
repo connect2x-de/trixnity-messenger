@@ -29,6 +29,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK,UI: Add I18n functions for providing URL to privacy policy and imprint website
 - SDK: Replace old imprint and privacy policy with newer connect2x website
 - UI,DESKTOP,WEB: Support keyboard navigation for @ mention
+- SDK: Add new VerificationViewModel (`v2.VerificationViewModel`), consolidating the viewModel childStack approach of
+  the current VerificationViewModel into a single viewModel
 
 ### Changed
 
@@ -58,6 +60,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: oauth and sso should only be resumed when url changes
 - SDK,UI: (**breaking change**) Introduced intermediate view models for file based timeline elements
 - SDK,UI: Refactoring of the user profile UI into reusable components
+- SDK, UI: Replace DeviceVerificationWizard with UI-only WizardPanels based on v2 of the VerificationViewModel, removing
+  old navigation logic
 
 ### Deprecated
 

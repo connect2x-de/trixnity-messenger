@@ -55,7 +55,16 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.UiaStepPass
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.UiaStepRegistrationTokenEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.UserProfileEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.UserSettingsEntry
-import de.connect2x.trixnity.messenger.internal.compose.view.entries.VerificationEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationAcceptSasStartEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationCancelledEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationCompareEmojisOrNumbersEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationRejectedEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationRequestEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationSelectVerificationMethodEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationSuccessEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationTimeoutEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationWaitForOtherClientEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.AnyNavigationEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.EntryProvider
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.navigationOf
@@ -162,6 +171,15 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::UiaStepRegistrationTokenEntry)
         navigationOf(::UserProfileEntry)
         navigationOf(::UserSettingsEntry)
+        navigationOf(::VerificationAcceptSasStartEntry)
+        navigationOf(::VerificationCancelledEntry)
+        navigationOf(::VerificationCompareEmojisOrNumbersEntry)
         navigationOf(::VerificationEntry)
+        navigationOf(::VerificationRejectedEntry)
+        navigationOf(::VerificationRequestEntry)
+        navigationOf(::VerificationSelectVerificationMethodEntry)
+        navigationOf(::VerificationSuccessEntry)
+        navigationOf(::VerificationTimeoutEntry)
+        navigationOf(::VerificationWaitForOtherClientEntry)
     }
 }

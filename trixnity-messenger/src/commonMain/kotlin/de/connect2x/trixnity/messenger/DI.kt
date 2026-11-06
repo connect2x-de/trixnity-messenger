@@ -708,7 +708,10 @@ private fun verificationViewModels() = module {
     single<VerificationStepRequestViewModelFactory> { VerificationStepRequestViewModelFactory }
     single<VerificationStepSuccessViewModelFactory> { VerificationStepSuccessViewModelFactory }
     single<VerificationStepTimeoutViewModelFactory> { VerificationStepTimeoutViewModelFactory }
-    single<VerificationViewModelFactory> { VerificationViewModelFactory }
+    single<VerificationViewModelFactory>(named("v1")) { VerificationViewModelFactory }
+    single<de.connect2x.trixnity.messenger.viewmodel.verification.v2.VerificationViewModelFactory> {
+        de.connect2x.trixnity.messenger.viewmodel.verification.v2.VerificationViewModelFactory
+    }
 }
 
 expect fun platformModule(): Module
