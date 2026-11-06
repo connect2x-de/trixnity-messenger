@@ -3,23 +3,25 @@
 package de.connect2x.trixnity.messenger.compose.view.room.call
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.livekitnity.api.LiveKit
 import de.connect2x.livekitnity.compose.local.LiveKitLocal
@@ -67,27 +69,77 @@ private fun CallMessage(modifier: Modifier = Modifier, message: CallState.Messag
 
 @Composable
 private fun CallParticipants(state: CallState.Active, modifier: Modifier) {
-    val speakerFraction = 0.6f
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(CallSpacing)) {
-        Box(Modifier.fillMaxWidth().weight(speakerFraction)) {
-            state.featured?.let { participant ->
-                key(participant.id) { CallParticipantTile(Modifier.fillMaxSize(), item = participant) }
-            }
-        }
-        Box(Modifier.fillMaxWidth().weight(1 - speakerFraction), contentAlignment = Alignment.CenterStart) {
-            LazyRow(
-                Modifier.fillMaxWidth().heightIn(max = 160.dp),
-                horizontalArrangement = Arrangement.spacedBy(CallSpacing),
-            ) {
-                items(state.thumbnails, key = { it.id }) { participant ->
-                    CallParticipantTile(
-                        Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true),
-                        item = participant,
-                    )
-                }
+    val participants = rememberOrderedParticipants(state)
+    if (participants.isEmpty()) return
+    if (participants.size <= 2) {
+        CallParticipantsOverlay(participants.first(), participants.getOrNull(1), modifier)
+    } else {
+        CallParticipantsGrid(participants, modifier)
+    }
+}
+
+@Composable
+private fun rememberOrderedParticipants(state: CallState.Active): List<CallParticipant> =
+    remember(state.featured, state.thumbnails) {
+        (listOfNotNull(state.featured) + state.thumbnails).sortedWith(
+            compareBy<CallParticipant> { it.isLocal }.thenBy { it.id }
+        )
+    }
+
+@Composable
+private fun CallParticipantsOverlay(primary: CallParticipant, secondary: CallParticipant?, modifier: Modifier) {
+    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        key(primary.id) { CallParticipantTile(Modifier.fillMaxSize(), primary) }
+        secondary?.let { participant ->
+            key(participant.id) {
+                CallParticipantTile(
+                    Modifier.align(Alignment.TopEnd)
+                        .padding(CallSpacing)
+                        .width(minOf(maxWidth / 2, 330.dp))
+                        .aspectRatio(CallTileAspectRatio),
+                    participant,
+                    elevation = 8.dp,
+                )
             }
         }
     }
 }
+
+@Composable
+private fun CallParticipantsGrid(participants: List<CallParticipant>, modifier: Modifier) {
+    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val grid = calculateParticipantGrid(participants.size, maxWidth, maxHeight)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(grid.columns),
+            modifier = Modifier.width(grid.width),
+            horizontalArrangement = Arrangement.spacedBy(CallSpacing),
+            verticalArrangement = Arrangement.spacedBy(CallSpacing),
+        ) {
+            items(participants, key = { it.id }) { participant ->
+                CallParticipantTile(Modifier.aspectRatio(CallTileAspectRatio), participant)
+            }
+        }
+    }
+}
+
+private data class ParticipantGrid(val columns: Int, val width: Dp)
+
+private fun calculateParticipantGrid(participantCount: Int, availableWidth: Dp, availableHeight: Dp): ParticipantGrid {
+    fun rowCount(columns: Int) = (participantCount + columns - 1) / columns
+    fun cellExtent(available: Dp, cells: Int) = (available - CallSpacing * (cells - 1)) / cells
+
+    val columns =
+        (1..participantCount).maxBy { columns ->
+            val heightFromWidth = cellExtent(availableWidth, columns) / CallTileAspectRatio
+            val heightFromRows = cellExtent(availableHeight, rowCount(columns))
+            minOf(heightFromWidth, heightFromRows)
+        }
+    val tileHeight = cellExtent(availableHeight, rowCount(columns)).coerceAtLeast(PreferredMinCallTileHeight)
+    val gridWidth = tileHeight * CallTileAspectRatio * columns + CallSpacing * (columns - 1)
+    return ParticipantGrid(columns, minOf(availableWidth, gridWidth))
+}
+
+private val PreferredMinCallTileHeight = 90.dp
+private const val CallTileAspectRatio = 16f / 9f
 
 internal val CallSpacing = 8.dp

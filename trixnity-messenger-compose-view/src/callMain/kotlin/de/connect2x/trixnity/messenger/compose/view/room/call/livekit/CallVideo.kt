@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import de.connect2x.livekitnity.api.room.Room
+import de.connect2x.livekitnity.compose.types.ScaleType
 import de.connect2x.livekitnity.compose.types.TrackReference
 import de.connect2x.livekitnity.compose.ui.VideoTrackView
 
@@ -16,6 +17,7 @@ internal fun CallVideoView(video: CallVideo, modifier: Modifier) {
             video.track,
             modifier,
             room = video.room,
+            scaleType = ScaleType.FitInside,
             mirror = video.track.participant === video.room.localParticipant,
         )
     }

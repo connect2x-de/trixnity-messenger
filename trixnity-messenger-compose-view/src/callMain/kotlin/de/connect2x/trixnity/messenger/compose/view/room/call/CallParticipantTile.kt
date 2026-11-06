@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -42,14 +43,18 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @Composable
-internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant) {
+internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant, elevation: Dp = 0.dp) {
     val i18n = DI.get<I18nView>()
     val speakingAlpha by
         animateFloatAsState(
             targetValue = if (item.isSpeaking) 1f else 0f,
             animationSpec = if (item.isSpeaking) snap() else tween(durationMillis = 500),
         )
-    Card(modifier, border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = speakingAlpha))) {
+    Card(
+        modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+        border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = speakingAlpha)),
+    ) {
         BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
             if (item.video != null) {
                 CallVideoView(item.video, Modifier.fillMaxSize())
