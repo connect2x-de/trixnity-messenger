@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
 import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
 import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
+import de.connect2x.trixnity.messenger.media.platformMediaModule
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.search.provider.SearchProviderFactory
@@ -328,7 +329,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
         ::newSearchViewModels,
 
         // Platform-specific implementations:
-        ::platformModule,
         ::platformPathsModule,
         ::platformStringsModule,
         ::platformCreateRepositoriesModuleModule,
@@ -349,6 +349,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
         ::platformProcessImageUploadModule,
         ::platformGetImageDimensionsModule,
         ::audioMetadataFactoryModule,
+        ::platformMediaModule,
     )
 
 /*
@@ -713,5 +714,3 @@ private fun verificationViewModels() = module {
         de.connect2x.trixnity.messenger.viewmodel.verification.v2.VerificationViewModelFactory
     }
 }
-
-expect fun platformModule(): Module

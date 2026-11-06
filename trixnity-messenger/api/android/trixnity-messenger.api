@@ -74,10 +74,6 @@ public final class de/connect2x/trixnity/messenger/DIKt {
 	public static final fun createTrixnityMessengerDefaultModuleFactories ()Ljava/util/List;
 }
 
-public final class de/connect2x/trixnity/messenger/DI_androidKt {
-	public static final fun platformModule ()Lorg/koin/core/module/Module;
-}
-
 public final class de/connect2x/trixnity/messenger/FontKind : java/lang/Enum {
 	public static final field BUNDLED Lde/connect2x/trixnity/messenger/FontKind;
 	public static final field Companion Lde/connect2x/trixnity/messenger/FontKind$Companion;
@@ -2034,6 +2030,10 @@ public final class de/connect2x/trixnity/messenger/media/PlatformAudioRecorder$S
 	public final fun getStartedRecording ()Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Recording;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/media/PlatformMediaModule_androidKt {
+	public static final fun platformMediaModule ()Lorg/koin/core/module/Module;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/multi/CopyMultiMessengerSingletons {

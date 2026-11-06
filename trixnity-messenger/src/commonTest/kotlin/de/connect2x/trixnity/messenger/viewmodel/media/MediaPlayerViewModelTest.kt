@@ -9,14 +9,14 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.media.MediaPlayer
-import de.connect2x.trixnity.messenger.platformModule
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlin.collections.plus
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -170,7 +170,27 @@ class MediaPlayerViewModelTest {
 
     @Test
     fun `should go into NotReady state when media player is not present`() = runTest {
-        val cut = mediaPlayerViewModel("a", "", null)
+        // since the player is always added in the DI, we have to built it ourselves, here
+        val viewModelContext =
+            testMatrixClientViewModelContext(
+                coroutineContext = backgroundScope.coroutineContext,
+                userId = me,
+                di =
+                    koinApplication {
+                            allowOverride(true)
+                            modules(module { single<BackHandler> { BackHandlerImpl() } })
+                        }
+                        .koin,
+            )
+        val cut =
+            MediaPlayerViewModelImpl(
+                viewModelContext = viewModelContext,
+                id = "a",
+                mimeType = "",
+                initialDurationOptional = null,
+                acquireFile = { Result.success(InMemoryPlatformMedia(flowOf(ByteArray(0)))) },
+            )
+
         cut.state.value shouldBe MediaPlayerViewModel.State.NotReady
     }
 
@@ -189,8 +209,7 @@ class MediaPlayerViewModelTest {
                                 module { mediaPlayer?.let { player -> single<MediaPlayer> { player } } }
                         )
                     }
-                    .koin
-                    .also { if (mediaPlayer == null) it.unloadModules(listOf(platformModule())) },
+                    .koin,
         )
     }
 
