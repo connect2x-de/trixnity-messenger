@@ -161,6 +161,20 @@ class NotificationSyncServiceTest {
     }
 
     @Test
+    fun `notification callback escapes reserved room characters`() = runTest {
+        val roomId = RoomId("!room/#?%:example.org")
+        val content = createNotificationUpdateContent(messageEvent.copy(roomId = roomId))
+        every { notificationServiceMock.getAllUpdates() } returns flowOf(createNotificationNew("encoded", content))
+        val cut = notificationSyncService()
+        backgroundScope.launch { cut.doWork() }
+
+        settle()
+
+        notificationHandler.notifications.getValue("encoded").callbackData shouldBe
+            "${config.appUri}/matrix:roomid/room%2F%23%3F%25:example.org"
+    }
+
+    @Test
     fun `new notification » should push new notification`() = runTest {
         val tag = "tag123"
         val content = createNotificationUpdateContent(messageEvent)

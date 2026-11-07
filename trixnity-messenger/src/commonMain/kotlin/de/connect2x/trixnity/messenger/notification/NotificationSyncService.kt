@@ -13,6 +13,7 @@ import de.connect2x.trixnity.client.store.avatarUrl
 import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.MatrixUri
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
@@ -317,7 +318,7 @@ class NotificationSyncService(
     private fun getCallback(roomId: RoomId? = null): String {
         return buildString { // TODO does this need to be changed in JS?
             append("${config.appUri}/")
-            roomId?.let { append("matrix:roomid/${roomId.full.trimStart(RoomId.sigilCharacter)}") }
+            roomId?.let { append(MatrixUri.from(it).full) }
         }
     }
 }

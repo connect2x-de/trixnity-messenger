@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.util.html
 
 import de.connect2x.trixnity.core.util.Reference
+import de.connect2x.trixnity.core.util.toLink
 
 class AutoLinkifyVisitor {
     private val taskQueue = mutableListOf<Task>()
