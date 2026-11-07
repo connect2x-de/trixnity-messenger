@@ -29,16 +29,19 @@ import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
+import de.connect2x.trixnity.messenger.internal.utils.TestUriHandler
 import de.connect2x.trixnity.messenger.isNot
 import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.UriHandler
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -390,6 +393,27 @@ class RoomListViewModelTest {
         syncState.value = SyncState.RUNNING
         delay(10)
         cut.initialSyncFinished.value shouldBe false
+    }
+
+    @Test
+    fun `open room from encoded notification callback`() = runTest {
+        val roomId = RoomId("!room/#?%:example.org")
+        val room = Room(roomId, createEventContent = roomCreateEventContent)
+        every { roomServiceMock.getById(roomId) } returns flowOf(room)
+        every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId to flowOf(room)))
+        for (appUri in listOf("test:", "test://app", "https://example.org:443", "HTTPS://example.org")) {
+            val uriHandler = TestUriHandler()
+            val cut = roomListViewModel(uriHandler = uriHandler, appUri = appUri)
+            subscribe(cut)
+            delay(10)
+
+            uriHandler.emit("$appUri/matrix:roomid/room%2F%23%3F%25:example.org?via=example.org")
+            delay(10)
+
+            verify { onRoomSelectedMock.invoke(any(), roomId) }
+            resetMocks(onRoomSelectedMock)
+            every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
+        }
     }
 
     @Test
@@ -1096,6 +1120,8 @@ class RoomListViewModelTest {
     private fun TestScope.roomListViewModel(
         matrixClients: Map<UserId, MatrixClient> = mapOf(user1 to matrixClientMock),
         onVerificationStarted: ((UserId) -> Unit)? = null,
+        uriHandler: UriHandler? = null,
+        appUri: String? = null,
     ): RoomListViewModelImpl {
         val koin =
             koinApplication {
@@ -1103,6 +1129,8 @@ class RoomListViewModelTest {
                         createTestDefaultTrixnityMessengerModules(matrixClients) +
                             module {
                                 single { roomNameMock }
+                                if (uriHandler != null) single<UriHandler> { uriHandler }
+                                if (appUri != null) single { MatrixMessengerConfiguration(appUri = appUri) }
                                 single { profileManagerMock }
                                 single<AccountViewModelFactory> {
                                     object : AccountViewModelFactory {
