@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.internal.navigation.InitialRoutes
 import de.connect2x.trixnity.messenger.internal.navigation.Route
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
 import de.connect2x.trixnity.messenger.internal.routes.AccountSetupRoute
+import de.connect2x.trixnity.messenger.internal.routes.AccountSetupSettingsRoute
 import de.connect2x.trixnity.messenger.internal.routes.selfverification.CrossSigningBootstrapRoute
 import de.connect2x.trixnity.messenger.internal.workers.CrossSigningBootstrapWorker
 import kotlin.test.Test
@@ -38,10 +39,16 @@ class CrossSigningBootstrapWorkerTest {
         testScheduler.runCurrent()
         assertEquals(listOf(), cut.routeNavigation.routes.value)
 
-        cut.routeNavigation.updateNavigation { items = listOf(AccountSetupRoute(dummyUserId2)) }
+        cut.routeNavigation.updateNavigation {
+            items = listOf(AccountSetupRoute(dummyUserId1), AccountSetupSettingsRoute(dummyUserId2))
+        }
         testScheduler.runCurrent()
         assertEquals(
-            listOf(AccountSetupRoute(dummyUserId2), CrossSigningBootstrapRoute(dummyUserId2)),
+            listOf(
+                AccountSetupRoute(dummyUserId1),
+                AccountSetupSettingsRoute(dummyUserId2),
+                CrossSigningBootstrapRoute(dummyUserId2),
+            ),
             cut.routeNavigation.routes.value,
         )
 
@@ -50,10 +57,16 @@ class CrossSigningBootstrapWorkerTest {
         testScheduler.runCurrent()
         assertEquals(listOf(), cut.routeNavigation.routes.value)
 
-        cut.routeNavigation.updateNavigation { items = listOf(AccountSetupRoute(dummyUserId1)) }
+        cut.routeNavigation.updateNavigation {
+            items = listOf(AccountSetupRoute(dummyUserId1), AccountSetupSettingsRoute(dummyUserId1))
+        }
         testScheduler.runCurrent()
         assertEquals(
-            listOf(AccountSetupRoute(dummyUserId1), CrossSigningBootstrapRoute(dummyUserId1)),
+            listOf(
+                AccountSetupRoute(dummyUserId1),
+                AccountSetupSettingsRoute(dummyUserId1),
+                CrossSigningBootstrapRoute(dummyUserId1),
+            ),
             cut.routeNavigation.routes.value,
         )
 

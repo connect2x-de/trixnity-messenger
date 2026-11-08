@@ -10,6 +10,8 @@ import de.connect2x.trixnity.messenger.internal.navigation.getResult
 import de.connect2x.trixnity.messenger.internal.navigation.navigationCallback
 import de.connect2x.trixnity.messenger.internal.navigation.replace
 import de.connect2x.trixnity.messenger.internal.routes.AccountSetupRoute
+import de.connect2x.trixnity.messenger.internal.routes.AccountSetupRouteMarker
+import de.connect2x.trixnity.messenger.internal.routes.AccountSetupSettingsRoute
 import de.connect2x.trixnity.messenger.internal.routes.selfverification.SelfVerificationRoute
 import de.connect2x.trixnity.messenger.internal.routes.selfverification.SelfVerificationRouteMarker
 import de.connect2x.trixnity.messenger.internal.verification.ChangeVerificationCompleteStatus
@@ -45,8 +47,10 @@ internal class AccountSetupViewModelFactoryAdapter(
                                 it.copy(accountSetupFinished = true)
                             }
                         }
-                        clear<AccountSetupRoute>()
+                        clear<AccountSetupRouteMarker>()
                     },
+                onStartAccountSetup =
+                    routeNavigation.navigationCallback { userId -> push(AccountSetupSettingsRoute(userId)) },
             )
 
         viewModelContext.coroutineScope.launch {

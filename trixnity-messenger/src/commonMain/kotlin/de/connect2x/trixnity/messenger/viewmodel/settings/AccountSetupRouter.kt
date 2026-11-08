@@ -46,6 +46,7 @@ class AccountSetupRouter(
                             viewModelContext.childContext("ShowAccountSetup", componentContext, config.userId),
                             ::onSetupClose,
                             onStartVerification,
+                            {},
                         )
                 )
             }

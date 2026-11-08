@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.entryDecoratorOf
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.saveable.SaveableStateHolderNavEntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.AccountSetupEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.AccountSetupSettingsEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.AccountsEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.AddMatrixAccountEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.AddMembersEntry
@@ -123,6 +124,7 @@ private fun nav3ViewModuleFactory(): Module {
 
         navigationOf(::AccountsEntry)
         navigationOf(::AccountSetupEntry)
+        navigationOf(::AccountSetupSettingsEntry)
         navigationOf(::AddMatrixAccountEntry)
         navigationOf(::AddMembersEntry)
         navigationOf(::AppearanceSettingsEntry)
