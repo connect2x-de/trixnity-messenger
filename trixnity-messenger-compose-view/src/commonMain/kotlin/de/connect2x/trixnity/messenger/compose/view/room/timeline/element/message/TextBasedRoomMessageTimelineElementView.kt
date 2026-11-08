@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
@@ -179,6 +180,8 @@ fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
     val lineHeight = with(LocalDensity.current) { style.lineHeight.toDp() }
     val maxHeight = lineHeight * maxLines
     val gradientOffset = maxHeight * fadeGradientStart
+    val gradientColors =
+        listOf(0.0f to Color.Black, 0.6f to Color.Black.copy(alpha = 0.3f), 1.0f to Color.Black.copy(alpha = 0.1f))
     if (content != null) {
         val uriCaller = DI.get<UriCaller>()
 
@@ -188,7 +191,9 @@ fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
                 loadImage = remember(element) { element::loadInlineImage },
                 mentions = element.mentionsInFormattedBody,
                 modifier =
-                    Modifier.heightIn(max = maxHeight).clipToBounds().fadeBottomToBackground(gradientOffset, 0.2f),
+                    Modifier.heightIn(max = maxHeight)
+                        .clipToBounds()
+                        .fadeBottomToBackground(gradientOffset, gradientColors),
                 onLinkClick = { uriCaller.invoke(it, true) },
                 onMentionClick = element::openMention,
             )
@@ -200,7 +205,7 @@ fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
             style = style,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fadeBottomToBackground(gradientOffset, 0.2f),
+            modifier = Modifier.fadeBottomToBackground(gradientOffset, gradientColors),
         )
     }
 }
