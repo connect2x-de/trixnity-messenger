@@ -7,12 +7,14 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.rtc.RtcService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -27,16 +29,19 @@ import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
+import de.connect2x.trixnity.messenger.internal.utils.TestUriHandler
 import de.connect2x.trixnity.messenger.isNot
 import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.UriHandler
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -57,6 +62,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
@@ -73,6 +79,7 @@ import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
+@OptIn(MSC4143::class)
 class RoomListViewModelTest {
 
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry()
@@ -114,6 +121,11 @@ class RoomListViewModelTest {
     val keyServiceMock = mock<KeyService>()
 
     val keyServiceMock2 = mock<KeyService>()
+
+    val rtcServiceMock = mock<RtcService>()
+
+    val rtcServiceMock2 = mock<RtcService>()
+
     val notificationService = mock<NotificationService>()
 
     private val onRoomSelectedMock = mock<Function2<UserId, RoomId, Unit>>()
@@ -141,6 +153,8 @@ class RoomListViewModelTest {
             profileManagerMock,
             keyServiceMock,
             keyServiceMock2,
+            rtcServiceMock,
+            rtcServiceMock2,
             onRoomSelectedMock,
             onAccountSelected,
             notificationService,
@@ -153,6 +167,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )
@@ -163,6 +178,8 @@ class RoomListViewModelTest {
         every { matrixClientMock.userId } returns user1
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+
+        every { matrixClientMock2.userId } returns user2
 
         every { userServiceMock.getById(roomId1, user1) } returns MutableStateFlow(roomUser(roomId1, user1))
         every { userServiceMock.getById(roomId2, user1) } returns MutableStateFlow(roomUser(roomId2, user1))
@@ -233,12 +250,15 @@ class RoomListViewModelTest {
         every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
         every { roomServiceMock2.getDraftMessage(any()) } returns flowOf(null)
 
+        every { rtcServiceMock.getMembers(any()) } returns flowOf(emptyMap())
+        every { rtcServiceMock2.getMembers(any()) } returns flowOf(emptyMap())
+
         every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
         every { onAccountSelected.invoke() } returns Unit
 
-        every { roomNameMock.getRoomName(isRoomOf(roomId1), matrixClientMock, any()) } returns flowOf("room1")
-        every { roomNameMock.getRoomName(roomId1, matrixClientMock, any()) } returns flowOf("room1")
+        every { roomNameMock.getRoomName(isRoomOf(roomId1), any(), any()) } returns flowOf("room1")
+        every { roomNameMock.getRoomName(roomId1, any(), any()) } returns flowOf("room1")
         every { roomNameMock.getRoomName(isRoomOf(roomId2), matrixClientMock, any()) } returns flowOf("room2")
         every { roomNameMock.getRoomName(roomId2, matrixClientMock, any()) } returns flowOf("room2")
         roomName3Mocker = every { roomNameMock.getRoomName(isRoomOf(roomId3), matrixClientMock, any()) }
@@ -373,6 +393,27 @@ class RoomListViewModelTest {
         syncState.value = SyncState.RUNNING
         delay(10)
         cut.initialSyncFinished.value shouldBe false
+    }
+
+    @Test
+    fun `open room from encoded notification callback`() = runTest {
+        val roomId = RoomId("!room/#?%:example.org")
+        val room = Room(roomId, createEventContent = roomCreateEventContent)
+        every { roomServiceMock.getById(roomId) } returns flowOf(room)
+        every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId to flowOf(room)))
+        for (appUri in listOf("test:", "test://app", "https://example.org:443", "HTTPS://example.org")) {
+            val uriHandler = TestUriHandler()
+            val cut = roomListViewModel(uriHandler = uriHandler, appUri = appUri)
+            subscribe(cut)
+            delay(10)
+
+            uriHandler.emit("$appUri/matrix:roomid/room%2F%23%3F%25:example.org?via=example.org")
+            delay(10)
+
+            verify { onRoomSelectedMock.invoke(any(), roomId) }
+            resetMocks(onRoomSelectedMock)
+            every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
+        }
     }
 
     @Test
@@ -701,6 +742,7 @@ class RoomListViewModelTest {
                         module {
                             single { roomServiceMock2 }
                             single { userServiceMock2 }
+                            single { rtcServiceMock2 }
                             single { notificationService }
                         }
                     )
@@ -906,6 +948,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock2 }
                             single { userServiceMock2 }
                             single { keyServiceMock2 }
+                            single { rtcServiceMock2 }
                             single { notificationService }
                         }
                     )
@@ -941,6 +984,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )
@@ -968,6 +1012,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )
@@ -996,6 +1041,7 @@ class RoomListViewModelTest {
                             single { roomServiceMock }
                             single { userServiceMock }
                             single { keyServiceMock }
+                            single { rtcServiceMock }
                             single { notificationService }
                         }
                     )
@@ -1014,6 +1060,52 @@ class RoomListViewModelTest {
         cut.searchResultsEmpty.value shouldBe true
     }
 
+    @Test
+    fun `should update room element when selected account changes and both accounts are in the room`() = runTest {
+        val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock, user2 to matrixClientMock2))
+        val syncState = MutableStateFlow(SyncState.STOPPED)
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { keyServiceMock }
+                            single { notificationService }
+                            single { rtcServiceMock }
+                        }
+                    )
+                }
+                .koin
+        every { matrixClientMock2.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { keyServiceMock2 }
+                            single { rtcServiceMock2 }
+                            single { notificationService }
+                        }
+                    )
+                }
+                .koin
+        every { matrixClientMock2.syncState } returns syncState
+        every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId1 to flowOf(Room(roomId1))))
+        every { roomServiceMock.getById(roomId1) } returns flowOf(Room(roomId1))
+        cut.accountViewModel.selectActiveAccount(user1)
+        subscribe(cut)
+
+        delay(10.milliseconds)
+        cut.elements.value.size shouldBe 1
+        cut.elements.value.first().account shouldBe user1
+
+        cut.accountViewModel.selectActiveAccount(user2)
+        delay(10.milliseconds)
+        cut.elements.value.size shouldBe 1
+        cut.elements.value.first().account shouldBe user2
+    }
+
     private fun TestScope.subscribe(cut: RoomListViewModel) = backgroundScope.launch {
         launch { cut.selectedRoomId.collect(::println) }
         launch { cut.error.collect(::println) }
@@ -1028,6 +1120,8 @@ class RoomListViewModelTest {
     private fun TestScope.roomListViewModel(
         matrixClients: Map<UserId, MatrixClient> = mapOf(user1 to matrixClientMock),
         onVerificationStarted: ((UserId) -> Unit)? = null,
+        uriHandler: UriHandler? = null,
+        appUri: String? = null,
     ): RoomListViewModelImpl {
         val koin =
             koinApplication {
@@ -1035,6 +1129,8 @@ class RoomListViewModelTest {
                         createTestDefaultTrixnityMessengerModules(matrixClients) +
                             module {
                                 single { roomNameMock }
+                                if (uriHandler != null) single<UriHandler> { uriHandler }
+                                if (appUri != null) single { MatrixMessengerConfiguration(appUri = appUri) }
                                 single { profileManagerMock }
                                 single<AccountViewModelFactory> {
                                     object : AccountViewModelFactory {

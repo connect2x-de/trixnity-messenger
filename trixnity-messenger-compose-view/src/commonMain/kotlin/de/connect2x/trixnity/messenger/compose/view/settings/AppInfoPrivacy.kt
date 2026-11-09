@@ -42,14 +42,16 @@ class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
 internal fun Privacy(onClose: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val uriHandler = LocalUriHandler.current
-    val privacyInfo = DI.get<MatrixMessengerBaseConfiguration>().privacyInfo ?: return
+    val configuration = DI.get<MatrixMessengerBaseConfiguration>()
+    val imprint = configuration.privacyInfo ?: i18n.privacyPolicyUrl()
     val markdownFlavour = DI.current.get<InformationMarkdownFlavour>()
-    val content = remember {
-        val parser = MarkdownParser(markdownFlavour)
-        val html =
-            HtmlGenerator(privacyInfo, parser.buildMarkdownTreeFromString(privacyInfo), markdownFlavour).generateHtml()
-        AutoLinkifyVisitor.process(HtmlVisitor.process(html))
-    }
+    val content =
+        remember(imprint) {
+            val parser = MarkdownParser(markdownFlavour)
+            val html =
+                HtmlGenerator(imprint, parser.buildMarkdownTreeFromString(imprint), markdownFlavour).generateHtml()
+            AutoLinkifyVisitor.process(HtmlVisitor.process(html))
+        }
     ThemedAdaptiveDialog(onClose) {
         AdaptiveDialogHeader(onClose = onClose) { Text(i18n.appInfoPrivacy()) }
         AdaptiveDialogScrollContent {

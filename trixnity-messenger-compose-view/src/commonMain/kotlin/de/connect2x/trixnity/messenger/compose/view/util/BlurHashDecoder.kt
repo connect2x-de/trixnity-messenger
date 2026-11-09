@@ -21,9 +21,11 @@ package de.connect2x.trixnity.messenger.compose.view.util
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.PI
 import kotlin.math.cos
@@ -32,7 +34,12 @@ import kotlin.math.withSign
 
 object BlurHashDecoder {
     /** Decode a blur hash into a new bitmap. */
-    fun decode(blurHash: String?, intrinsicSize: IntSize?, punch: Float = 1f): ImageBitmap? {
+    fun decode(
+        blurHash: String?,
+        intrinsicSize: IntSize?,
+        decodeSize: IntSize = IntSize(32, 32),
+        punch: Float = 1f,
+    ): ImageBitmap? {
         if (blurHash == null || blurHash.length < 6 || !Base83.isValid(blurHash)) {
             return null
         }
@@ -59,14 +66,14 @@ object BlurHashDecoder {
             return null
         }
 
-        return createImageBitmap(intrinsicSize.width, intrinsicSize.height) { x, y ->
+        return createScaledImageBitmap(decodeSize = decodeSize, intrinsicSize = intrinsicSize) { x, y ->
             var r = 0f
             var g = 0f
             var b = 0f
             for (j in 0 until numCompY) {
                 for (i in 0 until numCompX) {
-                    val cosX = cos(PI * x * i / intrinsicSize.width)
-                    val cosY = cos(PI * y * j / intrinsicSize.height)
+                    val cosX = cos(PI * x * i / decodeSize.width)
+                    val cosY = cos(PI * y * j / decodeSize.height)
                     val basis = (cosX * cosY).toFloat()
                     val color = colors[j * numCompX + i]
                     r += color[0] * basis
@@ -216,14 +223,16 @@ object BlurHashDecoder {
     }
 }
 
-/**
- * Creates an image by evaluating [drawPixel] once per pixel.
- *
- * Throws IllegalArgumentException for invalid or oversized dimensions.
- */
-private inline fun createImageBitmap(width: Int, height: Int, drawPixel: (Int, Int) -> Color): ImageBitmap {
-    require(width > 0 && height > 0) { "Image dimensions must be positive: ${width}x${height}" }
-    require(width.toLong() * height <= Int.MAX_VALUE / 4L) { "Image is too large: ${width}x${height}" }
+private inline fun createScaledImageBitmap(
+    decodeSize: IntSize,
+    intrinsicSize: IntSize,
+    crossinline drawPixel: (Int, Int) -> Color,
+): ImageBitmap {
+    return scaleBitmap(image = createImageBitmap(decodeSize, drawPixel), srcSize = decodeSize, dstSize = intrinsicSize)
+}
+
+private inline fun createImageBitmap(size: IntSize, crossinline drawPixel: (Int, Int) -> Color): ImageBitmap {
+    val (width, height) = size
 
     val bitmap = ImageBitmap(width, height)
     val canvas = Canvas(bitmap)
@@ -247,4 +256,21 @@ private inline fun createImageBitmap(width: Int, height: Int, drawPixel: (Int, I
     }
 
     return bitmap
+}
+
+private fun scaleBitmap(image: ImageBitmap, srcSize: IntSize, dstSize: IntSize): ImageBitmap {
+    val dst = ImageBitmap(dstSize.width, dstSize.height)
+    val targetCanvas = Canvas(dst)
+    val scalePaint = Paint().apply { filterQuality = FilterQuality.Low }
+
+    targetCanvas.drawImageRect(
+        image = image,
+        srcOffset = IntOffset.Zero,
+        srcSize = srcSize,
+        dstOffset = IntOffset.Zero,
+        dstSize = dstSize,
+        paint = scalePaint,
+    )
+
+    return dst
 }

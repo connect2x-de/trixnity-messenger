@@ -312,6 +312,35 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
+    fun `isFirstInUserSequence » be true when first message follows a join by the same sender`() {
+        runTest {
+            every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+            timeline(roomServiceMock, roomId) {
+                +stateEvent(sender = aliceId) { content = MemberEventContent(membership = Membership.JOIN) }
+                +timelineEvent
+            }
+            val cut = cut()
+            backgroundScope.launch { cut.isFirstInUserSequence.collect() }
+            eventually(100.milliseconds) { cut.isFirstInUserSequence.value shouldBe true }
+        }
+    }
+
+    @Test
+    fun `isFirstInUserSequence » be true when a state event interrupts messages from the same sender`() {
+        runTest {
+            every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = aliceId) { text("Hi!") }
+                +stateEvent(sender = aliceId) { content = MemberEventContent(membership = Membership.JOIN) }
+                +timelineEvent
+            }
+            val cut = cut()
+            backgroundScope.launch { cut.isFirstInUserSequence.collect() }
+            eventually(100.milliseconds) { cut.isFirstInUserSequence.value shouldBe true }
+        }
+    }
+
+    @Test
     fun `showSender » be true when first in a user sequence`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {

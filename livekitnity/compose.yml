@@ -1,0 +1,36 @@
+services:
+  livekit-1:
+    image: livekit/livekit-server:latest
+    network_mode: host
+    restart: unless-stopped
+    command: >-
+      --keys "devkey: secret"
+      --rtc.use_external_ip=true
+      --port 7880
+      --rtc.tcp_port 7881
+      --rtc.port_range_start 50000
+      --rtc.port_range_end 50999
+
+  livekit-2:
+    image: livekit/livekit-server:latest
+    network_mode: host
+    restart: unless-stopped
+    command: >-
+      --keys "devkey: secret"
+      --rtc.use_external_ip=true
+      --port 7890
+      --rtc.tcp_port 7891
+      --rtc.port_range_start 51000
+      --rtc.port_range_end 51999
+
+  livekit-3:
+    image: livekit/livekit-server:latest
+    network_mode: host
+    restart: unless-stopped
+    command: >-
+      --keys "devkey: secret"
+      --rtc.use_external_ip=true
+      --port 7900
+      --rtc.tcp_port 7901
+      --rtc.port_range_start 52000
+      --rtc.port_range_end 52999

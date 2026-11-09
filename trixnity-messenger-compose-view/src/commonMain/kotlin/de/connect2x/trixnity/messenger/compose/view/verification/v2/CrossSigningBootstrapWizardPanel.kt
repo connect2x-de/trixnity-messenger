@@ -1,0 +1,210 @@
+package de.connect2x.trixnity.messenger.compose.view.verification.v2
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.common.CloseMessengerButton
+import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
+import de.connect2x.trixnity.messenger.compose.view.common.LargeSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.NextButton
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardImage
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardPanel
+import de.connect2x.trixnity.messenger.compose.view.common.wizard.WizardSection
+import de.connect2x.trixnity.messenger.compose.view.copyToClipboard
+import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectionContainer
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.Res
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.recoverykey
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.vault
+import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
+import kotlinx.coroutines.launch
+
+const val RECOVERY_KEY_EXPLANATION = "RECOVERY_KEY_EXPLANATION"
+const val RECOVERY_KEY = "RECOVERY_KEY"
+const val FINISHED = "FINISHED"
+
+@Composable
+fun CrossSigningBootstrapExplanationWizardPanel(crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    WizardPanel(
+        title = { i18n.bootstrapRecoveryKeyExplanationTitle() },
+        content = { boxWithConstraintsScope ->
+            val isBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsState().value
+            val error = crossSigningBootstrapViewModel.error.collectAsState().value
+            WizardSection {
+                Text(i18n.bootstrapRecoveryKeyExplanation1())
+                Text(i18n.bootstrapRecoveryKeyExplanation2())
+                WizardImage(Res.drawable.vault, i18n.bootstrapVault(), 300.dp, boxWithConstraintsScope)
+                if (error != null) {
+                    ErrorView(error)
+                }
+                if (isBootstrapRunning) {
+                    Row {
+                        Spacer(Modifier.weight(1.0f, fill = true))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(i18n.bootstrapRecoveryKeyVaultCreation())
+                            MiddleSpacer()
+                            ThemedProgressIndicator(
+                                style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        buttons = {
+            val isBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsState().value
+            val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
+            NextButton(
+                text = i18n.bootstrapRecoveryKeyCreateVault(),
+                enabled = isBootstrapRunning.not() && recoveryKey == null,
+                nextAction = { crossSigningBootstrapViewModel.startCrossSigningBootstrap() },
+            )
+        },
+        wizardId = "CrossSigningBootstrap",
+    )
+}
+
+@Composable
+fun CrossSigningBootstrapRecoveryKeyWizardPanel(crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel) {
+    val i18n = DI.current.get<I18nView>()
+    WizardPanel(
+        title = { i18n.bootstrapRecoveryKeyTitle() },
+        content = {
+            val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
+            val recoveryKeyPart1 = crossSigningBootstrapViewModel.recoveryKeyPart1.collectAsState().value
+            val recoveryKeyPart2 = crossSigningBootstrapViewModel.recoveryKeyPart2.collectAsState().value
+            val copiedToClipBoard = remember { mutableStateOf(false) }
+            val recoveryKeyCopied = crossSigningBootstrapViewModel.recoveryKeyCopied.collectAsState().value
+            val hiddenRegistrationForm = rememberHiddenRegistrationForm()
+            fun confirmRecoveryKeyCopied() {
+                hiddenRegistrationForm.submit(
+                    username = "${crossSigningBootstrapViewModel.userId.localpart} (Recovery Key)",
+                    password = recoveryKey ?: "",
+                )
+                crossSigningBootstrapViewModel.confirmRecoveryKeyCopied()
+            }
+            WizardSection {
+                Text(text = i18n.bootstrapRecoveryKeyHandling())
+                Text(i18n.bootstrapRecoveryKeyWarning())
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Icon(
+                        Icons.Default.Warning,
+                        i18n.commonWarning(),
+                        modifier = Modifier.padding(end = MaterialTheme.messengerDpConstants.small),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                    Text(
+                        i18n.bootstrapRecoveryKeyAttention(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                Text(text = i18n.bootstrapRecoveryKeyOnlyOnce(), fontWeight = FontWeight.Bold)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    WizardImage(Res.drawable.recoverykey, i18n.bootstrapRecoveryKey(), 60.dp)
+                    LargeSpacer()
+                    ThemedSelectionContainer(MaterialTheme.components.selectionOnSurface, Modifier.weight(1.0f)) {
+                        Column {
+                            Text(
+                                text = recoveryKeyPart1 ?: "",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontFamily = FontFamily.Monospace,
+                            )
+                            MiddleSpacer()
+                            Text(
+                                text = recoveryKeyPart2 ?: "",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontFamily = FontFamily.Monospace,
+                            )
+                        }
+                    }
+                    LargeSpacer()
+                    Tooltip({ Text(i18n.bootstrapRecoveryKeyCopyToClipboard()) }) {
+                        Column(Modifier.width(IntrinsicSize.Min)) {
+                            val scope = rememberCoroutineScope()
+                            val di = DI.current
+                            Button(
+                                {
+                                    scope.launch {
+                                        copyToClipboard(recoveryKey ?: "", di)
+                                        copiedToClipBoard.value = true
+                                    }
+                                },
+                                Modifier.buttonPointerModifier(),
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.Assignment, i18n.bootstrapRecoveryKeyCopyToClipboard())
+                            }
+                            AnimatedVisibility(copiedToClipBoard.value) {
+                                Text(
+                                    i18n.commonCopied(),
+                                    Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)),
+                                    textAlign = TextAlign.Center,
+                                    color = Color.White,
+                                )
+                            }
+                        }
+                    }
+                }
+                LargeSpacer()
+                Row(
+                    Modifier.fillMaxWidth().clickable { confirmRecoveryKeyCopied() },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = recoveryKeyCopied, { confirmRecoveryKeyCopied() })
+                    SmallSpacer()
+                    Text(i18n.bootstrapRecoveryKeySafe())
+                }
+            }
+        },
+        buttons = {
+            val recoveryKeyCopied = crossSigningBootstrapViewModel.recoveryKeyCopied.collectAsState().value
+            CloseMessengerButton(crossSigningBootstrapViewModel::closeMessenger)
+            NextButton(enabled = recoveryKeyCopied, nextAction = crossSigningBootstrapViewModel::close)
+        },
+        wizardId = "CrossSigningBootstrap",
+    )
+}

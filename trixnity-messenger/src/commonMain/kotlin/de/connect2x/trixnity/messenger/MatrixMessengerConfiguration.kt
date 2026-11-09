@@ -91,9 +91,9 @@ data class MatrixMessengerConfiguration(
     override var sendLogsEmailAddress: String? = null,
 
     /** The privacy info of the application in a Markdown format */
-    override var privacyInfo: String? = null,
+    @Deprecated("use privacyInfo { } instead") override var privacyInfo: String? = null,
     /** The imprint of the application in a Markdown format */
-    override var imprint: String? = null,
+    @Deprecated("use imprint { } instead") override var imprint: String? = null,
     override var licenses: String? = null,
     var downloadsDisabled: Boolean = false,
 

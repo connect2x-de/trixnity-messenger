@@ -7,6 +7,8 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.core.model.events.m.room.FileBasedInfo
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.utils.KeyedMutex
@@ -33,11 +35,23 @@ interface DownloadManager {
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-    ): Deferred<Result<PlatformMedia>> = startDownloadAsync(matrixClient, content, fileName, progress, null)
+    ): Deferred<Result<PlatformMedia>> =
+        startDownloadAsync(matrixClient, content.url, content.file, content.info, fileName, progress, null)
 
     fun startDownloadAsync(
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased,
+        fileName: String,
+        progress: MutableStateFlow<FileTransferProgressElement?>,
+        maxDownloadSize: Long?,
+    ): Deferred<Result<PlatformMedia>> =
+        startDownloadAsync(matrixClient, content.url, content.file, content.info, fileName, progress, maxDownloadSize)
+
+    fun startDownloadAsync(
+        matrixClient: MatrixClient,
+        url: String?,
+        encryptedFile: EncryptedFile?,
+        info: FileBasedInfo?,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
         maxDownloadSize: Long?,
@@ -64,13 +78,15 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
 
     override fun startDownloadAsync(
         matrixClient: MatrixClient,
-        content: RoomMessageEventContent.FileBased,
+        url: String?,
+        encryptedFile: EncryptedFile?,
+        info: FileBasedInfo?,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
         maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>> {
         log.debug { "add $fileName to current downloads" }
-        val download = Download(fileName, content.info?.size, progress)
+        val download = Download(fileName, info?.size, progress)
         _downloads.value += download
 
         val trixnityProgress = MutableStateFlow<FileTransferProgress?>(null)
@@ -82,7 +98,7 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                         log.trace {
                             "download progress for $fileName: ${trixnityProgress.transferred} / ${trixnityProgress.total}"
                         }
-                        val total = trixnityProgress.total ?: content.info?.size
+                        val total = trixnityProgress.total ?: info?.size
                         progress.value =
                             FileTransferProgressElement(
                                 if (total != null) trixnityProgress.transferred.toFloat() / total.toFloat() else null,
@@ -91,9 +107,7 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                     }
                 }
             }
-            val encryptedFile = content.file
-            val url = content.url
-            val fileSize = content.info?.size
+            val fileSize = info?.size
             val result =
                 (encryptedFile?.url ?: url)?.let { key ->
                     downloadMutex.withLock(key) {

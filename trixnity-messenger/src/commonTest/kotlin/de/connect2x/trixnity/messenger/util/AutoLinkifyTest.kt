@@ -10,6 +10,16 @@ class AutoLinkifyTest {
         AutoLinkifyVisitor.process(HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(content))))
 
     @Test
+    fun preservesEncodedMatrixLinksAndParameters() {
+        val link = "matrix:roomid/room%2F%23%3F%25:example.org?via=one.org&via=two.org&label=a+b%26c"
+        val result = parseLinks(link)
+        val span = result.children.single() as HtmlNode.HtmlElement
+        val anchor = span.children.single() as HtmlNode.HtmlElement
+
+        assertEquals(link, anchor.attributes["href"])
+    }
+
+    @Test
     fun linkifiesLinksInText() {
         assertEquals(
             expected =

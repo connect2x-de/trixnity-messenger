@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.room.timeline.element
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,12 +22,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.EmojiPopup
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -36,6 +40,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionStatus.FromOtherAccount.isByMe
+import kotlinx.coroutines.flow.StateFlow
 
 interface MessageReactionsView {
     @Composable
@@ -86,7 +91,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
             onAddReaction = timelineElementHolderViewModel::addReaction,
             onRemoveReaction = timelineElementHolderViewModel::removeReaction,
             onOpenReactions = { reactionsOpen.value = true },
-            modifier,
+            modifier = modifier,
         )
     }
 }
@@ -123,17 +128,44 @@ private fun MessageReactionList(
     }
 }
 
+internal sealed interface Reaction {
+    data class Text(val text: String) : Reaction
+
+    data class Image(val bitmap: ImageBitmap, val contentDescription: String) : Reaction
+}
+
 @Composable
-internal fun MessageReactionDisplay(reaction: String) {
+internal fun rememberReaction(
+    reaction: String,
+    shortcode: String? = null,
+    image: StateFlow<ByteArray?>? = null,
+): Reaction {
+    if (image == null) return Reaction.Text(reaction)
+    val reactionText = shortcode ?: reaction
+    val bitmap = rememberImageBitmapOrNull(image.collectAsState().value, maxSize = IntSize(64, 64))
+    return if (bitmap != null) Reaction.Image(bitmap, reactionText) else Reaction.Text(reactionText)
+}
+
+@Composable
+internal fun MessageReactionDisplay(reaction: Reaction) {
     with(LocalDensity.current) {
-        Text(
-            text = reaction,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            softWrap = false,
-            modifier = Modifier.widthIn(0.dp, LocalTextStyle.current.fontSize.times(10).toDp()),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        when (reaction) {
+            is Reaction.Image ->
+                Image(
+                    bitmap = reaction.bitmap,
+                    contentDescription = reaction.contentDescription,
+                    modifier = Modifier.size(LocalTextStyle.current.fontSize.toDp()),
+                )
+            is Reaction.Text ->
+                Text(
+                    text = reaction.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false,
+                    modifier = Modifier.widthIn(0.dp, LocalTextStyle.current.fontSize.times(10).toDp()),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+        }
     }
 }
 
@@ -169,7 +201,7 @@ internal fun MessageReactionButton(
                 },
             modifier = buttonModifier,
         ) {
-            MessageReactionDisplay(reaction)
+            MessageReactionDisplay(rememberReaction(reaction, reactionEvents.shortcode, reactionEvents.image))
             Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
             Text(count.toString())
             if (highestStatus is ReactionStatus.SentError) {

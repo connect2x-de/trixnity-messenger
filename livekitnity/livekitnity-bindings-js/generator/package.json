@@ -1,0 +1,44 @@
+{
+  "name": "generator",
+  "version": "0.0.1",
+  "description": "A Kotlin generator for the Livekit JS SDK",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.9.0",
+  "engines": {
+    "node": ">=26.10.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^26.10.0",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.9.0",
+      "onFail": "error"
+    }
+  },
+  "bin": "src/cli.ts",
+  "scripts": {
+    "generate": "node ./src/cli.ts",
+    "format": "oxfmt",
+    "lint": "oxlint --type-aware"
+  },
+  "dependencies": {
+    "ts-morph": "^28.0.0"
+  },
+  "devDependencies": {
+    "@livekit/protocol": "^1.52.1",
+    "@livekit/throws-transformer": "^0.1.8",
+    "@types/node": "^26.6.4",
+    "@types/sdp-transform": "^3.0.0",
+    "livekit-client": "=2.22.4",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
+    "oxlint-tsgolint": "^7.0.2004",
+    "sdp-transform": "^3.0.0"
+  }
+}

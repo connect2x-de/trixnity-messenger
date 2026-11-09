@@ -56,6 +56,7 @@ class OAuth2AuthorizationCodeLoginWorkerTest {
         assertEquals(listOf(), cut.routeNavigation.routes.value)
 
         cut.matrixMessengerSettingsHolder.update<MatrixMessengerSettingsBase> { it.copy(oAuth2LoginState = loginState) }
+        cut.testUriHandler.emit(redirectUri)
         testScheduler.runCurrent()
         assertEquals(listOf(expectedRoute), cut.routeNavigation.routes.value)
     }

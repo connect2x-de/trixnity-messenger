@@ -208,7 +208,7 @@ test:sdk:integration:jvm:
   needs:
     - job: "compile:linux"
       artifacts: false
-  tags: [ "c2x","shell","small" ]
+  tags: [ "c2x","shell","small","linux" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -303,9 +303,10 @@ staging:web:
     expire_in: 7d
   script:
     - ./gradlew
-      :trixnity-messenger-compose-app:jsBrowserDistribution
+      :trixnity-messenger-compose-app:wasmJsBrowserDistribution
+      -Ptm_use_nav3=true
       --stacktrace
-    - mv trixnity-messenger-compose-app/build/dist/js/productionExecutable public
+    - mv trixnity-messenger-compose-app/build/dist/wasmJs/productionExecutable public
   environment:
     name: review/${CI_MERGE_REQUEST_IID}
     url: https://connect2x.gitlab.io/-/trixnity-messenger/trixnity-messenger/-/jobs/${CI_JOB_ID}/artifacts/public/index.html
@@ -333,13 +334,3 @@ publish:release:
       publishAllPublicationsToGitLabRepository
       publishAndReleaseToMavenCentral
       --stacktrace
-
-publish:kmm:
-  stage: publish
-  tags: [ "c2x","mac","shell","medium" ]
-  rules:
-    - *if-release
-  timeout: 2h
-  needs: [ "publish:release" ]
-  script:
-    - ./kmmPublish.sh

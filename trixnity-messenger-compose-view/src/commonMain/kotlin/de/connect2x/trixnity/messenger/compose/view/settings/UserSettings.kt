@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -51,6 +53,7 @@ class UserSettingsViewImpl : UserSettingsView {
                     if (userSettingsViewModel.canShowProfilesSettings) {
                         ProfilesSettingsButton(userSettingsViewModel)
                     }
+                    ExperimentalSettingsButton(userSettingsViewModel)
                 }
             }
         }
@@ -119,6 +122,20 @@ fun NotificationsSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
         leadingContent = { Icon(Icons.Default.Notifications, null) },
         headlineContent = { Text(i18n.commonNotifications().capitalize(Locale.current)) },
         onClick = { userSettingsViewModel.showNotificationsSettings() },
+        modifier = Modifier.heightIn(min = 72.dp),
+    )
+}
+
+@Composable
+fun ExperimentalSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
+    val configuration = DI.get<MatrixMessengerConfiguration>()
+    val i18n = DI.get<I18nView>()
+    if (!configuration.features.enableVideoCalls) return
+
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.SettingsSuggest, null) },
+        headlineContent = { Text(i18n.experimentalSettingsTitle()) },
+        onClick = { userSettingsViewModel.showExperimentalSettings() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
 }

@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.room.timeline
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -41,17 +42,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
@@ -59,6 +67,7 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -74,6 +83,9 @@ import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.expandable
+import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
+import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.trixnity.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.trixnity.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.trixnity.messenger.compose.view.files.NotPasteableException
@@ -94,9 +106,12 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
+import de.connect2x.trixnity.messenger.compose.view.util.collectAsStateDebounced
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import okio.FileSystem
 
 private fun TextFieldState.insert(insertion: String) {
@@ -105,6 +120,42 @@ private fun TextFieldState.insert(insertion: String) {
         replace(selection.min, selection.max, insertion)
         selection = TextRange(nextCursorPosition)
     }
+}
+
+private fun dismissMentionsOnEscape(
+    event: KeyEvent,
+    mentionsDismissed: MutableState<Boolean>,
+    mentionsAvailable: Boolean,
+    inputFocusRequester: FocusRequester,
+): Boolean {
+    if (event.type != KeyEventType.KeyDown || event.key != Key.Escape) return false
+    if (mentionsDismissed.value || !mentionsAvailable) return false
+
+    inputFocusRequester.requestFocus()
+    mentionsDismissed.value = true
+    return true
+}
+
+private fun focusMentionsOnArrowKey(
+    event: KeyEvent,
+    isMobile: Boolean,
+    mentionsAvailable: Boolean,
+    mentionFocusRequester: FocusRequester?,
+    inputModeManager: InputModeManager,
+): Boolean {
+    val direction =
+        when (event.key) {
+            Key.DirectionUp -> FocusDirection.Up
+            Key.DirectionDown -> FocusDirection.Down
+            else -> return false
+        }
+    if (isMobile || !mentionsAvailable) return false
+    if (event.isShiftPressed || event.isCtrlPressed || event.isMetaPressed) return false
+    val requester = mentionFocusRequester ?: return false
+
+    inputModeManager.requestInputMode(InputMode.Keyboard)
+    requester.requestFocus(direction)
+    return true
 }
 
 interface InputAreaView {
@@ -125,7 +176,15 @@ class InputAreaViewImpl : InputAreaView {
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
+        val mentionFocusRequester = remember { FocusRequester() }
         val textFieldState = inputAreaViewModel.textField.collectAsTextFieldState()
+        val mentionsDismissed = remember { mutableStateOf(false) }
+        LaunchedEffect(textFieldState) {
+            snapshotFlow { textFieldState.text.toString() to textFieldState.selection }
+                .collect { mentionsDismissed.value = false }
+        }
+        val mentions = inputAreaViewModel.suggestedMentions.collectAsState().value
+        val mentionsLoading = inputAreaViewModel.suggestedMentionsLoading.collectAsState().value
         val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
         val audioRecorderState = inputAreaViewModel.audio.recorder?.state?.collectAsState()?.value
 
@@ -133,7 +192,13 @@ class InputAreaViewImpl : InputAreaView {
         fun RowScope.TextInput(canRecordAudio: Boolean) {
             EmojiButton(emojisOpen)
 
-            InputAreaTextField(inputAreaViewModel, textFieldState, focusRequester, canRecordAudio = canRecordAudio)
+            InputAreaTextField(
+                inputAreaViewModel,
+                textFieldState,
+                focusRequester,
+                canRecordAudio = canRecordAudio,
+                mentionFocusRequester = mentionFocusRequester.takeUnless { mentionsDismissed.value },
+            )
 
             if (isEdit) {
                 EditButton(inputAreaViewModel)
@@ -169,7 +234,16 @@ class InputAreaViewImpl : InputAreaView {
         }
 
         ThemedSurface(style = MaterialTheme.components.inputAreaSurface) {
-            Column(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.fillMaxWidth().onPreviewKeyEvent {
+                    dismissMentionsOnEscape(
+                        event = it,
+                        mentionsDismissed = mentionsDismissed,
+                        mentionsAvailable = mentionsLoading || !mentions.isNullOrEmpty(),
+                        inputFocusRequester = focusRequester,
+                    )
+                }
+            ) {
                 HorizontalDivider(Modifier.fillMaxWidth())
                 if (isReplyTo) {
                     ReplyToArea(inputAreaViewModel)
@@ -190,35 +264,44 @@ class InputAreaViewImpl : InputAreaView {
                     }
                 }
 
-                MentionSelector(inputAreaViewModel, focusRequester)
+                if (!mentionsDismissed.value) {
+                    MentionSelector(inputAreaViewModel, focusRequester, mentionFocusRequester)
+                }
                 Row(
                     Modifier.fillMaxWidth().padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (!canSendMessages) {
-                        return@Row
-                    }
-                    when (audioRecorderState) {
-                        AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
-                        null -> TextInput(canRecordAudio = false)
-                        is AudioRecorder.State.Recording,
-                        is AudioRecorder.State.Completed,
-                        is AudioRecorder.State.Failed ->
-                            if (isEdit) {
-                                TextInput(canRecordAudio = true)
-                            } else {
-                                // Hack: the input area does not constrain its height, so the audio recorder's
-                                // fillMaxHeight fills all available space. Constrain the audio row here until
-                                // the parent sizing is fixed; intrinsic sizing around text breaks its line limit.
-                                Row(
-                                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    AudioRecordingArea(inputAreaViewModel.audio)
+                    if (canSendMessages) {
+                        when (audioRecorderState) {
+                            AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
+                            null -> TextInput(canRecordAudio = false)
+                            is AudioRecorder.State.Recording,
+                            is AudioRecorder.State.Completed,
+                            is AudioRecorder.State.Failed ->
+                                if (isEdit) {
+                                    TextInput(canRecordAudio = true)
+                                } else {
+                                    // Hack: the input area does not constrain its height, so the audio recorder's
+                                    // fillMaxHeight fills all available space. Constrain the audio row here until
+                                    // the parent sizing is fixed; intrinsic sizing around text breaks its line limit.
+                                    Row(
+                                        Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        AudioRecordingArea(inputAreaViewModel.audio)
+                                    }
                                 }
-                            }
+                        }
+                    } else {
+                        Box(Modifier.fillMaxWidth()) {
+                            Text(
+                                i18n.inputAreaCannotSendMessages(),
+                                modifier = Modifier.padding(10.dp).align(Alignment.Center),
+                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.75f),
+                            )
+                        }
                     }
                 }
             }
@@ -227,9 +310,18 @@ class InputAreaViewImpl : InputAreaView {
 }
 
 @Composable
-fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRequester) {
-    val loading = inputAreaViewModel.suggestedMentionsLoading.collectAsState().value
+fun MentionSelector(
+    inputAreaViewModel: InputAreaViewModel,
+    focusRequester: FocusRequester,
+    mentionFocusRequester: FocusRequester,
+) {
+    val loading =
+        inputAreaViewModel.suggestedMentionsLoading
+            .collectAsStateDebounced { isLoading -> if (isLoading) 200.milliseconds else Duration.ZERO }
+            .value
     val listOfMentions = inputAreaViewModel.suggestedMentions.collectAsState().value
+    val focusedMention = remember(listOfMentions) { mutableStateOf(listOfMentions?.firstOrNull()?.id) }
+    val mentionFocusRequesters = remember(listOfMentions) { List(listOfMentions.orEmpty().size) { FocusRequester() } }
     val scrollState = rememberScrollState()
     val i18n = DI.get<I18nView>()
     val onMentionClicked: (String) -> Unit = { id ->
@@ -242,14 +334,29 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
             if (loading) {
                 LoadingSpinner(modifier = Modifier.heightIn(min = 150.dp))
             } else {
-                Column(Modifier.verticalScroll(scrollState).fillMaxWidth()) {
-                    listOfMentions.orEmpty().forEach { mentionElement ->
+                Column(
+                    Modifier.focusRequester(mentionFocusRequester)
+                        .rovingFocusContainer()
+                        .verticalScroll(scrollState)
+                        .fillMaxWidth()
+                ) {
+                    listOfMentions.orEmpty().forEachIndexed { index, mentionElement ->
+                        val modifier =
+                            Modifier.rovingFocusItem(
+                                    isFocused = focusedMention.value == mentionElement.id,
+                                    onFocus = { focusedMention.value = mentionElement.id },
+                                )
+                                .focusRequester(mentionFocusRequesters[index])
+                                .focusProperties {
+                                    if (index == 0) up = mentionFocusRequesters.last()
+                                    if (index == mentionFocusRequesters.lastIndex) down = mentionFocusRequesters.first()
+                                }
                         when (mentionElement) {
                             is InputAreaViewModel.SuggestedMention.User ->
-                                UserSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n)
+                                UserSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n, modifier)
 
                             is InputAreaViewModel.SuggestedMention.AllRoomMembers ->
-                                RoomSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n)
+                                RoomSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n, modifier)
                         }
                     }
                 }
@@ -260,13 +367,15 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
 }
 
 @Composable
-fun UserSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+fun UserSelectorRow(
+    suggestedMention: InputAreaViewModel.SuggestedMention,
+    onClick: () -> Unit,
+    i18n: I18nView,
+    modifier: Modifier = Modifier,
+) {
     val userInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.User).user
     val avatar = userInfoElement.image?.collectAsState(null)?.value
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.mentionSelectorRow(onClick)) {
         ThemedUserAvatar(userInfoElement.initials, avatar)
         Spacer(Modifier.size(5.dp))
         Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
@@ -275,17 +384,28 @@ fun UserSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onCli
 }
 
 @Composable
-fun RoomSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+fun RoomSelectorRow(
+    suggestedMention: InputAreaViewModel.SuggestedMention,
+    onClick: () -> Unit,
+    i18n: I18nView,
+    modifier: Modifier = Modifier,
+) {
     val roomInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.AllRoomMembers).room
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.mentionSelectorRow(onClick)) {
         ThemedUserAvatar(roomInfoElement.roomImageInitials, roomInfoElement.roomImage)
         Spacer(Modifier.size(5.dp))
         Text(i18n.allRoomMembers(), style = MaterialTheme.typography.bodyLarge)
         Text(" (${suggestedMention.id})", style = MaterialTheme.typography.bodyMedium)
     }
+}
+
+@Composable
+private fun Modifier.mentionSelectorRow(onClick: () -> Unit): Modifier {
+    val interactionSource = remember { MutableInteractionSource() }
+    return focusHighlighting(interactionSource)
+        .clickable(interactionSource = interactionSource, indication = LocalIndication.current, onClick = onClick)
+        .buttonPointerModifier()
+        .padding(vertical = 5.dp)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -296,8 +416,12 @@ fun RowScope.InputAreaTextField(
     focusRequester: FocusRequester,
     style: InputAreaStyle = MaterialTheme.components.inputArea,
     canRecordAudio: Boolean,
+    mentionFocusRequester: FocusRequester?,
 ) {
     val platformType = Platform.current
+    val inputModeManager = LocalInputModeManager.current
+    val mentions = inputAreaViewModel.suggestedMentions.collectAsState().value
+    val mentionsLoading = inputAreaViewModel.suggestedMentionsLoading.collectAsState().value
     val i18n = DI.get<I18nView>()
     val fileSystem = DI.getOrNull<FileSystem>() // TODO this does not work in Web
     val interactionSource = remember { MutableInteractionSource() }
@@ -337,6 +461,14 @@ fun RowScope.InputAreaTextField(
                 Modifier.inputFocusNavigation().focusRequester(focusRequester).fillMaxWidth().onPreviewKeyEvent {
                     if (it.type == KeyEventType.KeyDown) {
                         when {
+                            focusMentionsOnArrowKey(
+                                event = it,
+                                isMobile = platformType.isMobile,
+                                mentionsAvailable = !mentionsLoading && !mentions.isNullOrEmpty(),
+                                mentionFocusRequester = mentionFocusRequester,
+                                inputModeManager = inputModeManager,
+                            ) -> true
+
                             (it.isShiftPressed && it.key == Key.Enter) -> {
                                 textFieldState.insert("\n")
                                 true

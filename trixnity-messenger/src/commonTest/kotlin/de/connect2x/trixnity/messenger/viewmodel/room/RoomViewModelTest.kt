@@ -42,7 +42,7 @@ import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.AddMember
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.ExportRoom
@@ -396,7 +396,7 @@ class RoomViewModelTest {
                                                                     )
                                                                 )
                                                             @OptIn(TrixnityMessengerCallApi::class)
-                                                            override val call: CallViewModel? = null
+                                                            override val call: CallControlViewModel? = null
                                                             override val usersTyping: StateFlow<String?> =
                                                                 MutableStateFlow(null)
                                                             override val userTrustLevel: StateFlow<UserTrustLevel?> =

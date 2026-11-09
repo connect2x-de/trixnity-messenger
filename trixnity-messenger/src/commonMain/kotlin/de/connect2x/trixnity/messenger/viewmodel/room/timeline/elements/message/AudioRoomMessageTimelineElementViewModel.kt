@@ -2,16 +2,13 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
-import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
-import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.AudioTimelineElementViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
 import kotlin.reflect.KClass
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 interface AudioRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<FileBased.Audio> {
     override fun create(
@@ -43,21 +40,15 @@ class AudioRoomMessageTimelineElementViewModelImpl(
     onOpenMention: OpenMentionCallback,
 ) :
     RoomMessageTimelineElementViewModel.FileBased.Audio,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(
-        viewModelContext,
-        content,
-        roomId,
-        eventIdOrTransactionId,
-        onOpenMention,
+    RoomMessageTimelineElementViewModelImpl<FileBased.Audio>(viewModelContext, content, roomId, onOpenMention),
+    FileBasedTimelineElementViewModel.Audio by AudioTimelineElementViewModelImpl(
+        viewModelContext = viewModelContext,
+        url = content.url,
+        encryptedFile = content.file,
+        info = content.info,
+        fileName = content.fileName ?: content.body,
+        roomId = roomId,
+        eventIdOrTransactionId = eventIdOrTransactionId,
     ) {
-    override val duration: Duration? = content.info?.duration?.milliseconds
-    override val audioPlayer: MediaPlayerViewModel? =
-        getOrNull<MediaPlayerViewModelFactory>()
-            ?.create(
-                id = eventIdOrTransactionId.toString(),
-                viewModelContext = viewModelContext,
-                mimeType = mimeType ?: "audio/raw",
-                initialDuration = duration,
-                acquireFile = ::downloadMediaInternal,
-            )
+    override val hasCaption: Boolean = content.fileName != null && content.body != content.fileName
 }

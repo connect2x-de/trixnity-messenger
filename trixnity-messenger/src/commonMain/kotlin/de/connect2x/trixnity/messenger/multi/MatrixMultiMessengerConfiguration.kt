@@ -18,8 +18,8 @@ data class MatrixMultiMessengerConfiguration(
     override var appUri: String = "$appId:",
     override var oAuth2ClientUrl: String = "https://messenger.trixnity.connect2x.de",
     override var sendLogsEmailAddress: String? = null,
-    override var privacyInfo: String? = null,
-    override var imprint: String? = null,
+    @Deprecated("Override privacyPolicy in I18nView") override var privacyInfo: String? = null,
+    @Deprecated("Override imprint in I18nView") override var imprint: String? = null,
     override var licenses: String? = null,
 
     /** Consider using [messengerConfiguration], as it can be called multiple times. */

@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.internal.compose.view
 
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
-import de.connect2x.trixnity.messenger.compose.view.ClientView
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.EntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.entryDecoratorOf
@@ -17,7 +16,10 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.BlockedCont
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.CreateNewChatEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.CreateNewGroupEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.CrossSigningBootstrapEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.CrossSigningBootstrapExplanationEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.CrossSigningBootstrapRecoveryKeyEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.DeviceSettingsEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.ExperimentalSettingsEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.ExportRoomEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.JoinRoomActionEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.MatrixClientInitializationEntry
@@ -33,6 +35,7 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.RedoSelfVer
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RegisterMatrixAccountEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RemoveMatrixAccountEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.ReportMessageEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomCallEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomDevInfoEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomListEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.RoomSettingsEntry
@@ -54,7 +57,16 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.UiaStepPass
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.UiaStepRegistrationTokenEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.UserProfileEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.UserSettingsEntry
-import de.connect2x.trixnity.messenger.internal.compose.view.entries.VerificationEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationAcceptSasStartEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationCancelledEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationCompareEmojisOrNumbersEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationRejectedEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationRequestEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationSelectVerificationMethodEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationSuccessEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationTimeoutEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.verification.VerificationWaitForOtherClientEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.AnyNavigationEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.EntryProvider
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.navigationOf
@@ -122,8 +134,11 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::CreateNewChatEntry)
         navigationOf(::CreateNewGroupEntry)
         navigationOf(::CrossSigningBootstrapEntry)
+        navigationOf(::CrossSigningBootstrapExplanationEntry)
+        navigationOf(::CrossSigningBootstrapRecoveryKeyEntry)
         navigationOf(::DeviceSettingsEntry)
         navigationOf(::ExportRoomEntry)
+        navigationOf(::ExperimentalSettingsEntry)
         navigationOf(::JoinRoomActionEntry)
         navigationOf(::MatrixClientInitializationEntry)
         navigationOf(::MatrixClientInitializationFailureEntry)
@@ -138,6 +153,7 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::RegisterMatrixAccountEntry)
         navigationOf(::RemoveMatrixAccountEntry)
         navigationOf(::ReportMessageEntry)
+        navigationOf(::RoomCallEntry)
         navigationOf(::RoomDevInfoEntry)
         navigationOf(::RoomListEntry)
         navigationOf(::RoomSettingsEntry)
@@ -159,6 +175,15 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::UiaStepRegistrationTokenEntry)
         navigationOf(::UserProfileEntry)
         navigationOf(::UserSettingsEntry)
+        navigationOf(::VerificationAcceptSasStartEntry)
+        navigationOf(::VerificationCancelledEntry)
+        navigationOf(::VerificationCompareEmojisOrNumbersEntry)
         navigationOf(::VerificationEntry)
+        navigationOf(::VerificationRejectedEntry)
+        navigationOf(::VerificationRequestEntry)
+        navigationOf(::VerificationSelectVerificationMethodEntry)
+        navigationOf(::VerificationSuccessEntry)
+        navigationOf(::VerificationTimeoutEntry)
+        navigationOf(::VerificationWaitForOtherClientEntry)
     }
 }

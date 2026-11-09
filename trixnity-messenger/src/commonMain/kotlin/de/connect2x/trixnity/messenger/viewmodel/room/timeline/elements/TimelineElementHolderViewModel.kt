@@ -504,7 +504,9 @@ class TimelineElementHolderViewModelImpl(
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         previousSupportedTimelineEvent
-            .map { timelineEvent -> timelineEvent?.sender != senderUserId }
+            .map { timelineEvent ->
+                timelineEvent?.sender != senderUserId || timelineEvent.event is ClientEvent.RoomEvent.StateEvent
+            }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     // TODO: images are loaded for each holder into memory! This should be fixed.
@@ -775,6 +777,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
                 override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
+
+                override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
             }
         )
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -850,6 +854,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
+
+                override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
             }
         )
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)

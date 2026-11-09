@@ -64,6 +64,8 @@ fun TextMessageBubblePreview() {
             override val isMentioned = false
 
             override fun openMention(mention: TimelineElementMention) {}
+
+            override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
         }
     InitMessengerPreview { TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false, index = 0) }
 }
@@ -131,6 +133,8 @@ fun ImageMessageBubblePreview() {
             override val isMentioned = false
 
             override fun openMention(mention: TimelineElementMention) {}
+
+            override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
         }
     InitMessengerPreview { ImageRoomMessageTimelineElementViewImpl().createInTimeline(holder, element, 0) }
 }
@@ -190,6 +194,8 @@ fun FileMessageBubblePreview() {
             override val isMentioned = false
 
             override fun openMention(mention: TimelineElementMention) {}
+
+            override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
         }
     InitMessengerPreview { FileRoomMessageTimelineElementViewImpl().createInTimeline(holder, element, 0) }
 }

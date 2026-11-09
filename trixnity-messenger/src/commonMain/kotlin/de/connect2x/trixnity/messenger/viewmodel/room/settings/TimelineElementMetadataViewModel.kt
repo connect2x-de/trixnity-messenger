@@ -250,6 +250,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                             override val isMentioned: Boolean = false
 
                             override fun openMention(mention: TimelineElementMention) {}
+
+                            override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? =
+                                null
                         }
                     repliedElement.value = null
                 },
@@ -266,6 +269,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                             override val isMentioned: Boolean = false
 
                             override fun openMention(mention: TimelineElementMention) {}
+
+                            override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? =
+                                null
                         }
                     repliedElement.value = null
                 },
@@ -282,6 +288,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                             override val isMentioned: Boolean = false
 
                             override fun openMention(mention: TimelineElementMention) {}
+
+                            override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? =
+                                null
                         }
                     repliedElement.value = null
                 },
@@ -301,6 +310,8 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                         override val isMentioned: Boolean = false
 
                         override fun openMention(mention: TimelineElementMention) {}
+
+                        override suspend fun loadInlineImage(uri: String, width: Int, height: Int): ByteArray? = null
                     }
                 sender.value =
                     UserInfoElement(

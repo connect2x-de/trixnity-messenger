@@ -80,7 +80,7 @@ private fun ViewModelContext(koin: Koin, componentContext: ComponentContext): Vi
     return ViewModelContextImpl(
         di = koin,
         componentContext = componentContext,
-        coroutineContext = Dispatchers.Main,
+        coroutineContext = Dispatchers.Default,
         name = "",
     )
 }

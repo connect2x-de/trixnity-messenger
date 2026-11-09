@@ -28,6 +28,10 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.maps.shouldHaveSize
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -450,6 +454,40 @@ class PowerlevelViewModelTest {
         delay(500.milliseconds)
 
         assertTrue(model.isAnyInputModified.value)
+    }
+
+    @Test
+    fun `changing an existing events value counts as a modification`() = runTest {
+        everySuspend { roomApiClient.sendStateEvent(any(), any(), any(), any()) } returns Result.success(EventId("123"))
+
+        val event = EventType(null, "foobar")
+
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 25L)))
+
+        val model = testModel()
+
+        backgroundScope.launch { model.isAnyInputModified.collect {} }
+        backgroundScope.launch { model.events.collect {} }
+        delay(500.milliseconds)
+
+        model.events.value.shouldHaveSize(1)
+        model.events.value.shouldContainKey(event.name)
+
+        // Save this text field to make sure the text field isn't changed later
+        val textField = model.events.value[event.name]
+        textField?.input?.update("30")
+        delay(500.milliseconds)
+
+        model.isAnyInputModified.value.shouldBeTrue()
+
+        model.setPowerLevels()
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 30L)))
+        delay(500.milliseconds)
+        model.isAnyInputModified.value.shouldBeFalse()
+
+        textField?.input?.update("35")
+        delay(500.milliseconds)
+        model.isAnyInputModified.value.shouldBeTrue()
     }
 
     @Test

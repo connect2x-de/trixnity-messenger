@@ -130,6 +130,8 @@ class SelfVerificationRouter(
                                     selfVerificationConfig.userId,
                                 ),
                             onClose = ::closeCrossSigningBootstrap,
+                            {},
+                            {},
                         )
                 )
             }

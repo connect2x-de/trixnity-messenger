@@ -69,6 +69,11 @@ data class MatrixMessengerSettingsBase(
 }
 
 @Serializable
+@NestedSettingsView("experimental")
+data class MatrixMessengerExperimentalSettings(val enableVideoCalls: Boolean = false) :
+    SettingsView<MatrixMessengerSettings>
+
+@Serializable
 @NestedSettingsView("secretByteArrays")
 data class SecretByteArraySettings(
     val secrets: Map<SecretId, SecretByteArray>? = null,
@@ -127,6 +132,7 @@ data class MatrixMessengerAccountNotificationSettings(val playSound: Boolean = t
 data class MatrixMessengerSettings(private val delegate: Map<String, JsonElement>) :
     SettingsImpl<MatrixMessengerSettings>(delegate) {
     val base by lazy { get<MatrixMessengerSettings, MatrixMessengerSettingsBase>() }
+    val experimental by lazy { get<MatrixMessengerSettings, MatrixMessengerExperimentalSettings>() }
     val secretByteArrays by lazy { get<MatrixMessengerSettings, SecretByteArraySettings>() }
 }
 

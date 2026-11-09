@@ -1,23 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import de.connect2x.trixnity.core.MSC2448
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.ImageTimelineElementViewModelImpl
 import kotlin.reflect.KClass
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import org.koin.core.component.get
 
 interface ImageRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<FileBased.Image> {
     override fun create(
@@ -27,13 +18,7 @@ interface ImageRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): RoomMessageTimelineElementViewModel.FileBased.Image? =
-        ImageRoomMessageTimelineElementViewModelImpl(
-            viewModelContext,
-            content,
-            roomId,
-            eventIdOrTransactionId,
-            onOpenMention,
-        )
+        ImageRoomMessageTimelineElementViewModelImpl(viewModelContext, content, roomId, onOpenMention)
 
     override val supports: KClass<FileBased.Image>
         get() = FileBased.Image::class
@@ -45,47 +30,16 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Image,
     roomId: RoomId,
-    eventIdOrTransactionId: EventIdOrTransactionId,
     onOpenMention: OpenMentionCallback,
 ) :
     RoomMessageTimelineElementViewModel.FileBased.Image,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(
-        viewModelContext,
-        content,
-        roomId,
-        eventIdOrTransactionId,
-        onOpenMention,
+    RoomMessageTimelineElementViewModelImpl<FileBased.Image>(viewModelContext, content, roomId, onOpenMention),
+    FileBasedTimelineElementViewModel.Image by ImageTimelineElementViewModelImpl(
+        viewModelContext = viewModelContext,
+        url = content.url,
+        encryptedFile = content.file,
+        info = content.info,
+        fileName = content.fileName ?: content.body,
     ) {
-    private val thumbnails = get<Thumbnails>()
-
-    private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val _thumbnailLoading = MutableStateFlow(false)
-
-    override val thumbnailLoading: StateFlow<Boolean> = _thumbnailLoading.asStateFlow()
-
-    override val thumbnailWidth = content.info?.thumbnailInfo?.width
-    override val thumbnailHeight = content.info?.thumbnailInfo?.height
-
-    override val thumbnailAutoDownloadLimit: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
-
-    override val thumbnail: StateFlow<ByteArray?> =
-        combine(loadMediaResultBytes, downloadMediaResult) {
-                _thumbnailLoading.value = true
-                thumbnails
-                    .loadThumbnail(
-                        coroutineScope,
-                        matrixClient,
-                        content,
-                        thumbnailProgressFlow,
-                        maxMediaSizeInMemory,
-                        thumbnailAutoDownloadLimit,
-                    )
-                    .also { _thumbnailLoading.value = false }
-            }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
-
-    override val width: Int? = content.info?.width
-    override val height: Int? = content.info?.height
-
-    @MSC2448 override val blurhash: String? = content.info?.blurhash
+    override val hasCaption: Boolean = content.fileName != null && content.body != content.fileName
 }

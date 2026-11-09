@@ -1,0 +1,167 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file
+
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.eventually
+import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.util.DownloadManager
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import org.koin.core.component.get
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
+
+class FileBasedTimelineElementViewModelTest {
+    val matrixClientMock = mock<MatrixClient>()
+    val downloadManagerMock = mock<DownloadManager>()
+    val mediaServiceMock = mock<MediaService>()
+
+    val file = "download".encodeToByteArray()
+
+    init {
+        resetMocks(matrixClientMock, downloadManagerMock, mediaServiceMock)
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { mediaServiceMock } }) }.koin
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
+    @Test
+    fun `downloading » download a file and process result`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns async { Result.success(InMemoryPlatformMedia(file)) }
+
+        val cut = cut()
+        var downloadResult: ByteArray? = null
+        cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, {})
+
+        eventually(1.seconds) {
+            downloadResult shouldBe file
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaResult shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `downloading » download a file and set Result to 'failure' if not successful`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns async { Result.failure(RuntimeException("Oh no!")) }
+
+        val cut = cut()
+        var downloadResult: ByteArray? = null
+        cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, {})
+
+        eventually(1.seconds) {
+            downloadResult shouldBe null
+            cut.downloadMediaError.value shouldBe "Download failed: Oh no!"
+            cut.downloadMediaResult.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `downloading » download a file and reset everything if the download is cancelled`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns
+            async {
+                delay(5.seconds)
+                Result.failure(RuntimeException("Oh no!"))
+            }
+
+        val cut = cut()
+        var downloadResult: ByteArray? = null
+        cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, {})
+
+        delay(100.milliseconds)
+        cut.cancelDownloadMedia()
+        eventually(1.seconds) {
+            downloadResult shouldBe null
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaResult.value shouldBe null
+            cut.downloadMediaProgress.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `downloading » don't download if disabled in configs`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } calls { throw IllegalStateException("We should never be able to reach this") }
+
+        val cut = cut()
+        var downloadResult: ByteArray? = null
+        cut.get<MatrixMessengerConfiguration>().downloadsDisabled = true
+
+        var downloadCanceled = false
+
+        cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, { downloadCanceled = true })
+
+        eventually(1.seconds) {
+            downloadResult shouldBe null
+            downloadCanceled shouldBe true
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaResult.value shouldBe null
+            cut.downloadMediaProgress.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `loading » load a file into memory`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any(), any(), any())
+        } returns async { Result.success(InMemoryPlatformMedia(file)) }
+        val cut = cut()
+
+        cut.loadMedia()
+        delay(500.milliseconds)
+
+        cut.loadMediaResultBytes.value shouldBe file
+        cut.loadMediaError.value shouldBe null
+    }
+
+    private fun TestScope.cut(): FileBasedTimelineElementViewModelImpl =
+        object :
+            FileBasedTimelineElementViewModelImpl(
+                viewModelContext =
+                    testMatrixClientViewModelContext(
+                        di =
+                            koinApplication {
+                                    modules(
+                                        createTestDefaultTrixnityMessengerModules(
+                                            mapOf(UserId("test", "server") to matrixClientMock)
+                                        ) + module { single { downloadManagerMock } }
+                                    )
+                                }
+                                .koin,
+                        userId = UserId("test", "server"),
+                    ),
+                url = "mxc://localhost/unencrypted123456",
+                encryptedFile = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf()),
+                info = null,
+                fileName = "test.pdf",
+            ) {}
+}

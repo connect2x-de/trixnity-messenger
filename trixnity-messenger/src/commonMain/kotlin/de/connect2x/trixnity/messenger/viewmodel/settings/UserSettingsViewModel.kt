@@ -16,6 +16,30 @@ interface UserSettingsViewModelFactory {
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
     ): UserSettingsViewModel {
+        return create(
+            viewModelContext = viewModelContext,
+            onCloseUserSettings = onCloseUserSettings,
+            onShowDeviceSettings = onShowDeviceSettings,
+            onShowAccounts = onShowAccounts,
+            onShowProfilesSettings = onShowProfilesSettings,
+            onShowNotificationsSettings = onShowNotificationsSettings,
+            onShowPrivacySettings = onShowPrivacySettings,
+            onShowAppearanceSettings = onShowAppearanceSettings,
+            onShowExperimentalSettings = {},
+        )
+    }
+
+    fun create(
+        viewModelContext: ViewModelContext,
+        onCloseUserSettings: () -> Unit,
+        onShowDeviceSettings: () -> Unit,
+        onShowAccounts: () -> Unit,
+        onShowProfilesSettings: () -> Unit,
+        onShowNotificationsSettings: () -> Unit,
+        onShowPrivacySettings: () -> Unit,
+        onShowAppearanceSettings: () -> Unit,
+        onShowExperimentalSettings: () -> Unit,
+    ): UserSettingsViewModel {
         return UserSettingsViewModelImpl(
             viewModelContext,
             onCloseUserSettings,
@@ -25,6 +49,7 @@ interface UserSettingsViewModelFactory {
             onShowNotificationsSettings,
             onShowPrivacySettings,
             onShowAppearanceSettings,
+            onShowExperimentalSettings,
         )
     }
 
@@ -47,6 +72,8 @@ interface UserSettingsViewModel {
     fun showPrivacySettings()
 
     fun showAppearanceSettings()
+
+    fun showExperimentalSettings() {}
 }
 
 open class UserSettingsViewModelImpl(
@@ -58,7 +85,29 @@ open class UserSettingsViewModelImpl(
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
+    private val onShowExperimentalSettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
+
+    constructor(
+        viewModelContext: ViewModelContext,
+        onCloseUserSettings: () -> Unit,
+        onShowDeviceSettings: () -> Unit,
+        onShowAccounts: () -> Unit,
+        onShowProfilesSettings: () -> Unit,
+        onShowNotificationsSettings: () -> Unit,
+        onShowPrivacySettings: () -> Unit,
+        onShowAppearanceSettings: () -> Unit,
+    ) : this(
+        viewModelContext = viewModelContext,
+        onCloseUserSettings = onCloseUserSettings,
+        onShowDeviceSettings = onShowDeviceSettings,
+        onShowAccounts = onShowAccounts,
+        onShowProfilesSettings = onShowProfilesSettings,
+        onShowNotificationsSettings = onShowNotificationsSettings,
+        onShowPrivacySettings = onShowPrivacySettings,
+        onShowAppearanceSettings = onShowAppearanceSettings,
+        onShowExperimentalSettings = {},
+    )
 
     override val canShowProfilesSettings = (viewModelContext.getOrNull<ProfileManager>() != null)
 
@@ -96,5 +145,9 @@ open class UserSettingsViewModelImpl(
 
     override fun showAppearanceSettings() {
         onShowAppearanceSettings()
+    }
+
+    override fun showExperimentalSettings() {
+        onShowExperimentalSettings()
     }
 }

@@ -12,12 +12,16 @@ import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.client.user.getAccountData
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.MatrixUri
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent.RoomType
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.toReference
+import de.connect2x.trixnity.core.util.Reference
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.ProfileManager
@@ -32,7 +36,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.User
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import io.ktor.http.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -290,7 +293,11 @@ class RoomListViewModelImpl(
                 }
 
         elements =
-            combine(allRoomsFlow, directRoomsFlow, searchedRoomsFlow) { roomsWithMeta, _, searchedRooms ->
+            combine(allRoomsFlow, directRoomsFlow, searchedRoomsFlow, selectedMatrixClients) {
+                    roomsWithMeta,
+                    _,
+                    searchedRooms,
+                    selectedClients ->
                     data class SortableRoom(val roomWithMatrixClient: RoomWithMatrixClient, val sortTime: Instant?)
 
                     val relevantRooms =
@@ -339,7 +346,10 @@ class RoomListViewModelImpl(
 
                     elementCache
                         .mapNotNull { (key, wrapper) ->
-                            if (relevantRooms[key] == null) {
+                            if (
+                                relevantRooms[key] == null ||
+                                    selectedClients.none { relevantRooms[key] == wrapper.viewModel.account }
+                            ) {
                                 wrapper.lifecycle.destroy()
                                 key
                             } else null
@@ -430,13 +440,15 @@ class RoomListViewModelImpl(
                 }
                 .stateIn(coroutineScope, Eagerly, false) // Has to be `Eagerly` as it is used as a helper.
 
-        // andle room navigation requests through the appUriScheme://matrix:roomid/<ID> scheme.
+        val appUri = get<MatrixMessengerConfiguration>().appUri
+        // Handle room navigation requests through the $appUri/matrix:roomid/<ID> scheme.
         // TODO Should be removed when better deeplink support is added
         coroutineScope.launch {
             this@RoomListViewModelImpl.get<UriHandler>().collect { uri ->
-                val segments = Url(uri).rawSegments
-                if (segments.size < 3 || segments[1] != "matrix:roomid") return@collect
-                selectRoom(RoomId("!" + segments[2]))
+                val matrixUri = uri.removePrefix("$appUri/")
+                val room = MatrixUri(matrixUri).toReference() as? Reference.Room ?: return@collect
+
+                selectRoom(room.roomId)
             }
         }
         val backCallback = BackCallback(enabled = showSearch) { showSearch.value = false }

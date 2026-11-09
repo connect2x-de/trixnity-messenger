@@ -34,16 +34,17 @@ interface MatrixMessengerBaseConfiguration {
     var oAuth2ClientUrl: String
     var sendLogsEmailAddress: String?
 
-    /** The privacy info of the application in a Markdown format */
-    var privacyInfo: String?
+    /** The URL of the privacy policy page */
+    @Deprecated("Override privacyPolicy in I18nView") var privacyInfo: String?
 
-    /** The imprint of the application in a Markdown format */
-    var imprint: String?
+    /** The URL of the imprint page */
+    @Deprecated("Override imprint in I18nView") var imprint: String?
     var licenses: String?
 
     var httpClientEngine: HttpClientEngine?
     var httpClientConfig: (HttpClientConfig<*>.() -> Unit)?
 
+    @Suppress("DEPRECATION")
     fun copyTo(other: MatrixMessengerBaseConfiguration) {
         other.appVersion = appVersion
         other.appName = appName

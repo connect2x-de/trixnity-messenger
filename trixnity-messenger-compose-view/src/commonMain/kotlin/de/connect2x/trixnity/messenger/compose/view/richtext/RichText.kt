@@ -17,6 +17,6 @@ internal sealed interface RichText {
     }
 
     companion object {
-        val inline = listOf("a", "sup", "sub", "b", "i", "u", "strong", "em", "s", "code", "br", "span", "del")
+        val inline = listOf("a", "sup", "sub", "b", "i", "u", "strong", "em", "s", "code", "br", "span", "del", "img")
     }
 }

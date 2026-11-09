@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
@@ -30,6 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.PlatformType
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.richtext.LocalInlineImageMaxHeight
 import de.connect2x.trixnity.messenger.compose.view.richtext.RichTextColors
 import de.connect2x.trixnity.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
@@ -116,6 +118,7 @@ private fun MessageTextContent(
             ) {
                 RichTextDisplay(
                     document = content,
+                    loadImage = remember(element) { element::loadInlineImage },
                     mentions = element.mentionsInFormattedBody,
                     modifier = Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { showActionMenu() }) },
                     colors =
@@ -172,10 +175,12 @@ fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
     val style = MaterialTheme.typography.bodySmall.copy(color = LocalContentColor.current)
     if (content != null) {
         val uriCaller = DI.get<UriCaller>()
-        val maxHeight = with(LocalDensity.current) { style.lineHeight.toDp() * maxLines }
-        CompositionLocalProvider(LocalTextStyle provides style) {
+        val lineHeight = with(LocalDensity.current) { style.lineHeight.toDp() }
+        val maxHeight = lineHeight * maxLines
+        CompositionLocalProvider(LocalTextStyle provides style, LocalInlineImageMaxHeight provides lineHeight) {
             RichTextDisplay(
                 document = content,
+                loadImage = remember(element) { element::loadInlineImage },
                 mentions = element.mentionsInFormattedBody,
                 modifier = Modifier.heightIn(max = maxHeight).clipToBounds(),
                 onLinkClick = { uriCaller.invoke(it, true) },

@@ -717,6 +717,35 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnableVideoCalls ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/messenger/MatrixMessengerImpl : de/connect2x/trixnity/messenger/MatrixMessenger {
 	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixMessengerImpl$Companion;
 	public synthetic fun <init> (Lorg/koin/core/Koin;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -742,6 +771,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerSettings : de/
 	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerSettings;Ljava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerSettings;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBase ()Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsBase;
+	public final fun getExperimental ()Lde/connect2x/trixnity/messenger/MatrixMessengerExperimentalSettings;
 	public final fun getSecretByteArrays ()Lde/connect2x/trixnity/messenger/SecretByteArraySettings;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -1296,6 +1326,8 @@ public class de/connect2x/trixnity/messenger/i18n/I18n : de/connect2x/trixnity/m
 	public fun blockUserError (Ljava/lang/String;)Ljava/lang/String;
 	public fun bootstrapErrorAccount (Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun bootstrapErrorAccount$default (Lde/connect2x/trixnity/messenger/i18n/I18n;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public fun callConnectError ()Ljava/lang/String;
+	public fun callJoinError ()Ljava/lang/String;
 	public fun commonAnd (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public fun commonCancelled ()Ljava/lang/String;
 	public fun commonUnknown ()Ljava/lang/String;
@@ -1476,6 +1508,10 @@ public class de/connect2x/trixnity/messenger/i18n/I18n : de/connect2x/trixnity/m
 	public fun roomNameOther (I)Ljava/lang/String;
 	public fun roomNamePeople (I)Ljava/lang/String;
 	public fun roomUpgraded (Ljava/lang/String;)Ljava/lang/String;
+	public fun rtcMemberJoinedSession (Ljava/lang/String;)Ljava/lang/String;
+	public fun rtcMemberLeftSession (Ljava/lang/String;)Ljava/lang/String;
+	public fun rtcMemberStartedSession (Ljava/lang/String;)Ljava/lang/String;
+	public fun rtcMemberStoppedSession (Ljava/lang/String;)Ljava/lang/String;
 	public fun searchGroupFailedSearch ()Ljava/lang/String;
 	public fun searchGroupJoinFailedGeneric ()Ljava/lang/String;
 	public fun searchUserIdHomeserverNotValid (Ljava/lang/String;)Ljava/lang/String;
@@ -3193,11 +3229,13 @@ public final class de/connect2x/trixnity/messenger/util/Download {
 
 public abstract interface class de/connect2x/trixnity/messenger/util/DownloadManager {
 	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
-	public abstract fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
+	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
+	public abstract fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManager$DefaultImpls {
 	public static fun startDownloadAsync (Lde/connect2x/trixnity/messenger/util/DownloadManager;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
+	public static fun startDownloadAsync (Lde/connect2x/trixnity/messenger/util/DownloadManager;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl : de/connect2x/trixnity/messenger/util/DownloadManager {
@@ -3207,6 +3245,7 @@ public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl : de
 	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
 	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
+	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl$Companion {
@@ -3826,10 +3865,6 @@ public final class de/connect2x/trixnity/messenger/util/html/MatrixMentionVisito
 
 public final class de/connect2x/trixnity/messenger/util/html/MatrixMentionVisitor$Companion {
 	public final fun process (Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;)Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;
-}
-
-public final class de/connect2x/trixnity/messenger/util/html/MentionUtilKt {
-	public static final fun toLink (Lde/connect2x/trixnity/core/util/Reference;)Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/AccountInfo {
@@ -5914,58 +5949,75 @@ public class de/connect2x/trixnity/messenger/viewmodel/room/RoomViewModelImpl : 
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel {
-	public abstract fun getCanJoinCall ()Lkotlinx/coroutines/flow/StateFlow;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel {
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun join ()V
 	public abstract fun leave ()V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State {
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State {
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Active : de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State {
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Active;
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$CallAvailable : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State {
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$CallAvailable;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$CallAvailable;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$CallAvailable;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHasParticipants ()Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Error : de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State {
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Error : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Error;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Error;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Error;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Error;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Error;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Error;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getError ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Inactive : de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State {
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Inactive;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Joined : de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State {
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel$State$Joined;
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Join : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Join;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModelFactory {
-	public abstract fun create-FDSa09M (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel;
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Joining : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Joining;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModelFactoryImpl : de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModelFactory {
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Leaving : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$Leaving;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$NoCall : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel$State$NoCall;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModelFactory {
+	public abstract fun create-FDSa09M (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModelFactoryImpl : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModelFactory {
 	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)V
-	public fun create-FDSa09M (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel;
+	public fun create-FDSa09M (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel {
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel {
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
@@ -5976,7 +6028,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewM
 	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
-	public fun getCanJoinCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
@@ -5993,12 +6044,40 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewM
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/call/PreviewCallViewModel : de/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel {
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/PreviewCallControlViewModel : de/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel {
 	public fun <init> ()V
-	public fun getCanJoinCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun join ()V
 	public fun leave ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel {
+	public abstract fun back ()V
+	public abstract fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getMembers ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getPublishing ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getReceiving ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getRoomInfo ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3-hu1aZbM ()Ljava/lang/String;
+	public final fun component4-gwg-m3I ()Ljava/lang/String;
+	public final fun component5 ()Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;
+	public final fun copy-SaxmEko (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters;
+	public static synthetic fun copy-SaxmEko$default (Lde/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallViewModel$LiveKitCallParameters;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEncryptionInfo ()Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;
+	public final fun getMemberId-gwg-m3I ()Ljava/lang/String;
+	public final fun getToken ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModel : de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel {
@@ -7084,20 +7163,14 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/Power
 public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/PowerlevelViewModelImpl$ValueImpl : de/connect2x/trixnity/messenger/viewmodel/room/settings/PowerlevelViewModel$Value {
 	public fun <init> (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/i18n/I18n;Lkotlinx/coroutines/flow/StateFlow;Lkotlinx/coroutines/flow/StateFlow;Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;Lkotlin/jvm/functions/Function0;)V
 	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/i18n/I18n;Lkotlinx/coroutines/flow/StateFlow;Lkotlinx/coroutines/flow/StateFlow;Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component5 ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
-	public final fun copy (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/i18n/I18n;Lkotlinx/coroutines/flow/StateFlow;Lkotlinx/coroutines/flow/StateFlow;Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PowerlevelViewModelImpl$ValueImpl;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PowerlevelViewModelImpl$ValueImpl;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/i18n/I18n;Lkotlinx/coroutines/flow/StateFlow;Lkotlinx/coroutines/flow/StateFlow;Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PowerlevelViewModelImpl$ValueImpl;
-	public fun equals (Ljava/lang/Object;)Z
 	public fun getCanBeRemoved ()Z
 	public fun getCanChange ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInput ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
-	public fun hashCode ()I
 	public fun isModified ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun modifiedValue ()Ljava/lang/Long;
 	public fun remove ()V
 	public fun resetInput ()V
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/PreviewChangeAvatarViewModel : de/connect2x/trixnity/messenger/viewmodel/room/settings/ChangeRoomAvatarViewModel {
@@ -8337,7 +8410,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Previ
 	public fun <init> ()V
 	public fun back ()V
 	public fun blockUser ()V
-	public fun getCall ()Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel;
+	public fun getCall ()Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;
 	public fun getCanBlockUser ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getCanBlockUser ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getCanUnblockUser ()Lkotlinx/coroutines/flow/MutableStateFlow;
@@ -8484,7 +8557,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomH
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel {
 	public abstract fun back ()V
 	public abstract fun blockUser ()V
-	public abstract fun getCall ()Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel;
+	public abstract fun getCall ()Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;
 	public abstract fun getCanBlockUser ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCanUnblockUser ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCanVerifyUser ()Lkotlinx/coroutines/flow/StateFlow;
@@ -8527,7 +8600,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderV
 	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
-	public fun getCall ()Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallViewModel;
+	public fun getCall ()Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;
 	public fun getCanBlockUser ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getCanUnblockUser ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getCanVerifyUser ()Lkotlinx/coroutines/flow/StateFlow;
@@ -9494,6 +9567,132 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static final fun isUserMentioned-f0dHyF0 (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;)Z
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/AudioTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/AudioInfo;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
+	public fun getDuration-FghU774 ()Lkotlin/time/Duration;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun cancelDownloadMedia ()V
+	public abstract fun cancelLoadMedia ()V
+	public abstract fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public abstract fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getMimeType ()Ljava/lang/String;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSize ()Ljava/lang/String;
+	public abstract fun hideSaveDialog (Z)V
+	public abstract fun loadMedia ()V
+	public abstract fun showSaveDialog ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
+	public abstract fun getDuration-FghU774 ()Lkotlin/time/Duration;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$DefaultImpls {
+	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun getBlurhash ()Ljava/lang/String;
+	public abstract fun getHeight ()Ljava/lang/Integer;
+	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailAutoDownloadLimit ()J
+	public abstract fun getThumbnailHeight ()Ljava/lang/Integer;
+	public abstract fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailWidth ()Ljava/lang/Integer;
+	public abstract fun getWidth ()Ljava/lang/Integer;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public abstract fun getDuration ()Ljava/lang/Long;
+	public abstract fun getHeight ()Ljava/lang/Integer;
+	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailAutoDownloadLimit ()J
+	public abstract fun getWidth ()Ljava/lang/Integer;
+}
+
+public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;Ljava/lang/String;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	protected final fun downloadMediaInternal-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
+	protected final fun getMaxMediaSizeInMemory ()J
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun showSaveDialog ()V
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/FileInfo;Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/ImageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;Ljava/lang/String;)V
+	public fun getBlurhash ()Ljava/lang/String;
+	public fun getHeight ()Ljava/lang/Integer;
+	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailAutoDownloadLimit ()J
+	public fun getThumbnailHeight ()Ljava/lang/Integer;
+	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailWidth ()Ljava/lang/Integer;
+	public fun getWidth ()Ljava/lang/Integer;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/VideoTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lde/connect2x/trixnity/core/model/events/m/room/VideoInfo;Ljava/lang/String;)V
+	public fun getDuration ()Ljava/lang/Long;
+	public fun getHeight ()Ljava/lang/Integer;
+	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailAutoDownloadLimit ()J
+	public fun getWidth ()Ljava/lang/Integer;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelFactory$Companion;
 	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
@@ -9512,10 +9711,29 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio {
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio {
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Audio;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
 	public fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getDuration-FghU774 ()Lkotlin/time/Duration;
+	public fun getHasCaption ()Z
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/EmoteRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -9624,31 +9842,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
-public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun cancelDownloadMedia ()V
-	public fun cancelLoadMedia ()V
-	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
-	protected final fun downloadMediaInternal-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getHasCaption ()Z
-	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun getMaxMediaSizeInMemory ()J
-	public fun getMimeType ()Ljava/lang/String;
-	public fun getName ()Ljava/lang/String;
-	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getSize ()Ljava/lang/String;
-	public fun hideSaveDialog (Z)V
-	public fun loadMedia ()V
-	public fun showSaveDialog ()V
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelFactory$Companion;
 	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
@@ -9667,8 +9860,27 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasCaption ()Z
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -9689,16 +9901,35 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/ImageRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
 	public fun getBlurhash ()Ljava/lang/String;
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasCaption ()Z
 	public fun getHeight ()Ljava/lang/Integer;
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getThumbnailHeight ()Ljava/lang/Integer;
 	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailWidth ()Ljava/lang/Integer;
 	public fun getWidth ()Ljava/lang/Integer;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/LocationRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -9753,61 +9984,45 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getFormattedBodyContent ()Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;
 	public abstract fun getMentionsInBody ()Ljava/util/Map;
 	public abstract fun getMentionsInFormattedBody ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun loadInlineImage (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun openMention (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
-	public abstract fun cancelDownloadMedia ()V
-	public abstract fun cancelLoadMedia ()V
-	public abstract fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
-	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
-	public abstract fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
 	public abstract fun getHasCaption ()Z
-	public abstract fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getMimeType ()Ljava/lang/String;
-	public abstract fun getName ()Ljava/lang/String;
-	public abstract fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getSize ()Ljava/lang/String;
-	public abstract fun hideSaveDialog (Z)V
-	public abstract fun loadMedia ()V
-	public abstract fun showSaveDialog ()V
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public abstract fun getAudioPlayer ()Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;
-	public abstract fun getDuration-FghU774 ()Lkotlin/time/Duration;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Audio, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio$DefaultImpls {
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$DefaultImpls {
-	public static synthetic fun downloadMedia$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$File, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public abstract fun getBlurhash ()Ljava/lang/String;
-	public abstract fun getHeight ()Ljava/lang/Integer;
-	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getThumbnailAutoDownloadLimit ()J
-	public abstract fun getThumbnailHeight ()Ljava/lang/Integer;
-	public abstract fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getThumbnailWidth ()Ljava/lang/Integer;
-	public abstract fun getWidth ()Ljava/lang/Integer;
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File$DefaultImpls {
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$File;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
-	public abstract fun getDuration ()Ljava/lang/Long;
-	public abstract fun getHeight ()Ljava/lang/Integer;
-	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getThumbnailAutoDownloadLimit ()J
-	public abstract fun getWidth ()Ljava/lang/Integer;
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Image, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image$DefaultImpls {
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Image;)Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased {
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video$DefaultImpls {
+	public static fun getLoadMediaResult (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video;)Lkotlinx/coroutines/flow/StateFlow;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$Location : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel {
@@ -9864,7 +10079,56 @@ public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/el
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public final fun isMentioned ()Z
+	public final fun loadInlineImage (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun openMention (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$Message {
+	public abstract fun getMessage ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelFactory$Companion;
+	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelFactory {
+	public synthetic fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/RoomEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelFactory$DefaultImpls {
+	public static fun create-EyP9W10 (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel;
+	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RtcMemberMessageTimelineElementViewModel {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;)V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isMentioned ()Z
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
@@ -10059,13 +10323,32 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public static fun getSupports (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/VideoRoomMessageTimelineElementViewModelFactory;)Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/VideoRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/FileBasedRoomMessageTimelineElementViewModel, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/VideoRoomMessageTimelineElementViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModelImpl, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel$Video, de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Video {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelDownloadMedia ()V
+	public fun cancelLoadMedia ()V
+	public fun downloadMedia (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;)V
+	public fun getDownloadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getDownloadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getDuration ()Ljava/lang/Long;
+	public fun getHasCaption ()Z
 	public fun getHeight ()Ljava/lang/Integer;
+	public fun getLoadMediaError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaProgress ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getMimeType ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getSaveDialogOpen ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSize ()Ljava/lang/String;
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getWidth ()Ljava/lang/Integer;
+	public fun hideSaveDialog (Z)V
+	public fun loadMedia ()V
+	public fun showSaveDialog ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/state/AvatarStateTimelineElementViewModel : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$State {
@@ -10547,6 +10830,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails {
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -10559,6 +10843,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails$DefaultImpls {
+	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -10571,6 +10856,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/ThumbnailsImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/ThumbnailsImpl$Companion;
 	public fun <init> ()V
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -11057,6 +11343,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11108,6 +11396,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11159,6 +11449,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11210,6 +11502,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewRoo
 	public fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLastMessage ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11290,6 +11584,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomli
 	public abstract fun getAccount-hu1aZbM ()Ljava/lang/String;
 	public abstract fun getAccountColor ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getLastMessage ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getNotificationCount ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11350,6 +11645,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementV
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
 	public fun getError ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getHasRunningCall ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getInviterUserInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getKoin ()Lorg/koin/core/Koin;
@@ -11522,6 +11818,14 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRo
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$ExperimentalSettings : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$ExperimentalSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$None : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Config$None;
 	public fun equals (Ljava/lang/Object;)Z
@@ -11633,6 +11937,11 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRo
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper$DeviceSettings : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;)V
 	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper$ExperimentalSettings : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;)V
+	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper$List : de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Wrapper {
@@ -12814,6 +13123,47 @@ public class de/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSi
 	public fun verify (Ljava/lang/String;)V
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel {
+	public abstract fun back ()V
+	public abstract fun getVideoCallsEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun toggleVideoCallsEnabled ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory$Companion;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/ExperimentalSettingsViewModel {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;)V
+	public fun back ()V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getVideoCallsEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun toggleVideoCallsEnabled ()V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/InitialSettingsSetupViewModel {
 	public abstract fun getAccount-hu1aZbM ()Ljava/lang/String;
 	public abstract fun getAvailableProviders ()Ljava/util/List;
@@ -13248,26 +13598,35 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun showAccounts ()V
 	public abstract fun showAppearanceSettings ()V
 	public abstract fun showDeviceSettings ()V
+	public fun showExperimentalSettings ()V
 	public abstract fun showNotificationsSettings ()V
 	public abstract fun showPrivacySettings ()V
 	public abstract fun showProfilesSettings ()V
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel$DefaultImpls {
+	public static fun showExperimentalSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;)V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory$Companion;
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory {
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory$DefaultImpls {
 	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
 }
 
 public class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -13288,6 +13647,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsView
 	public fun showAccounts ()V
 	public fun showAppearanceSettings ()V
 	public fun showDeviceSettings ()V
+	public fun showExperimentalSettings ()V
 	public fun showNotificationsSettings ()V
 	public fun showPrivacySettings ()V
 	public fun showProfilesSettings ()V
@@ -14148,16 +14508,19 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/ErrorType : ja
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReaction {
-	public fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)V
+	public fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
 	public final fun component3 ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;
 	public final fun component4 ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
-	public final fun copy (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReaction;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEventOrTransactionId ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/EventIdOrTransactionId;
 	public final fun getSender ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
+	public final fun getShortcode ()Ljava/lang/String;
 	public final fun getStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
 	public final fun getValue ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -14167,14 +14530,17 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReaction 
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$Companion;
-	public fun <init> (Ljava/util/Set;)V
+	public fun <init> (Ljava/util/Set;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/util/Set;
-	public final fun copy (Ljava/util/Set;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Set;Ljava/util/Map;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAll ()Ljava/util/Set;
 	public final fun getByReaction ()Ljava/util/Map;
 	public final fun getByUser ()Ljava/util/Map;
+	public final fun getImages ()Ljava/util/Map;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -14196,14 +14562,19 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo {
-	public fun <init> (Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)V
+	public fun <init> (Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;Lkotlinx/coroutines/flow/StateFlow;)V
+	public synthetic fun <init> (Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;Lkotlinx/coroutines/flow/StateFlow;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/util/Set;
 	public final fun component2 ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
-	public final fun copy (Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun copy (Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;Lkotlinx/coroutines/flow/StateFlow;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;Ljava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;Ljava/lang/String;Lkotlinx/coroutines/flow/StateFlow;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/util/EventReactions$ByReactionsInfo;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getHighestStatus ()Lde/connect2x/trixnity/messenger/viewmodel/util/ReactionStatus;
+	public final fun getImage ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun getReactions ()Ljava/util/Set;
+	public final fun getShortcode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -14533,19 +14904,19 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verifi
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory$Companion;
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory {
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory$DefaultImpls {
-	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
 }
 
 public class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -15600,6 +15971,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verifi
 	public abstract fun getRecoveryKeyVerificationInProgress ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getRecoveryKeyWrong ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public abstract fun isVerified ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun resetRecovery ()V
 	public abstract fun verifyWithOtherDevice ()V
 	public abstract fun verifyWithPassphrase ()V
@@ -15654,10 +16026,87 @@ public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/Sel
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isVerified ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun resetRecovery ()V
 	public fun verifyWithOtherDevice ()V
 	public fun verifyWithPassphrase ()V
 	public fun verifyWithRecoveryKey ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel {
+	public abstract fun acceptEmojisOrNumbers ()V
+	public abstract fun acceptRequest ()V
+	public abstract fun acceptSasVerification ()V
+	public abstract fun acceptVerificationMethod (Lde/connect2x/trixnity/core/model/events/m/key/verification/VerificationMethod;)V
+	public abstract fun cancel ()V
+	public abstract fun declineEmojisOrNumbers ()V
+	public abstract fun getActiveVerificationState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getDecimals ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getEmojis ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getOurDeviceDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getOurDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getOurUserId-hu1aZbM ()Ljava/lang/String;
+	public abstract fun getTheirDeviceDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getTheirDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getTheirUserId ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getVerificationMethods ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun isFromOwnAccount ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun ok ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModelFactory$Companion;
+	public fun create-dzC4SlI (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/util/GetAccountProfileDisplayName;)Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModelFactory {
+	public fun create-dzC4SlI (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/util/GetAccountProfileDisplayName;)Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModelFactory$DefaultImpls {
+	public static fun create-dzC4SlI (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/util/GetAccountProfileDisplayName;)Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel;
+}
+
+public class de/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/verification/v2/VerificationViewModel {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/util/GetAccountProfileDisplayName;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun acceptEmojisOrNumbers ()V
+	public fun acceptRequest ()V
+	public fun acceptSasVerification ()V
+	public fun acceptVerificationMethod (Lde/connect2x/trixnity/core/model/events/m/key/verification/VerificationMethod;)V
+	public fun cancel ()V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun declineEmojisOrNumbers ()V
+	public fun getActiveVerificationState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getDecimals ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getEmojis ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
+	public fun getOurDeviceDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getOurDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getOurUserId-hu1aZbM ()Ljava/lang/String;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTheirDeviceDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getTheirDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getTheirUserId ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun getVerificationMethods ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun isFromOwnAccount ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun ok ()V
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 

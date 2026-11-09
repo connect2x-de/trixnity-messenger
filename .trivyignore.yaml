@@ -7,3 +7,7 @@ vulnerabilities:
     statement: unused part of bouncy castle
   - id: CVE-2026-84939
     statement: Only affects local build tools (dokka)
+  - id: CVE-2026-90711
+    statement: Only affects local build tools (Kotlin)
+  - id: CVE-2026-102422
+    statement: Only affects local build tools (Kotlin)

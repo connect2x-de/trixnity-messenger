@@ -1,0 +1,194 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file
+
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.InsufficientSpaceException
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.core.model.events.m.room.FileBasedInfo
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.DownloadManager
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
+import io.ktor.utils.io.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import org.koin.core.component.get
+
+abstract class FileBasedTimelineElementViewModelImpl(
+    private val viewModelContext: MatrixClientViewModelContext,
+    private val url: String?,
+    private val encryptedFile: EncryptedFile?,
+    private val info: FileBasedInfo?,
+    private val fileName: String,
+) : FileBasedTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val name: String = fileName
+    override val size: String? = info?.size?.let { " (${formatSize(it)})" } ?: ""
+    override val mimeType: String? = info?.mimeType
+
+    private val config = get<MatrixMessengerConfiguration>()
+
+    private val downloadManager = viewModelContext.get<DownloadManager>()
+
+    private val _loadMediaResultPlatformMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
+    override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> = _loadMediaResultPlatformMedia.asStateFlow()
+    private val _loadMediaResultBytes: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
+    override val loadMediaResultBytes: StateFlow<ByteArray?> = _loadMediaResultBytes.asStateFlow()
+
+    private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
+    override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = _loadMediaProgress.asStateFlow()
+    private val _loadMediaError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val loadMediaError: StateFlow<String?> = _loadMediaError.asStateFlow()
+
+    private val activeLoadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
+
+    protected val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
+    init {
+        coroutineScope.coroutineContext.job.invokeOnCompletion { activeLoadMedia.value?.cancel() }
+    }
+
+    override fun loadMedia() {
+        activeLoadMedia.value?.cancel("new load media started")
+
+        _loadMediaResultPlatformMedia.value = null
+        _loadMediaProgress.value = null
+        _loadMediaError.value = null
+        _loadMediaProgress.value = FileTransferProgressElement(0f, formatProgress(FileTransferProgress(0, info?.size)))
+
+        coroutineScope
+            .launch {
+                val resultAsync =
+                    downloadManager.startDownloadAsync(
+                        matrixClient = viewModelContext.matrixClient,
+                        url = url,
+                        encryptedFile = encryptedFile,
+                        info = info,
+                        fileName = fileName,
+                        progress = _loadMediaProgress,
+                        maxDownloadSize = null,
+                    )
+                activeLoadMedia.value = resultAsync
+                resultAsync
+                    .await()
+                    .onSuccess {
+                        _loadMediaResultPlatformMedia.value = it
+                        _loadMediaResultBytes.value =
+                            it.toByteArray(coroutineScope, expectedSize = info?.size, maxSize = maxMediaSizeInMemory)
+                    }
+                    .onFailure { error ->
+                        _loadMediaError.value =
+                            when (error) {
+                                is DownloadLimitExceededException -> i18n.mediaExceedsDownloadLimit()
+                                is InsufficientSpaceException -> i18n.mediaInsufficientSpace()
+                                else -> i18n.mediaCouldNotBeRead()
+                            }
+                    }
+            }
+            .invokeOnCompletion { activeLoadMedia.value = null }
+    }
+
+    override fun cancelLoadMedia() {
+        activeLoadMedia.value?.cancel("Cancelled by user.")
+    }
+
+    private val _downloadMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
+    override val downloadMediaResult: StateFlow<PlatformMedia?> = _downloadMedia.asStateFlow()
+    private val _downloadMediaProgress = MutableStateFlow<FileTransferProgressElement?>(null)
+    override val downloadMediaProgress = _downloadMediaProgress.asStateFlow()
+    private val _downloadMediaError = MutableStateFlow<String?>(null)
+    override val downloadMediaError = _downloadMediaError.asStateFlow()
+    private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
+    private val _saveDialogOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val saveDialogOpen: StateFlow<Boolean> = _saveDialogOpen.asStateFlow()
+
+    override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {
+        coroutineScope.launch {
+            if (config.downloadsDisabled) {
+                log.warn { "Downloading media was disabled in configs" }
+                onDownloadCancelled()
+                return@launch
+            }
+            val result = downloadMediaInternal()
+            if (result.isFailure) {
+                onDownloadCancelled()
+                return@launch
+            }
+
+            processFile(requireNotNull(result.getOrNull()))
+        }
+    }
+
+    override fun cancelDownloadMedia() {
+        activeDownloadMedia.value?.cancel("Cancelled by user.")
+    }
+
+    override fun showSaveDialog() {
+        _saveDialogOpen.value = true
+        _downloadMediaError.value = null
+    }
+
+    override fun hideSaveDialog(errorShown: Boolean) {
+        when {
+            _downloadMediaError.value == null -> _saveDialogOpen.value = false
+            errorShown -> _saveDialogOpen.value = false
+            else -> {}
+        }
+    }
+
+    protected suspend fun downloadMediaInternal(): Result<PlatformMedia> {
+        activeDownloadMedia.value?.cancel("new download started")
+
+        _downloadMedia.value = null
+        _downloadMediaProgress.value = null
+        _downloadMediaError.value = null
+
+        try {
+            val resultAsync =
+                downloadManager.startDownloadAsync(
+                    matrixClient = viewModelContext.matrixClient,
+                    url = url,
+                    encryptedFile = encryptedFile,
+                    info = info,
+                    fileName = fileName,
+                    progress = _downloadMediaProgress,
+                    maxDownloadSize = null,
+                )
+
+            activeDownloadMedia.value = resultAsync
+            try {
+                resultAsync
+                    .await()
+                    .fold(
+                        onSuccess = {
+                            _downloadMedia.value = it
+                            return Result.success(it)
+                        },
+                        onFailure = { error ->
+                            _downloadMediaError.value =
+                                when (error) {
+                                    is InsufficientSpaceException -> i18n.downloadFailedInsufficientSpace()
+                                    else -> i18n.downloadFailed(error.message)
+                                }
+                            return Result.failure(error)
+                        },
+                    )
+            } catch (exc: CancellationException) {
+                log.error(exc) { "media download was cancelled" }
+                return Result.failure(exc)
+            }
+        } finally {
+            activeDownloadMedia.value = null
+            _downloadMediaProgress.value = null
+        }
+    }
+}

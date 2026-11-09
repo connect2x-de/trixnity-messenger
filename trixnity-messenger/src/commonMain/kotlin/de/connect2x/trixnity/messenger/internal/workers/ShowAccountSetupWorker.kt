@@ -44,8 +44,8 @@ private class ShowAccountSetupWorkerImpl(
             }
 
         combine(isRoomListOpen, isInitialSyncDone, userIdsToSetup, ::nextUserId)
-            .filterNotNull()
             .distinctUntilChanged()
+            .filterNotNull()
             .collect(::showAccountSetup)
     }
 

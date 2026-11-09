@@ -24,7 +24,7 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
@@ -117,7 +117,7 @@ class RoomHeaderViewModelTest {
     private val initialsMock = mock<Initials>()
     private val roomPresenceMock = mock<RoomPresence>()
     private val userBlockingMock = mock<UserBlocking>()
-    private val callViewModelFactoryMock = mock<CallViewModelFactory>()
+    private val callControlViewModelFactoryMock = mock<CallControlViewModelFactory>()
 
     private var roomNameElement: BlockingAnsweringScope<Flow<String>>
     private var roomTopicElement: BlockingAnsweringScope<Flow<String>>
@@ -136,7 +136,7 @@ class RoomHeaderViewModelTest {
             initialsMock,
             roomPresenceMock,
             userBlockingMock,
-            callViewModelFactoryMock,
+            callControlViewModelFactoryMock,
         )
         every { matrixClientMock.di } returns
             koinApplication {
@@ -170,7 +170,7 @@ class RoomHeaderViewModelTest {
         ignoredUsers returns flowOf(IgnoredUserListEventContent(emptyMap()))
 
         every { initialsMock.compute(any()) } returns "MR"
-        every { callViewModelFactoryMock.create(any(), any()) } returns null
+        every { callControlViewModelFactoryMock.create(any(), any()) } returns null
         room.value = Room(roomId, avatarUrl = "mxc://localhost/123456")
         every { roomServiceMock.getById(roomId) } returns room
         everySuspend {
@@ -477,7 +477,7 @@ class RoomHeaderViewModelTest {
                                                 single { roomPresenceMock }
                                                 single { initialsMock }
                                                 single { userBlockingMock }
-                                                single { callViewModelFactoryMock }
+                                                single { callControlViewModelFactoryMock }
                                             }
                                     )
                                 }

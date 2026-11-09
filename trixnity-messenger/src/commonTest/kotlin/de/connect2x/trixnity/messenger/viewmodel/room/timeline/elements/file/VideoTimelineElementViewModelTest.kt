@@ -1,0 +1,162 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file
+
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
+import de.connect2x.trixnity.core.model.events.m.room.VideoInfo
+import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
+
+class VideoTimelineElementViewModelTest {
+    val matrixClientMock = mock<MatrixClient>()
+    val thumbnailsMock = mock<Thumbnails>()
+
+    val roomId = RoomId("!bathroom:server")
+    val meUserId = UserId("tester", "server")
+
+    init {
+        resetMocks(matrixClientMock, thumbnailsMock)
+        every { thumbnailsMock.mapProgressToProgressElement(any()) } returns flowOf(null)
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
+    @Test
+    fun `load a thumbnail successfully`() = runTest {
+        everySuspend {
+            thumbnailsMock.loadThumbnail(
+                coroutineScope = any(),
+                matrixClient = matrixClientMock,
+                thumbnailFile = any(),
+                thumbnailUrl = any(),
+                thumbnailInfo = any(),
+                file = any(),
+                fileUrl = any(),
+                fileInfo = any(),
+                sizeInBytes = any(),
+                thumbnailProgressFlow = any(),
+                maxMediaSizeInMemory = any(),
+                maxDownloadSize = any(),
+            )
+        } returns "thumbnail".encodeToByteArray()
+
+        val cut = cut()
+        backgroundScope.launch { cut.thumbnail.collect {} }
+
+        delay(100.milliseconds)
+        cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
+    }
+
+    @Test
+    fun `load a thumbnail that takes a while to load`() = runTest {
+        everySuspend {
+            thumbnailsMock.loadThumbnail(
+                coroutineScope = any(),
+                matrixClient = matrixClientMock,
+                thumbnailFile = any(),
+                thumbnailUrl = any(),
+                thumbnailInfo = any(),
+                file = any(),
+                fileUrl = any(),
+                fileInfo = any(),
+                sizeInBytes = any(),
+                thumbnailProgressFlow = any(),
+                maxMediaSizeInMemory = any(),
+                maxDownloadSize = any(),
+            )
+        } calls
+            {
+                delay(500.milliseconds)
+                "thumbnail".encodeToByteArray()
+            }
+
+        val cut = cut()
+        backgroundScope.launch { cut.thumbnail.collect {} }
+
+        cut.thumbnail.value shouldBe null
+
+        delay(499.milliseconds)
+        cut.thumbnail.value shouldBe null
+
+        delay(2.milliseconds)
+        cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
+    }
+
+    @Test
+    fun `return 'null' for a thumbnail that cannot be loaded`() = runTest {
+        everySuspend {
+            thumbnailsMock.loadThumbnail(
+                coroutineScope = any(),
+                matrixClient = matrixClientMock,
+                thumbnailFile = any(),
+                thumbnailUrl = any(),
+                thumbnailInfo = any(),
+                file = any(),
+                fileUrl = any(),
+                fileInfo = any(),
+                sizeInBytes = any(),
+                thumbnailProgressFlow = any(),
+                maxMediaSizeInMemory = any(),
+                maxDownloadSize = any(),
+            )
+        } returns null
+
+        val cut = cut()
+        backgroundScope.launch { cut.thumbnail.collect {} }
+
+        delay(100.milliseconds)
+        cut.thumbnail.value shouldBe null
+    }
+
+    fun TestScope.cut(): VideoTimelineElementViewModelImpl {
+        return VideoTimelineElementViewModelImpl(
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(mapOf(meUserId to matrixClientMock)) +
+                                        module { single { thumbnailsMock } }
+                                )
+                            }
+                            .koin,
+                    userId = meUserId,
+                ),
+            url = "mxc://localhost/unencrypted123456",
+            encryptedFile = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf()),
+            info =
+                VideoInfo(
+                    duration = 100L,
+                    height = 500,
+                    width = 500,
+                    thumbnailInfo = ThumbnailInfo(height = 100, width = 100),
+                ),
+            fileName = "test.mp4",
+        )
+    }
+}

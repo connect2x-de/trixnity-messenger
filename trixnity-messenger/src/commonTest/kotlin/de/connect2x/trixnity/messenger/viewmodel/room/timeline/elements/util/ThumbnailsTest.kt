@@ -44,6 +44,62 @@ class ThumbnailsTest {
     }
 
     @Test
+    fun `request custom thumbnail dimensions for thumbnail and original URLs`() = runTest {
+        val uri = "mxc://host.local/image"
+        everySuspend { mediaServiceMock.getThumbnail(uri, 800L, 600L, any(), any(), any(), progress = any()) } returns
+            Result.success(InMemoryPlatformMedia("thumbnail".encodeToByteArray().toByteArrayFlow()))
+        val cut: Thumbnails = ThumbnailsImpl()
+
+        for (useThumbnailUrl in listOf(true, false)) {
+            val result =
+                cut.loadThumbnail(
+                    backgroundScope,
+                    matrixClientMock,
+                    thumbnailFile = null,
+                    thumbnailUrl = if (useThumbnailUrl) uri else null,
+                    thumbnailInfo = null,
+                    file = null,
+                    fileUrl = if (useThumbnailUrl) null else uri,
+                    fileInfo = null,
+                    sizeInBytes = 1_000,
+                    thumbnailProgressFlow = MutableStateFlow(null),
+                    maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                    maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                    width = 800L,
+                    height = 600L,
+                )
+
+            result shouldBe "thumbnail".encodeToByteArray()
+        }
+    }
+
+    @Test
+    fun `keep default thumbnail dimensions for existing callers`() = runTest {
+        val uri = "mxc://host.local/image"
+        everySuspend { mediaServiceMock.getThumbnail(uri, 400L, 300L, any(), any(), any(), progress = any()) } returns
+            Result.success(InMemoryPlatformMedia("thumbnail".encodeToByteArray().toByteArrayFlow()))
+
+        val result =
+            ThumbnailsImpl()
+                .loadThumbnail(
+                    backgroundScope,
+                    matrixClientMock,
+                    thumbnailFile = null,
+                    thumbnailUrl = null,
+                    thumbnailInfo = null,
+                    file = null,
+                    fileUrl = uri,
+                    fileInfo = null,
+                    sizeInBytes = 1_000,
+                    thumbnailProgressFlow = MutableStateFlow(null),
+                    maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                    maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
+                )
+
+        result shouldBe "thumbnail".encodeToByteArray()
+    }
+
+    @Test
     fun `load encrypted thumbnail file successfully`() = runTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
         everySuspend { mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), any(), any()) } returns

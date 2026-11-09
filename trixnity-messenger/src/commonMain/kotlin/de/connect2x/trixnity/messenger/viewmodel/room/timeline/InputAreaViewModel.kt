@@ -31,11 +31,11 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.core.util.Reference as TrixnityReference
+import de.connect2x.trixnity.core.util.toLink
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
-import de.connect2x.trixnity.messenger.util.html.toLink
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -739,7 +739,8 @@ open class InputAreaViewModelImpl(
                     roomUser.membership == Membership.JOIN &&
                     (roomUser.name.contains(search, ignoreCase = true) ||
                         userId.localpart.contains(search, ignoreCase = true) ||
-                        userId.domain.contains(search, ignoreCase = true))
+                        userId.domain.contains(search, ignoreCase = true) ||
+                        userId.full.removePrefix("@").contains(search, ignoreCase = true))
             }
             .take(10)
             .map { roomUser -> roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxThumbnailSize) }
