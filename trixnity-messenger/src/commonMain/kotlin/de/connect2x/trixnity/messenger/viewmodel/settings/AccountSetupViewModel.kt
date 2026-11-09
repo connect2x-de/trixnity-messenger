@@ -17,14 +17,17 @@ interface AccountSetupViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
         onStartVerification: (UserId, Boolean) -> Unit,
+        onStartAccountSetup: (userId: UserId) -> Unit,
     ): AccountSetupViewModel {
-        return AccountSetupViewModelImpl(viewModelContext, onWizardClose, onStartVerification)
+        return AccountSetupViewModelImpl(viewModelContext, onWizardClose, onStartVerification, onStartAccountSetup)
     }
 
     companion object : AccountSetupViewModelFactory
 }
 
 interface AccountSetupViewModel {
+    fun startAccountSetup()
+
     fun closeAccountSetup()
 
     fun startVerification()
@@ -49,6 +52,7 @@ class AccountSetupViewModelImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val onWizardClose: (UserId) -> Unit,
     private val onStartVerification: (UserId, Boolean) -> Unit,
+    private val onStartAccountSetup: (userId: UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
     override val displayName: StateFlow<String?> =
@@ -79,6 +83,10 @@ class AccountSetupViewModelImpl(
             verificationInProgress.value = true
             completedVerification.value = null
         }
+    }
+
+    override fun startAccountSetup() {
+        onStartAccountSetup(userId)
     }
 
     override fun closeAccountSetup() {

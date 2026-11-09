@@ -4908,6 +4908,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Account
 	public static final fun AccountSetupWizard (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupRouter$Wrapper$ShowAccountSetup;Landroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardPanelKt {
+	public static final fun AccountSetupSettingsWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardStep {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
