@@ -115,6 +115,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Wrong padding of the time element in message bubble for incoming messages
 - SDK: Complete mention suggestions for full mxid
 - UI: Debounce mention loading indicator
+- UI: Fix Image preview in timeline fails to load
 
 ### Security
 
