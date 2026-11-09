@@ -5,7 +5,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.internal.logic.MatrixClientSelfVerificationMethodsLogic
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
-import de.connect2x.trixnity.messenger.internal.routes.AccountSetupSettingsRoute
+import de.connect2x.trixnity.messenger.internal.routes.AccountSetupRoute
 import de.connect2x.trixnity.messenger.internal.routes.selfverification.CrossSigningBootstrapRoute
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -62,5 +62,5 @@ private fun crossSigningNotEnabledUserIds(
 }
 
 private fun accountSetupUserId(routeNavigation: RouteNavigation): Flow<UserId?> {
-    return routeNavigation.routes.map { (it.lastOrNull() as? AccountSetupSettingsRoute)?.userId }
+    return routeNavigation.routes.map { (it.lastOrNull() as? AccountSetupRoute)?.userId }
 }
