@@ -130,6 +130,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Show room list separators only between rooms
 - UI: Improve light mode contrast in secondary containers
 - UI: Warn instead of blocking invitations when homeserver verification fails
+- SDK, UI: properly remove rooms from room list after logout
 
 ### Security
 

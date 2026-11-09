@@ -250,18 +250,23 @@ class RoomListViewModelImpl(
             .shareIn(coroutineScope, WhileSubscribed(), 1)
 
     init {
-        val directRoomsFlow = selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
-            combine(
-                selectedMatrixClients.map { selectedMatrixClient ->
-                    selectedMatrixClient.user.getAccountData<DirectEventContent>().map { it?.mappings.orEmpty() }
+        val directRoomsFlow =
+            selectedMatrixClients
+                .flatMapLatest { selectedMatrixClients ->
+                    combine(
+                        selectedMatrixClients.map { selectedMatrixClient ->
+                            selectedMatrixClient.user.getAccountData<DirectEventContent>().map {
+                                it?.mappings.orEmpty()
+                            }
+                        }
+                    ) { allDirectEventContents ->
+                        allDirectEventContents
+                            .flatMap { it.entries }
+                            .groupBy { it.key }
+                            .mapValues { (_, allRooms) -> allRooms.map { it.value.orEmpty() }.flatten() }
+                    }
                 }
-            ) { allDirectEventContents ->
-                allDirectEventContents
-                    .flatMap { it.entries }
-                    .groupBy { it.key }
-                    .mapValues { (_, allRooms) -> allRooms.map { it.value.orEmpty() }.flatten() }
-            }
-        }
+                .shareIn(coroutineScope, WhileSubscribed(), 1)
 
         val allRoomNamesFlow = // This is a heavy operation! Use it with care!
             allRoomsFlow
@@ -303,6 +308,7 @@ class RoomListViewModelImpl(
 
                     val relevantRooms =
                         roomsWithMeta.values
+                            .filter { it.matrixClient.userId in matrixClients.value }
                             .asFlow()
                             .filter { (room, _) ->
                                 val isSpace = room.createEventContent?.type == RoomType.Space
@@ -384,7 +390,7 @@ class RoomListViewModelImpl(
                         }
                         .toList()
                 }
-                .stateIn(coroutineScope, WhileSubscribed(), listOf())
+                .stateIn(coroutineScope, WhileSubscribed(replayExpirationMillis = 0), listOf())
 
         searchResultsEmpty =
             combine(elements, allRoomsFlow) { roomElements, allRooms ->
