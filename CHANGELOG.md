@@ -67,6 +67,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK, UI: Replace CrossSigningBootstrapWizard with UI-only WizardPanel, removing old navigation logic
 - UI: Replace single, view model dependent step SelfVerificationWizard with UI-only WizardPanel, removing old navigation
   logic
+- UI: Replace single, view model dependent step RedoSelfVerificationWizard with UI-only WizardPanel, removing old
+  navigation logic
 
 ### Deprecated
 

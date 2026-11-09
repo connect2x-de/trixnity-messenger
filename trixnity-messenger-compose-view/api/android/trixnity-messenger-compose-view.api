@@ -7278,6 +7278,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/
 	public static final fun CrossSigningBootstrapRecoveryKeyWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/RedoSelfVerificationWizardPanelKt {
+	public static final fun RedoSelfVerificationWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/RedoSelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationStepsKt {
 	public static final fun NoVerification (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PasswordPhrase (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
