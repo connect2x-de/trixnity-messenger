@@ -7293,6 +7293,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/
 	public static final fun SelfVerificationWizard (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationWizardPanelKt {
+	public static final fun SelfVerificationWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationWizardView {
 	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
 }
