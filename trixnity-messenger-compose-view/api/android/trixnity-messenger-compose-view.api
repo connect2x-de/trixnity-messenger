@@ -7274,6 +7274,14 @@ public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/
 	public final fun getLambda$1833950237$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/CrossSigningBootstrapWizardPanelKt {
+	public static final field FINISHED Ljava/lang/String;
+	public static final field RECOVERY_KEY Ljava/lang/String;
+	public static final field RECOVERY_KEY_EXPLANATION Ljava/lang/String;
+	public static final fun CrossSigningBootstrapExplanationWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun CrossSigningBootstrapRecoveryKeyWizardPanel (Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/verification/v2/SelfVerificationStepsKt {
 	public static final fun NoVerification (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PasswordPhrase (Lde/connect2x/trixnity/messenger/viewmodel/verification/v2/SelfVerificationViewModel;Landroidx/compose/runtime/Composer;I)V

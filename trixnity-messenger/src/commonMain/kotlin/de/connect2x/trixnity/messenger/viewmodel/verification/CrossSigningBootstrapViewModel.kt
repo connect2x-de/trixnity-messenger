@@ -21,7 +21,15 @@ interface CrossSigningBootstrapViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onClose: (UserId) -> Unit,
-    ): CrossSigningBootstrapViewModel = CrossSigningBootstrapViewModelImpl(viewModelContext, onClose)
+        onInitCrossSigningBootstrap: (UserId) -> Unit,
+        onFinishedGeneratingRecoveryKey: (UserId) -> Unit,
+    ): CrossSigningBootstrapViewModel =
+        CrossSigningBootstrapViewModelImpl(
+            viewModelContext,
+            onClose,
+            onInitCrossSigningBootstrap,
+            onFinishedGeneratingRecoveryKey,
+        )
 
     companion object : CrossSigningBootstrapViewModelFactory
 }
@@ -49,6 +57,8 @@ interface CrossSigningBootstrapViewModel {
 open class CrossSigningBootstrapViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onClose: (UserId) -> Unit,
+    onInitCrossSigningBootstrap: (UserId) -> Unit,
+    private val onFinishedGeneratingRecoveryKey: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, CrossSigningBootstrapViewModel {
 
     override val recoveryKey = MutableStateFlow<String?>(null)
@@ -65,6 +75,10 @@ open class CrossSigningBootstrapViewModelImpl(
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isBootstrapRunning = MutableStateFlow(false)
     private val authorizeUia = get<AuthorizeUia>()
+
+    init {
+        onInitCrossSigningBootstrap(userId)
+    }
 
     override fun startCrossSigningBootstrap() {
         if (isBootstrapRunning.getAndUpdate { true }.not()) {
@@ -89,6 +103,7 @@ open class CrossSigningBootstrapViewModelImpl(
                         is AuthorizeUiaResult.Success -> {
                             log.debug { "successfully completed bootstrap authorization" }
                             recoveryKey.value = bootstrap.recoveryKey
+                            onFinishedGeneratingRecoveryKey(userId)
                         }
                     }
                 }

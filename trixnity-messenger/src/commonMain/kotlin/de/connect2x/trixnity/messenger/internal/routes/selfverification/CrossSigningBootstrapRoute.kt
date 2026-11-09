@@ -8,4 +8,4 @@ import kotlinx.serialization.Serializable
 @TrixnityMessengerPrivateApi
 @Serializable
 @Immutable
-data class CrossSigningBootstrapRoute(val userId: UserId) : SelfVerificationRouteMarker
+data class CrossSigningBootstrapRoute(val userId: UserId) : CrossSigningBootstrapRouteMarker

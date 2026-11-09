@@ -14961,19 +14961,19 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verifi
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory$Companion;
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory {
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory$DefaultImpls {
-	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel;
 }
 
 public class de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/verification/CrossSigningBootstrapViewModel {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
