@@ -18,10 +18,14 @@ import androidx.compose.ui.unit.Dp
  */
 fun Modifier.fadeBottomToBackground(gradientOffset: Dp, colorStops: List<Pair<Float, Color>>): Modifier {
     return graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen).drawWithCache {
-        val gradient = Brush.verticalGradient(colorStops = colorStops.toTypedArray(), startY = gradientOffset.toPx())
+        val gradientOffsetPx = gradientOffset.toPx()
+        val gradient =
+            if (size.height > gradientOffsetPx) {
+                Brush.verticalGradient(colorStops = colorStops.toTypedArray(), startY = gradientOffsetPx)
+            } else null
         onDrawWithContent {
             drawContent()
-            drawRect(gradient, blendMode = BlendMode.DstIn)
+            gradient?.let { drawRect(it, blendMode = BlendMode.DstIn) }
         }
     }
 }
