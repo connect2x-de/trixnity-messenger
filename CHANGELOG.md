@@ -65,6 +65,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   old navigation logic
 - SDK: (**breaking change**) Use Trixnity MatrixUri and replace messenger Reference.toLink with the SDK version
 - SDK, UI: Replace CrossSigningBootstrapWizard with UI-only WizardPanel, removing old navigation logic
+- UI: Replace single, view model dependent step SelfVerificationWizard with UI-only WizardPanel, removing old navigation
+  logic
+- UI: Replace single, view model dependent step RedoSelfVerificationWizard with UI-only WizardPanel, removing old
+  navigation logic
 - SDK, UI: Replace setup wizard with UI-only WizardPanel and routes, removing old navigation logic and add manual
   starting of setup
   process to AccountSetupViewModel

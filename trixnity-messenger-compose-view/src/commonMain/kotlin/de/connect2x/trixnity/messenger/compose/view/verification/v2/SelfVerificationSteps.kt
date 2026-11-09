@@ -34,7 +34,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.Platform
@@ -64,7 +63,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.v2.SelfVerificatio
 fun SelfVerificationSteps(viewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
     val availableSelfVerificationMethods = viewModel.availableSelfVerificationMethods.collectAsState().value
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.middle)) {
         SelfVerificationExplanation()
         if (availableSelfVerificationMethods == null) {
             WizardSection {
@@ -100,7 +99,7 @@ fun SelfVerificationExplanation() {
             icon = Icons.Outlined.Info,
             expanded = expandedExplanation,
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small)) {
                 Text(i18n.selfVerificationHelpVerifyThis())
                 Text(i18n.selfVerificationHelpReason1())
                 Text(i18n.selfVerificationHelpReason2())
@@ -282,7 +281,7 @@ fun ResetOptions(viewModel: SelfVerificationViewModel) {
             },
             expanded = expandedResetOptions,
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.middle)) {
                 NoVerification(viewModel)
                 ResetAccount(viewModel)
             }
@@ -297,10 +296,13 @@ fun NoVerification(viewModel: SelfVerificationViewModel) {
         style =
             SurfaceStyle.default(
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(MaterialTheme.messengerDpConstants.middle),
             )
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(20.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+            modifier = Modifier.padding(MaterialTheme.messengerDpConstants.middle),
+        ) {
             Text(
                 i18n.redoSelfVerificationContinueWithoutVerification(),
                 style = MaterialTheme.typography.titleMedium,
@@ -308,7 +310,7 @@ fun NoVerification(viewModel: SelfVerificationViewModel) {
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                     modifier = Modifier.weight(1.0f, fill = true),
                 ) {
                     Text(text = i18n.redoSelfVerificationDoItLater())
@@ -341,10 +343,13 @@ fun ResetAccount(viewModel: SelfVerificationViewModel) {
         style =
             SurfaceStyle.default(
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(MaterialTheme.messengerDpConstants.middle),
             )
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(20.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+            modifier = Modifier.padding(MaterialTheme.messengerDpConstants.middle),
+        ) {
             Text(
                 i18n.selfVerificationResetRecoveryKey(),
                 style = MaterialTheme.typography.titleMedium,
