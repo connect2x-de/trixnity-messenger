@@ -21,7 +21,6 @@ import de.connect2x.trixnity.messenger.internal.routes.verification.Verification
 import de.connect2x.trixnity.messenger.internal.routes.verification.VerificationRoute
 import de.connect2x.trixnity.messenger.internal.routes.verification.VerificationRouteMarker
 import de.connect2x.trixnity.messenger.internal.routes.verification.VerificationSuccessRoute
-import de.connect2x.trixnity.messenger.internal.util.AnySelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
@@ -60,9 +59,7 @@ suspend fun Nav3MatrixMessengerWithRoot.login(
         val mxid = UserId("@$username:localhost:8008")
         log.info { "Got no cross signing bootstrap, starting self verification" }
         push(SelfVerificationRoute(mxid))
-        val selfVerificationViewModel =
-            (waitForViewModel<SelfVerificationRoute, AnySelfVerificationViewModel>() as AnySelfVerificationViewModel.V2)
-                .value
+        val selfVerificationViewModel = waitForViewModel<SelfVerificationRoute, SelfVerificationViewModel>()
         if (recoveryKey != null) {
             selfVerify(selfVerificationViewModel, recoveryKey)
             waitForNotActive<SelfVerificationRoute>()
