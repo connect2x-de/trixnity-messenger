@@ -7,7 +7,11 @@ import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Codec
 import org.jetbrains.skia.Data
+import org.jetbrains.skia.FilterMipmap
+import org.jetbrains.skia.FilterMode
+import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
+import org.jetbrains.skia.MipmapMode
 import org.jetbrains.skia.impl.use
 
 @TrixnityMessengerPrivateApi
@@ -37,9 +41,25 @@ internal actual fun ByteArray.decodeToImageBitmapWithSize(maxSize: IntSize): Ima
             val bitmap = Bitmap()
             bitmap.allocPixels(imageInfo = targetInfo)
 
-            codec.readPixels(bitmap = bitmap)
+            try {
+                codec.readPixels(bitmap = bitmap)
+            } catch (_: IllegalArgumentException) {
+                codec.decodeFullSizeAndScaleInto(bitmap = bitmap)
+            }
 
             bitmap.asComposeImageBitmap()
+        }
+    }
+}
+
+private val samplingMode = FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR)
+
+private fun Codec.decodeFullSizeAndScaleInto(bitmap: Bitmap) {
+    readPixels().use { fullSizeBitmap ->
+        Image.makeFromBitmap(fullSizeBitmap).use { fullSizeImage ->
+            checkNotNull(bitmap.peekPixels()).use { pixels ->
+                check(fullSizeImage.scalePixels(pixels, samplingMode, false))
+            }
         }
     }
 }
