@@ -128,6 +128,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Keep navigation components cached separately by type, including types with the same name on Web
 - UI: Show room list separators only between rooms
 - UI: Improve light mode contrast in secondary containers
+- UI: Warn instead of blocking invitations when homeserver verification fails
 
 ### Security
 

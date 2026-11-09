@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.search.user.homeserver
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.serverDiscovery
 import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
@@ -16,6 +17,7 @@ import de.connect2x.trixnity.messenger.search.provider.SearchProviderResult
 import de.connect2x.trixnity.messenger.search.user.UserSearchContext
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -69,14 +71,15 @@ open class HomeserverSearchProvider(
         coroutineScope: CoroutineScope,
         maxMediaSizeInMemory: Long,
     ): SearchProviderResult<HomeserverUserSearchResult> {
-        userId.domain
-            .serverDiscovery(
+        val homeserverDiscovery =
+            userId.domain.serverDiscovery(
                 httpClientEngine = matrixMessengerConfiguration.httpClientEngine,
                 httpClientConfig = matrixMessengerConfiguration.httpClientConfig,
             )
-            .onFailure {
-                return SearchProviderResult.Failure(i18n.searchUserIdHomeserverNotValid(userId.domain))
-            }
+        homeserverDiscovery.onFailure { exception ->
+            if (exception is CancellationException) throw exception
+            log.warn { "Cannot verify homeserver for $userId." }
+        }
 
         val profile =
             matrixClient.api.user
@@ -92,6 +95,10 @@ open class HomeserverSearchProvider(
                     initials = initials.compute(profile?.displayName ?: userId.full),
                     image = getImage(profile?.avatarUrl, matrixClient, maxMediaSizeInMemory, coroutineScope),
                     presence = getPresence(userId, matrixClient, coroutineScope),
+                    warning =
+                        if (homeserverDiscovery.isFailure && profile == null)
+                            i18n.searchUserIdHomeserverNotValid(userId.domain)
+                        else null,
                 )
             )
         )

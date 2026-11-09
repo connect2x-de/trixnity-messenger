@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,10 +29,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderIcon
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverUserSearchResult
 
 interface HomeserverSearchResultElementView {
@@ -93,18 +97,47 @@ class HomeserverSearchResultElementViewImpl : HomeserverSearchResultElementView 
                     }
                 }
                 Column(Modifier.weight(1f, true)) {
-                    Text(
-                        userSearchResult.displayName,
-                        maxLines = 2,
-                        style = MaterialTheme.typography.labelLarge,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        userSearchResult.userId.full,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
+                    val warning = userSearchResult.warning
+                    if (warning == null) {
+                        Text(
+                            userSearchResult.displayName,
+                            maxLines = 2,
+                            style = MaterialTheme.typography.labelLarge,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            userSearchResult.userId.full,
+                            maxLines = 2,
+                            style = MaterialTheme.typography.labelMedium,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    } else {
+                        Text(
+                            userSearchResult.userId.full,
+                            maxLines = 2,
+                            style = MaterialTheme.typography.labelLarge,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Tooltip(warning) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.messengerColors.warning,
+                                )
+                                Text(
+                                    warning,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -1453,8 +1453,8 @@ open class I18n(
     }
 
     open fun searchUserIdHomeserverNotValid(domain: String) = translate {
-        EN - "$domain is not a valid Matrix homeserver"
-        DE - "$domain ist kein valider Matrix Homeserver"
+        EN - "Could not verify $domain. This Matrix user ID might not be valid."
+        DE - "$domain konnte nicht überprüft werden. Diese Matrix-Benutzer-ID ist möglicherweise ungültig."
     }
 
     open fun searchGroupFailedSearch() = translate {
