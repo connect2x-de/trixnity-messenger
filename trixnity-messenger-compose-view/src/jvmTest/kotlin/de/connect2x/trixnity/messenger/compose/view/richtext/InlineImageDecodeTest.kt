@@ -14,12 +14,10 @@ import kotlin.test.assertTrue
 
 class InlineImageDecodeTest {
     @Test
-    fun oversizedEmoticonPngsAreDownsampledOrUseTheTextFallback() {
-        val bitmap = redImage(256, 256, "png").decodeToImageBitmapOrNull(IntSize(128, 128))
-        if (bitmap != null) {
-            assertTrue(bitmap.width < 256, "Decoded emoticon width must remain bounded")
-            assertTrue(bitmap.height < 256, "Decoded emoticon height must remain bounded")
-        }
+    fun oversizedEmoticonPngsAreDownsampled() {
+        val bitmap = assertNotNull(redImage(256, 256, "png").decodeToImageBitmapOrNull(IntSize(128, 128)))
+        assertEquals(128, bitmap.width)
+        assertEquals(128, bitmap.height)
     }
 
     @Test
@@ -41,12 +39,16 @@ class InlineImageDecodeTest {
     }
 
     @Test
-    fun oversizedPngsAreDownsampledOrUseTheTextFallback() {
-        val bitmap = redImage(4096, 2048, "png").decodeToImageBitmapOrNull(IntSize(inlineImageSize, inlineImageSize))
-        if (bitmap != null) {
-            assertTrue(bitmap.width < inlineImageSize * 2, "Decoded PNG width must remain bounded")
-            assertTrue(bitmap.height < inlineImageSize * 2, "Decoded PNG height must remain bounded")
-        }
+    fun oversizedPngsAreDownsampled() {
+        val bitmap =
+            assertNotNull(
+                redImage(4096, 2048, "png").decodeToImageBitmapOrNull(IntSize(inlineImageSize, inlineImageSize))
+            )
+        assertTrue(bitmap.width < inlineImageSize * 2, "Decoded PNG width must remain bounded")
+        assertTrue(bitmap.height < inlineImageSize * 2, "Decoded PNG height must remain bounded")
+        assertEquals(2f, bitmap.width.toFloat() / bitmap.height)
+        val pixel = bitmap.toPixelMap()[bitmap.width / 2, bitmap.height / 2]
+        assertTrue(pixel.red > 0.9f && pixel.green < 0.1f && pixel.blue < 0.1f, "$pixel")
     }
 
     @Test

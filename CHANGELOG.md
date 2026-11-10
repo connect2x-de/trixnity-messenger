@@ -65,6 +65,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   old navigation logic
 - SDK: (**breaking change**) Use Trixnity MatrixUri and replace messenger Reference.toLink with the SDK version
 - SDK, UI: Replace CrossSigningBootstrapWizard with UI-only WizardPanel, removing old navigation logic
+- UI: Replace single, view model dependent step SelfVerificationWizard with UI-only WizardPanel, removing old navigation
+  logic
+- UI: Replace single, view model dependent step RedoSelfVerificationWizard with UI-only WizardPanel, removing old
+  navigation logic
+- SDK, UI: Replace setup wizard with UI-only WizardPanel and routes, removing old navigation logic and add manual
+  starting of setup
+  process to AccountSetupViewModel
 
 ### Deprecated
 
@@ -109,6 +116,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Complete mention suggestions for full mxid
 - UI: Debounce mention loading indicator
 - SDK, ANDROID: audio recorder and player are now registered in the DI at messenger level, not multi-messenger level
+- UI: Fix Image preview in timeline fails to load
 
 ### Security
 

@@ -12508,24 +12508,25 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun getPrivacySettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;
 	public abstract fun getSetupBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public abstract fun startAccountSetup ()V
 	public abstract fun startVerification ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelFactory$Companion;
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelFactory {
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelFactory$DefaultImpls {
-	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/AccountSetupViewModel {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;)V
 	public fun changeVerificationCompleteStatus (Z)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
@@ -12551,6 +12552,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSet
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public fun startAccountSetup ()V
 	public fun startVerification ()V
 }
 
@@ -15971,6 +15973,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/verifi
 	public abstract fun getRecoveryKeyVerificationInProgress ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getRecoveryKeyWrong ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public abstract fun isVerified ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun resetRecovery ()V
 	public abstract fun verifyWithOtherDevice ()V
 	public abstract fun verifyWithPassphrase ()V
@@ -16025,6 +16028,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/verification/v2/Sel
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isVerified ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun resetRecovery ()V
 	public fun verifyWithOtherDevice ()V

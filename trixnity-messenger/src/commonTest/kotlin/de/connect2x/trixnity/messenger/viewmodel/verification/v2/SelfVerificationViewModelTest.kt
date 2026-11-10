@@ -99,8 +99,10 @@ class SelfVerificationViewModelTest {
         val cut = selfVerificationViewModel()
         delay(100.milliseconds)
         verify(exactly(0)) { onCloseSelfVerificationMock() }
+        cut.isVerified.value shouldBe null
         delay(230.milliseconds)
         verify { onCloseSelfVerificationMock() }
+        cut.isVerified.value shouldBe true
     }
 
     @Test
@@ -110,6 +112,7 @@ class SelfVerificationViewModelTest {
         val cut = selfVerificationViewModel()
         delay(100.milliseconds)
         verify { onCloseSelfVerificationMock() }
+        cut.isVerified.value shouldBe true
     }
 
     @Test
@@ -118,6 +121,7 @@ class SelfVerificationViewModelTest {
         val cut = selfVerificationViewModel()
         delay(100.milliseconds)
         verify(exactly(0)) { onCloseSelfVerificationMock() }
+        cut.isVerified.value shouldBe false
     }
 
     @Test
