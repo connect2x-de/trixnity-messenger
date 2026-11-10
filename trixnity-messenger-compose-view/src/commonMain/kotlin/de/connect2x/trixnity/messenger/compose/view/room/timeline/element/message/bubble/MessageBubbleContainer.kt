@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.compose.view.pointerMoveFilter
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuState
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -54,6 +55,35 @@ fun MessageBubbleContainer(
     onRedact: () -> Unit,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
+    StyledMessageBubbleContainer(
+        holder = holder,
+        needsMaxWidth = needsMaxWidth,
+        reactionsOpen = reactionsOpen,
+        additionalContextActions = additionalContextActions,
+        isPreview = isPreview,
+        isMentioned = isMentioned,
+        interactionSource = interactionSource,
+        index = index,
+        messageBubbleStyle = null,
+        onRedact = onRedact,
+        content = content,
+    )
+}
+
+@Composable
+internal fun StyledMessageBubbleContainer(
+    holder: BaseTimelineElementHolderViewModel,
+    needsMaxWidth: Boolean,
+    reactionsOpen: MutableState<Boolean>,
+    additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
+    isPreview: Boolean,
+    isMentioned: Boolean,
+    interactionSource: MutableInteractionSource,
+    index: Int,
+    messageBubbleStyle: SurfaceStyle?,
+    onRedact: () -> Unit,
+    content: @Composable (showActionMenu: () -> Unit) -> Unit,
+) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
     val showActionMenu = remember { mutableStateOf<ThemedActionMenuState>(ThemedActionMenuState.Closed) }
@@ -65,12 +95,13 @@ fun MessageBubbleContainer(
 
     val messagePadding =
         remember(holder.isByMe) { if (holder.isByMe) Modifier.padding(end = 8.dp) else Modifier.padding(start = 8.dp) }
-    val messageBubbleStyle =
-        when {
-            sendError != null -> MaterialTheme.components.messageBubbleError
-            holder.isByMe -> MaterialTheme.components.messageBubbleOwn
-            else -> MaterialTheme.components.messageBubbleOther
-        }
+    val resolvedMessageBubbleStyle =
+        messageBubbleStyle
+            ?: when {
+                sendError != null -> MaterialTheme.components.messageBubbleError
+                holder.isByMe -> MaterialTheme.components.messageBubbleOwn
+                else -> MaterialTheme.components.messageBubbleOther
+            }
 
     Box(
         modifier =
@@ -109,14 +140,14 @@ fun MessageBubbleContainer(
             element?.let { append(timelineElementViewSelector.a11yLabel(it, i18n)) }
         }
         ThemedSurface(
-            style = messageBubbleStyle,
+            style = resolvedMessageBubbleStyle,
             focused = hasFocus,
             modifier =
                 Modifier.then(messagePadding)
                     .drawWithCache {
                         onDrawBehind {
                             if (isFirstInUserSequence) {
-                                drawChatEdge(holder.isByMe, messageBubbleStyle.color)
+                                drawChatEdge(holder.isByMe, resolvedMessageBubbleStyle.color)
                             }
                         }
                     }

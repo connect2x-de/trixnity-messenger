@@ -173,6 +173,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.NoticeRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.RtcMemberMessageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.RtcMemberMessageTimelineElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.StickerTimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.StickerTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.UnknownRoomMessageTimelineElementView
@@ -638,6 +640,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<ImageRoomMessageTimelineElementView> { ImageRoomMessageTimelineElementViewImpl() }
     timelineElementView<LocationRoomMessageTimelineElementView> { LocationRoomMessageTimelineElementViewImpl() }
     timelineElementView<RtcMemberMessageTimelineElementView> { RtcMemberMessageTimelineElementViewImpl() }
+    timelineElementView<StickerTimelineElementView> { StickerTimelineElementViewImpl() }
     timelineElementView<NoticeRoomMessageTimelineElementView> { NoticeRoomMessageTimelineElementViewImpl() }
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementViewImpl() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementViewImpl() }

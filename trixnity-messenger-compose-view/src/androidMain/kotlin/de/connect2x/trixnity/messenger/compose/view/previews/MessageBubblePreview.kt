@@ -56,7 +56,7 @@ fun TextMessageBubblePreview() {
     val element =
         object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
-            override val formattedBody: String = "Hello <b/>everyone!"
+            override val formattedBody: String = "Hello <b>everyone!</b>"
             override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
@@ -86,8 +86,8 @@ fun ImageMessageBubblePreview() {
             override val height: Int = 40
             override val thumbnailWidth: Int = 40
             override val thumbnailHeight: Int = 40
-            override val thumbnailAutoDownloadLimit: Long = 5 * 1024 * 1024
             override val blurhash: String? = null
+            override val thumbnailAutoDownloadLimit: Long = 5 * 1024 * 1024
             override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
             override val name: String = "kiwi.png"
@@ -204,10 +204,13 @@ private class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : Platf
     override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): PlatformMedia =
         InMemoryPlatformMedia(delegate.let(transformer))
 
-    override suspend fun toByteArray(coroutineScope: CoroutineScope?, expectedSize: Long?, maxSize: Long?): ByteArray =
-        delegate.toByteArray()
+    override suspend fun toByteArray(coroutineScope: CoroutineScope?, expectedSize: Long?, maxSize: Long?): ByteArray? =
+        if (maxSize != null) delegate.toByteArray(maxSize) else delegate.toByteArray()
 
-    override suspend fun getTemporaryFile(): Result<PlatformMedia.TemporaryFile> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getTemporaryFile(): Result<PlatformMedia.TemporaryFile> =
+        Result.success(
+            object : PlatformMedia.TemporaryFile {
+                override suspend fun delete() {}
+            }
+        )
 }

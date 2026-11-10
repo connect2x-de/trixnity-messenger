@@ -61,7 +61,7 @@ actual fun SaveFileDialog(
                     val file =
                         FileKit.openFileSaver(
                             suggestedName = fileName.substringBeforeLast("."),
-                            extension = fileName.substringAfterLast("."),
+                            extension = fileName.substringAfterLast(".", ""),
                             // TODO: set initialDirectory to OS dependent default pictures directory
                         )
                     try {

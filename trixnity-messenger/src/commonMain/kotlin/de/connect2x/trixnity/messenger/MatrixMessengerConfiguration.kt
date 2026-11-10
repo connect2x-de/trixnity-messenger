@@ -156,6 +156,8 @@ data class MatrixMessengerConfiguration(
         val enableHistoricRoomKeySharing: Boolean = true,
         /** If true, the user can use MatrixRTC-based videos calls * */
         val enableVideoCalls: Boolean = true,
+        /** Enables sticker rendering, sending, and sticker pack management. */
+        var enableStickers: Boolean = true,
         var enableSpaces: Boolean = true,
     )
 

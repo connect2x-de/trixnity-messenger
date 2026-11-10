@@ -32,9 +32,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Add new VerificationViewModel (`v2.VerificationViewModel`), consolidating the viewModel childStack approach of
   the current VerificationViewModel into a single viewModel
 - UI: Speaking indicator for MatrixRTC calls
+- SDK,UI: Add timeline element for `m.sticker`
 - SDK: Add the `enableSpaces` feature flag (enabled by default)
 - UI: Browse Matrix spaces and subspaces with desktop and mobile navigation, search, account selection,
   and an Explore space view for discovering rooms and joining eligible rooms or spaces
+- SDK,UI: Add view allowing to add, remove, favorise and view stickers; disable by setting `features.enableStickers = false`
 
 ### Changed
 
