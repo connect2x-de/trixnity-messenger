@@ -115,6 +115,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Wrong padding of the time element in message bubble for incoming messages
 - SDK: Complete mention suggestions for full mxid
 - UI: Debounce mention loading indicator
+- SDK, ANDROID: audio recorder and player are now registered in the DI at messenger level, not multi-messenger level
 - UI: Fix Image preview in timeline fails to load
 
 ### Security

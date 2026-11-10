@@ -4,9 +4,6 @@ import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.compose.view.DrawableResourceAppIcon
 import de.connect2x.trixnity.messenger.compose.view.composeViewModule
 import de.connect2x.trixnity.messenger.compose.view.typography.nunito.addNunitoThemeTypography
-import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.internal.compose.view.nav3ViewOptIn
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
@@ -14,7 +11,6 @@ import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModu
 import de.connect2x.trixnity.messenger.trixnity_messenger_compose_app.generated.resources.Res
 import de.connect2x.trixnity.messenger.trixnity_messenger_compose_app.generated.resources.status_icon
 import de.connect2x.trixnity.messenger.util.RootPath
-import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
 
 fun MatrixMultiMessengerConfiguration.configure() {
@@ -35,12 +31,6 @@ fun MatrixMultiMessengerConfiguration.configure() {
             ::platformMatrixMessengerSettingsHolderModule,
             // TODO there should be a more clean way for I18n
             ::platformGetSystemLangModule,
-            {
-                module {
-                    single<Languages> { DefaultLanguages }
-                    single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
-                }
-            },
         )
 
     // MatrixMultiMessengerConfiguration flavors

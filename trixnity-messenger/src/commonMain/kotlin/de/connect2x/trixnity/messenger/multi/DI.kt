@@ -2,7 +2,9 @@ package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.Worker
-import de.connect2x.trixnity.messenger.platformModule
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
@@ -36,10 +38,12 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> =
                 // where this is the root scope, and resolve it from there.
                 single<InformationMarkdownFlavour> { InformationMarkdownFlavourImpl() }
                 single<MultiProfileMigrator> { MultiProfileMigratorImpl(get()) }.apply { bind<Worker>() }
+                // sensible default as some instance in the multi messenger might need i18n and it should not crash
+                single<Languages> { DefaultLanguages }
+                single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
             }
         },
         ::profileViewModule,
-        ::platformModule,
         ::platformPathsModule,
         ::platformMatrixMultiMessengerSettingsHolderModule,
         ::matrixMessengerFactoryModule,
