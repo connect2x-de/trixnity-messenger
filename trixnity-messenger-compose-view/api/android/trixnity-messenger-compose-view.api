@@ -656,6 +656,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/
 	public static synthetic fun expandable$default (Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Landroidx/compose/ui/Modifier;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/FadeToBackgroundKt {
+	public static final fun fadeBottomToBackground-lG28NQ4 (Landroidx/compose/ui/Modifier;FLjava/util/List;)Landroidx/compose/ui/Modifier;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/FocusHighlightingKt {
 	public static final fun focusHighlighting (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/Modifier;
 	public static final fun focusHighlighting-cf5BqRc (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/interaction/MutableInteractionSource;JLandroidx/compose/ui/graphics/Shape;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;

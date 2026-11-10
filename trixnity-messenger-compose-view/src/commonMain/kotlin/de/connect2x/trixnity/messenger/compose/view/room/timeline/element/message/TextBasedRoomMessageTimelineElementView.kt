@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.PlatformType
+import de.connect2x.trixnity.messenger.compose.view.common.modifier.fadeBottomToBackground
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.richtext.LocalInlineImageMaxHeight
@@ -173,16 +175,25 @@ fun TextReplyInSendMessage(
 fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
     val content = element.formattedBodyContent
     val style = MaterialTheme.typography.bodySmall.copy(color = LocalContentColor.current)
+
+    val fadeGradientStart = 0.7f
+    val lineHeight = with(LocalDensity.current) { style.lineHeight.toDp() }
+    val maxHeight = lineHeight * maxLines
+    val gradientOffset = maxHeight * fadeGradientStart
+    val gradientColors =
+        listOf(0.0f to Color.Black, 0.6f to Color.Black.copy(alpha = 0.3f), 1.0f to Color.Black.copy(alpha = 0.1f))
     if (content != null) {
         val uriCaller = DI.get<UriCaller>()
-        val lineHeight = with(LocalDensity.current) { style.lineHeight.toDp() }
-        val maxHeight = lineHeight * maxLines
+
         CompositionLocalProvider(LocalTextStyle provides style, LocalInlineImageMaxHeight provides lineHeight) {
             RichTextDisplay(
                 document = content,
                 loadImage = remember(element) { element::loadInlineImage },
                 mentions = element.mentionsInFormattedBody,
-                modifier = Modifier.heightIn(max = maxHeight).clipToBounds(),
+                modifier =
+                    Modifier.heightIn(max = maxHeight)
+                        .clipToBounds()
+                        .fadeBottomToBackground(gradientOffset, gradientColors),
                 onLinkClick = { uriCaller.invoke(it, true) },
                 onMentionClick = element::openMention,
             )
@@ -194,6 +205,7 @@ fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
             style = style,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fadeBottomToBackground(gradientOffset, gradientColors),
         )
     }
 }
