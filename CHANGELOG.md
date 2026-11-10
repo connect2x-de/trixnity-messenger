@@ -36,7 +36,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Add the `enableSpaces` feature flag (enabled by default)
 - UI: Browse Matrix spaces and subspaces with desktop and mobile navigation, search, account selection,
   and an Explore space view for discovering rooms and joining eligible rooms or spaces
-- SDK,UI: Add view allowing to add, remove, favorise and view stickers; disable by setting `features.enableStickers = false`
+- SDK,UI: Add view allowing to add, remove, favorise and view stickers; disable by setting
+  `features.enableStickers = false`
 
 ### Changed
 
@@ -47,7 +48,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
-- DEPENDENCY: Update Trixnity to 5.10.0
+- DEPENDENCY: Update Trixnity to 5.11.0-SNAPSHOT.CI-20261110.195750
 - DEPENDENCY: Update SQLitenity to 0.0.8
 - SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
