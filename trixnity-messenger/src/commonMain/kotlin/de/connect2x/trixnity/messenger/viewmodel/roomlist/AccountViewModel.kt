@@ -90,7 +90,7 @@ open class AccountViewModelImpl(
     override val activeAccount: StateFlow<UserId?> =
         messengerSettings
             .map { it.base.selectedAccount }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), messengerSettings.value.base.selectedAccount)
 
     override val isSingleAccount: StateFlow<Boolean> =
         accounts.map { it.size <= 1 }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
