@@ -75,7 +75,8 @@ fun SpaceBrowserView(viewModel: SpaceContentViewModel, accountViewModel: Account
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 Column(Modifier.fillMaxSize()) {
                     when (val current = state) {
-                        SpaceContentState.Loading -> LoadingSpinner()
+                        SpaceContentState.Loading ->
+                            LoadingSpinner(Modifier.fillMaxSize().padding(MaterialTheme.messengerDpConstants.middle))
                         SpaceContentState.Error -> SpaceError(viewModel)
                         is SpaceContentState.Ready -> {
                             val content = current.content
