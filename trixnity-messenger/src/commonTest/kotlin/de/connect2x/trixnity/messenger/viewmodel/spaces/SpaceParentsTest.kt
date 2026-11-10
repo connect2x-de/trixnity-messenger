@@ -422,7 +422,7 @@ class SpaceParentsTest {
     }
 
     @Test
-    fun `each browser retries parent lookup when its discovery restarts`() = runTest {
+    fun `parent lookup retries when discovery restarts`() = runTest {
         val service = mock<RoomService>()
         val client = mock<MatrixClient>()
         val api = mock<MatrixClientServerApiClient>()
@@ -443,11 +443,10 @@ class SpaceParentsTest {
                 event(JoinRulesEventContent(JoinRulesEventContent.JoinRule.Knock)),
             )
         everySuspend { roomApi.getState(parent) } returns Result.failure(IllegalStateException("offline"))
-        val source = testSpaceBrowserContext(MutableStateFlow(mapOf(alice to client)))
-        var rail = SpaceContent()
-        val railSubscription = backgroundScope.launch { source.getSpaceOverview(alice).collect { rail = it } }
+        var rail = emptyList<SpaceParent>()
+        val railSubscription = backgroundScope.launch { getSpaceParents(client).collect { rail = it } }
         runCurrent()
-        rail.items shouldBe emptyList()
+        rail shouldBe emptyList()
         everySuspend { roomApi.getState(parent) } returns
             Result.success(
                 state.map {
@@ -461,15 +460,15 @@ class SpaceParentsTest {
                     )
                 }
             )
-        var latest = SpaceContent()
-        backgroundScope.launch { source.getSpaceOverview(alice).collect { latest = it } }
+        var latest = emptyList<SpaceParent>()
+        backgroundScope.launch { getSpaceParents(client).collect { latest = it } }
         runCurrent()
-        rail.items shouldBe emptyList()
+        rail shouldBe emptyList()
         railSubscription.cancel()
-        backgroundScope.launch { source.getSpaceOverview(alice).collect { rail = it } }
+        backgroundScope.launch { getSpaceParents(client).collect { rail = it } }
         runCurrent()
-        rail.items shouldBe latest.items
-        val item = latest.items.single()
+        rail shouldBe latest
+        val item = latest.single().toBrowserItem(alice, emptyMap())
         item.roomId shouldBe parent
         item.userId shouldBe alice
         item.name shouldBe "Discovered"

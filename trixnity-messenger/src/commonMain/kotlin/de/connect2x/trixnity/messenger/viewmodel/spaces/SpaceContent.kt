@@ -73,18 +73,11 @@ internal fun ViewModelContext.getSpaceOverview(
                                         .filterNotNull()
                                         .filter {
                                             it.type == CreateEventContent.RoomType.Space &&
-                                                (it.membership == Membership.JOIN || it.membership == Membership.INVITE)
+                                                ((it.membership == Membership.JOIN && membershipFilter.joined) ||
+                                                    (it.membership == Membership.INVITE && membershipFilter.invited))
                                         }
                                         .map { it.toBrowserItem(account) }
-                                (local + parents.map { it.toBrowserItem(account, rooms) })
-                                    .distinctBy { it.roomId }
-                                    .filter { item ->
-                                        when {
-                                            item.joined -> membershipFilter.joined
-                                            item.invited -> membershipFilter.invited
-                                            else -> loadDetails
-                                        }
-                                    } to parents.associate { it.roomId to it.children }
+                                local to parents.associate { it.roomId to it.children }
                             }
                             .distinctUntilChanged()
                             .flatMapLatest { (items, parents) ->
