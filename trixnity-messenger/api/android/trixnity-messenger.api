@@ -665,10 +665,11 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 
 public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features {
 	public fun <init> ()V
-	public fun <init> (ZZZZZZZZZZ)V
-	public synthetic fun <init> (ZZZZZZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZZZZZZZZZZ)V
+	public synthetic fun <init> (ZZZZZZZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
 	public final fun component10 ()Z
+	public final fun component11 ()Z
 	public final fun component2 ()Z
 	public final fun component3 ()Z
 	public final fun component4 ()Z
@@ -677,8 +678,8 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public final fun component7 ()Z
 	public final fun component8 ()Z
 	public final fun component9 ()Z
-	public final fun copy (ZZZZZZZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZZZZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public final fun copy (ZZZZZZZZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZZZZZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEnableAudioRecorder ()Z
 	public final fun getEnableHistoricRoomKeySharing ()Z
@@ -689,6 +690,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public final fun getEnablePdfReader ()Z
 	public final fun getEnablePowerlevelEventConfigurationInRoomSettings ()Z
 	public final fun getEnableRoom3ForNewAccountsOnWeb ()Z
+	public final fun getEnableSpaces ()Z
 	public final fun getEnableVideoCalls ()Z
 	public fun hashCode ()I
 	public final fun setEnableAudioRecorder (Z)V
@@ -698,6 +700,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public final fun setEnableNewSearch (Z)V
 	public final fun setEnablePdfReader (Z)V
 	public final fun setEnablePowerlevelEventConfigurationInRoomSettings (Z)V
+	public final fun setEnableSpaces (Z)V
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -12036,6 +12039,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRo
 	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/UserSettingsViewModel;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListSource {
+	public abstract fun getRooms (Lde/connect2x/trixnity/client/MatrixClient;)Lkotlinx/coroutines/flow/Flow;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListViewModel {
 	public abstract fun closeProfile ()V
 	public abstract fun createNewRoom ()V
@@ -12089,7 +12096,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListVi
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListViewModel {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListSource;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListSource;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -13796,6 +13804,234 @@ public final class de/connect2x/trixnity/messenger/viewmodel/sharing/SharingRout
 public final class de/connect2x/trixnity/messenger/viewmodel/sharing/SharingRouter$Wrapper$ShareData : de/connect2x/trixnity/messenger/viewmodel/sharing/SharingRouter$Wrapper {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/sharing/ShareDataViewModel;)V
 	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/sharing/ShareDataViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/RoomListSpace {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun component2-7hZGZBE ()Ljava/lang/String;
+	public final fun copy-v-LioYY (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/RoomListSpace;
+	public static synthetic fun copy-v-LioYY$default (Lde/connect2x/trixnity/messenger/viewmodel/spaces/RoomListSpace;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/RoomListSpace;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserItem {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZLjava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;Ljava/lang/String;ZLjava/lang/Long;Ljava/lang/Integer;IILjava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZLjava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;Ljava/lang/String;ZLjava/lang/Long;Ljava/lang/Integer;IILjava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun component10 ()Z
+	public final fun component11 ()Ljava/lang/Long;
+	public final fun component12 ()Ljava/lang/Integer;
+	public final fun component13 ()I
+	public final fun component14 ()I
+	public final fun component15 ()Ljava/lang/Long;
+	public final fun component2-7hZGZBE ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun component7 ()Ljava/util/Set;
+	public final fun component8 ()Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+	public final fun copy-mlQPfFM (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZLjava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;Ljava/lang/String;ZLjava/lang/Long;Ljava/lang/Integer;IILjava/lang/Long;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserItem;
+	public static synthetic fun copy-mlQPfFM$default (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserItem;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZLjava/util/Set;Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;Ljava/lang/String;ZLjava/lang/Long;Ljava/lang/Integer;IILjava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccountColor ()Ljava/lang/Long;
+	public final fun getCanJoin ()Z
+	public final fun getChildCount ()Ljava/lang/Integer;
+	public final fun getInvited ()Z
+	public final fun getJoined ()Z
+	public final fun getMemberCount ()Ljava/lang/Long;
+	public final fun getMembershipActionState ()Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public final fun getSubspaceCount ()I
+	public final fun getUnknownChildCount ()I
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public final fun getVia ()Ljava/util/Set;
+	public fun hashCode ()I
+	public final fun isSpace ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModel {
+	public abstract fun getAccount ()Lde/connect2x/trixnity/messenger/viewmodel/roomlist/AccountViewModel;
+	public abstract fun getContent ()Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModelFactory$Companion;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModelFactory {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModelFactory$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ZZLjava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ZZLjava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5-DuKFSck ()Ljava/lang/String;
+	public final fun component7 ()Z
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/Long;
+	public final fun copy-d5E2kVA (Ljava/lang/String;Ljava/util/List;ZZLjava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/Long;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;
+	public static synthetic fun copy-d5E2kVA$default (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;Ljava/lang/String;Ljava/util/List;ZZLjava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHierarchyFailed ()Z
+	public final fun getInvited ()Z
+	public final fun getItems ()Ljava/util/List;
+	public final fun getLoadingHierarchy ()Z
+	public final fun getMemberCount ()Ljava/lang/Long;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getTopic ()Ljava/lang/String;
+	public final fun getUserId-DuKFSck ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState {
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Error : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Error;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Loading : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Loading;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Ready : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;
+	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Ready;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Ready;Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentState$Ready;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContent;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel {
+	public abstract fun avatar-v-LioYY (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun back ()V
+	public abstract fun getSpaceImage ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun join (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserItem;)V
+	public abstract fun refresh ()V
+	public abstract fun reject (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserItem;)V
+	public abstract fun select (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceBrowserItem;)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory$Companion;
+	public fun create-TGHKT14 (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;Z)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel;
+	public static synthetic fun create-TGHKT14$default (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory {
+	public fun create-TGHKT14 (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;Z)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory$DefaultImpls {
+	public static fun create-TGHKT14 (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;Z)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel;
+	public static synthetic fun create-TGHKT14$default (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;ZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModel : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel {
+	public abstract fun openSettings ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModelFactory$Companion;
+	public fun create--HHZMkI (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModelFactory {
+	public fun create--HHZMkI (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModelFactory$DefaultImpls {
+	public static fun create--HHZMkI (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceExploreViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState : java/lang/Enum {
+	public static final field Failed Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+	public static final field Idle Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+	public static final field Joining Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+	public static final field Rejecting Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun isBusy ()Z
+	public static fun valueOf (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+	public static fun values ()[Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipActionState;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter {
+	public fun <init> ()V
+	public fun <init> (ZZ)V
+	public synthetic fun <init> (ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Z
+	public final fun copy (ZZ)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;ZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceMembershipFilter;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInvited ()Z
+	public final fun getJoined ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModel : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel {
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModelFactory$Companion;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModelFactory {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModelFactory$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceNavigationRailViewModel;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModel {
+	public abstract fun getContent ()Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceContentViewModel;
+	public abstract fun getExploreSelected ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getRooms ()Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListViewModel;
+	public abstract fun openExplore ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModelFactory$Companion;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/spaces/RoomListSpace;Lkotlinx/coroutines/flow/StateFlow;Lkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModelFactory {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/spaces/RoomListSpace;Lkotlinx/coroutines/flow/StateFlow;Lkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModelFactory$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/spaces/RoomListSpace;Lkotlinx/coroutines/flow/StateFlow;Lkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/spaces/SpaceRoomListViewModel;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/uia/AuthorizeUia {

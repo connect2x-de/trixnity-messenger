@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.internal.routes.extras.ExtrasRouteMarker
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.RoomListRoute
 import de.connect2x.trixnity.messenger.internal.routes.roomlist.RoomListRouteMarker
 import de.connect2x.trixnity.messenger.internal.routes.root.RootRouteMarker
+import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceExploreRoute
 
 @TrixnityMessengerPrivateApi
 fun RouteNavigation.navigationCallback(transform: RouteNavigationScope.() -> Unit): () -> Unit = {
@@ -48,5 +49,6 @@ fun RouteNavigationScope.openRoom(userId: UserId, roomId: RoomId) {
 @TrixnityMessengerPrivateApi
 fun RouteNavigationScope.closeRoom() {
     clear<TimelineRoute>()
+    clear<SpaceExploreRoute>()
     clear<ExtrasRouteMarker>()
 }

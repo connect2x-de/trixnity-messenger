@@ -121,7 +121,11 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
 
 @Composable
 fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
-    val i18n = DI.get<I18nView>()
+    SearchRoomsBanner(roomListViewModel, DI.get<I18nView>().roomListSearch())
+}
+
+@Composable
+internal fun SearchRoomsBanner(roomListViewModel: RoomListViewModel, label: String) {
     val showSearch = roomListViewModel.showSearch.collectAsState().value
     var searchTerm by roomListViewModel.searchTerm.collectAsTextFieldValueState()
     val focusRequester = remember { FocusRequester() }
@@ -145,8 +149,8 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
                             }
                         },
                 shape = RoundedCornerShape(8.dp),
-                leadingIcon = { Icon(Icons.Default.Search, i18n.roomListSearch()) },
-                label = { Text(i18n.roomListSearch()) },
+                leadingIcon = { Icon(Icons.Default.Search, label) },
+                label = { Text(label) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
             )
             ThemedHorizontalDivider()

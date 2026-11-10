@@ -68,6 +68,21 @@ final enum class de.connect2x.trixnity.messenger.viewmodel.room.timeline/OpenMed
     final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.viewmodel.room.timeline/OpenMediaType> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/OpenMediaType.values|values#static(){}[0]
 }
 
+final enum class de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState : kotlin/Enum<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState> { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState|null[0]
+    enum entry Failed // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.Failed|null[0]
+    enum entry Idle // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.Idle|null[0]
+    enum entry Joining // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.Joining|null[0]
+    enum entry Rejecting // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.Rejecting|null[0]
+
+    final val entries // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.entries.<get-entries>|<get-entries>#static(){}[0]
+    final val isBusy // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.isBusy|{}isBusy[0]
+        final fun <get-isBusy>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.isBusy.<get-isBusy>|<get-isBusy>(){}[0]
+
+    final fun valueOf(kotlin/String): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState.values|values#static(){}[0]
+}
+
 final enum class de.connect2x.trixnity.messenger.viewmodel.util/ErrorType : kotlin/Enum<de.connect2x.trixnity.messenger.viewmodel.util/ErrorType> { // de.connect2x.trixnity.messenger.viewmodel.util/ErrorType|null[0]
     enum entry JUST_DISMISS // de.connect2x.trixnity.messenger.viewmodel.util/ErrorType.JUST_DISMISS|null[0]
     enum entry WITH_ACTION // de.connect2x.trixnity.messenger.viewmodel.util/ErrorType.WITH_ACTION|null[0]
@@ -3657,6 +3672,10 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListEl
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModelFactory.Companion|null[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListSource { // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListSource|null[0]
+    abstract fun getRooms(de.connect2x.trixnity.client/MatrixClient): kotlinx.coroutines.flow/Flow<kotlin.collections/Collection<de.connect2x.trixnity.client.store/Room>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListSource.getRooms|getRooms(de.connect2x.trixnity.client.MatrixClient){}[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModel|null[0]
     abstract val accountViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModel.accountViewModel|{}accountViewModel[0]
         abstract fun <get-accountViewModel>(): de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModel.accountViewModel.<get-accountViewModel>|<get-accountViewModel>(){}[0]
@@ -4295,6 +4314,74 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataVi
     open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.messenger.util/SharedData, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataViewModel // de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.messenger.util.SharedData;kotlin.Function0<kotlin.Unit>){}[0]
 
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModel { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModel|null[0]
+    abstract val account // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModel.account|{}account[0]
+        abstract fun <get-account>(): de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModel.account.<get-account>|<get-account>(){}[0]
+    abstract val content // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModel.content|{}content[0]
+        abstract fun <get-content>(): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModel.content.<get-content>|<get-content>(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function1<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId?, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function1<de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId?,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel|null[0]
+    abstract val spaceImage // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.spaceImage|{}spaceImage[0]
+        abstract fun <get-spaceImage>(): kotlinx.coroutines.flow/Flow<kotlin/ByteArray?> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.spaceImage.<get-spaceImage>|<get-spaceImage>(){}[0]
+    abstract val state // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun avatar(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId): kotlinx.coroutines.flow/Flow<kotlin/ByteArray?> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.avatar|avatar(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+    abstract fun back() // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.back|back(){}[0]
+    abstract fun join(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem) // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.join|join(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem){}[0]
+    abstract fun refresh() // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.refresh|refresh(){}[0]
+    abstract fun reject(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem) // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.reject|reject(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem){}[0]
+    abstract fun select(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem) // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel.select|select(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.core.model/UserId?, de.connect2x.trixnity.core.model/RoomId?, kotlin/Function1<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Boolean = ..., de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.core.model.UserId?;de.connect2x.trixnity.core.model.RoomId?;kotlin.Function1<de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Boolean;de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceMembershipFilter;kotlin.Boolean){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModel : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModel|null[0]
+    abstract fun openSettings() // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModel.openSettings|openSettings(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/Function1<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.Function1<de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceExploreViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModel : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModel|null[0]
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function1<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem, kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function1<de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem,kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceNavigationRailViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel|null[0]
+    abstract val content // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel.content|{}content[0]
+        abstract fun <get-content>(): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel.content.<get-content>|<get-content>(){}[0]
+    abstract val exploreSelected // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel.exploreSelected|{}exploreSelected[0]
+        abstract fun <get-exploreSelected>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel.exploreSelected.<get-exploreSelected>|<get-exploreSelected>(){}[0]
+    abstract val rooms // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel.rooms|{}rooms[0]
+        abstract fun <get-rooms>(): de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel.rooms.<get-rooms>|<get-rooms>(){}[0]
+
+    abstract fun openExplore() // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel.openExplore|openExplore(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace, kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model/RoomId?>, kotlinx.coroutines.flow/StateFlow<kotlin/Boolean>, kotlin/Function0<kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function2<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.messenger.viewmodel.spaces.RoomListSpace;kotlinx.coroutines.flow.StateFlow<de.connect2x.trixnity.core.model.RoomId?>;kotlinx.coroutines.flow.StateFlow<kotlin.Boolean>;kotlin.Function0<kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function2<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.RoomId,kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModelFactory.Companion|null[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUia { // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUia|null[0]
@@ -6057,6 +6144,33 @@ sealed interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.element
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention.User.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention.User.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention.User.toString|toString(){}[0]
+    }
+}
+
+sealed interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState|null[0]
+    final class Ready : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready|null[0]
+        constructor <init>(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent) // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceContent){}[0]
+
+        final val content // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.content|{}content[0]
+            final fun <get-content>(): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.content.<get-content>|<get-content>(){}[0]
+
+        final fun component1(): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.component1|component1(){}[0]
+        final fun copy(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent = ...): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.copy|copy(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceContent){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Ready.toString|toString(){}[0]
+    }
+
+    final object Error : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Error|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Error.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Error.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Error.toString|toString(){}[0]
+    }
+
+    final object Loading : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Loading|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Loading.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Loading.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentState.Loading.toString|toString(){}[0]
     }
 }
 
@@ -11848,7 +11962,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListRouter { 
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModelImpl|null[0]
-    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model/RoomId?>, kotlin/Function2<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlinx.coroutines.flow.StateFlow<de.connect2x.trixnity.core.model.RoomId?>;kotlin.Function2<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.RoomId,kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model/RoomId?>, kotlin/Function2<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListSource = ...) // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlinx.coroutines.flow.StateFlow<de.connect2x.trixnity.core.model.RoomId?>;kotlin.Function2<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.RoomId,kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListSource){}[0]
 
     final val accountViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModelImpl.accountViewModel|{}accountViewModel[0]
         final fun <get-accountViewModel>(): de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListViewModelImpl.accountViewModel.<get-accountViewModel>|<get-accountViewModel>(){}[0]
@@ -13009,6 +13123,124 @@ final class de.connect2x.trixnity.messenger.viewmodel.sharing/SharingRouter { //
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.sharing/SharingRouter.Wrapper.None.toString|toString(){}[0]
         }
     }
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace { // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+
+    final val roomId // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.roomId|{}roomId[0]
+        final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.roomId.<get-roomId>|<get-roomId>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.component1|component1(){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model/RoomId = ...): de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/RoomListSpace.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/Boolean, kotlin/Boolean, kotlin/Boolean = ..., kotlin.collections/Set<kotlin/String> = ..., de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Long? = ..., kotlin/Int? = ..., kotlin/Int = ..., kotlin/Int = ..., kotlin/Long? = ...) // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.collections.Set<kotlin.String>;de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceMembershipActionState;kotlin.String?;kotlin.Boolean;kotlin.Long?;kotlin.Int?;kotlin.Int;kotlin.Int;kotlin.Long?){}[0]
+
+    final val accountColor // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.accountColor|{}accountColor[0]
+        final fun <get-accountColor>(): kotlin/Long? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.accountColor.<get-accountColor>|<get-accountColor>(){}[0]
+    final val canJoin // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.canJoin|{}canJoin[0]
+        final fun <get-canJoin>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.canJoin.<get-canJoin>|<get-canJoin>(){}[0]
+    final val childCount // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.childCount|{}childCount[0]
+        final fun <get-childCount>(): kotlin/Int? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.childCount.<get-childCount>|<get-childCount>(){}[0]
+    final val invited // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.invited|{}invited[0]
+        final fun <get-invited>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.invited.<get-invited>|<get-invited>(){}[0]
+    final val isSpace // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.isSpace|{}isSpace[0]
+        final fun <get-isSpace>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.isSpace.<get-isSpace>|<get-isSpace>(){}[0]
+    final val joined // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.joined|{}joined[0]
+        final fun <get-joined>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.joined.<get-joined>|<get-joined>(){}[0]
+    final val memberCount // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.memberCount|{}memberCount[0]
+        final fun <get-memberCount>(): kotlin/Long? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.memberCount.<get-memberCount>|<get-memberCount>(){}[0]
+    final val membershipActionState // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.membershipActionState|{}membershipActionState[0]
+        final fun <get-membershipActionState>(): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.membershipActionState.<get-membershipActionState>|<get-membershipActionState>(){}[0]
+    final val name // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.name|{}name[0]
+        final fun <get-name>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.name.<get-name>|<get-name>(){}[0]
+    final val roomId // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.roomId|{}roomId[0]
+        final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.roomId.<get-roomId>|<get-roomId>(){}[0]
+    final val subspaceCount // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.subspaceCount|{}subspaceCount[0]
+        final fun <get-subspaceCount>(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.subspaceCount.<get-subspaceCount>|<get-subspaceCount>(){}[0]
+    final val unknownChildCount // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.unknownChildCount|{}unknownChildCount[0]
+        final fun <get-unknownChildCount>(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.unknownChildCount.<get-unknownChildCount>|<get-unknownChildCount>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.userId.<get-userId>|<get-userId>(){}[0]
+    final val via // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.via|{}via[0]
+        final fun <get-via>(): kotlin.collections/Set<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.via.<get-via>|<get-via>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component1|component1(){}[0]
+    final fun component10(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component10|component10(){}[0]
+    final fun component11(): kotlin/Long? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component11|component11(){}[0]
+    final fun component12(): kotlin/Int? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component12|component12(){}[0]
+    final fun component13(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component13|component13(){}[0]
+    final fun component14(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component14|component14(){}[0]
+    final fun component15(): kotlin/Long? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component15|component15(){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component2|component2(){}[0]
+    final fun component3(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component3|component3(){}[0]
+    final fun component4(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component4|component4(){}[0]
+    final fun component5(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component5|component5(){}[0]
+    final fun component6(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component6|component6(){}[0]
+    final fun component7(): kotlin.collections/Set<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component7|component7(){}[0]
+    final fun component8(): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.component8|component8(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model/RoomId = ..., kotlin/String = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin.collections/Set<kotlin/String> = ..., de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipActionState = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Long? = ..., kotlin/Int? = ..., kotlin/Int = ..., kotlin/Int = ..., kotlin/Long? = ...): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.collections.Set<kotlin.String>;de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceMembershipActionState;kotlin.String?;kotlin.Boolean;kotlin.Long?;kotlin.Int?;kotlin.Int;kotlin.Int;kotlin.Long?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent|null[0]
+    constructor <init>(kotlin/String? = ..., kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem> = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., de.connect2x.trixnity.core.model/UserId? = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/String? = ..., kotlin/Long? = ...) // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.<init>|<init>(kotlin.String?;kotlin.collections.List<de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem>;kotlin.Boolean;kotlin.Boolean;de.connect2x.trixnity.core.model.UserId?;kotlin.String?;kotlin.Boolean;kotlin.String?;kotlin.Long?){}[0]
+
+    final val hierarchyFailed // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.hierarchyFailed|{}hierarchyFailed[0]
+        final fun <get-hierarchyFailed>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.hierarchyFailed.<get-hierarchyFailed>|<get-hierarchyFailed>(){}[0]
+    final val invited // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.invited|{}invited[0]
+        final fun <get-invited>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.invited.<get-invited>|<get-invited>(){}[0]
+    final val items // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.items|{}items[0]
+        final fun <get-items>(): kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.items.<get-items>|<get-items>(){}[0]
+    final val loadingHierarchy // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.loadingHierarchy|{}loadingHierarchy[0]
+        final fun <get-loadingHierarchy>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.loadingHierarchy.<get-loadingHierarchy>|<get-loadingHierarchy>(){}[0]
+    final val memberCount // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.memberCount|{}memberCount[0]
+        final fun <get-memberCount>(): kotlin/Long? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.memberCount.<get-memberCount>|<get-memberCount>(){}[0]
+    final val name // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.name|{}name[0]
+        final fun <get-name>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.name.<get-name>|<get-name>(){}[0]
+    final val topic // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.topic|{}topic[0]
+        final fun <get-topic>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.topic.<get-topic>|<get-topic>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem> // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component2|component2(){}[0]
+    final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component3|component3(){}[0]
+    final fun component4(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component4|component4(){}[0]
+    final fun component5(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component5|component5(){}[0]
+    final fun component7(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component7|component7(){}[0]
+    final fun component8(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component8|component8(){}[0]
+    final fun component9(): kotlin/Long? // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.component9|component9(){}[0]
+    final fun copy(kotlin/String? = ..., kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceBrowserItem> = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., de.connect2x.trixnity.core.model/UserId? = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/String? = ..., kotlin/Long? = ...): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.copy|copy(kotlin.String?;kotlin.collections.List<de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceBrowserItem>;kotlin.Boolean;kotlin.Boolean;de.connect2x.trixnity.core.model.UserId?;kotlin.String?;kotlin.Boolean;kotlin.String?;kotlin.Long?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContent.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter|null[0]
+    constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.<init>|<init>(kotlin.Boolean;kotlin.Boolean){}[0]
+
+    final val invited // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.invited|{}invited[0]
+        final fun <get-invited>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.invited.<get-invited>|<get-invited>(){}[0]
+    final val joined // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.joined|{}joined[0]
+        final fun <get-joined>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.joined.<get-joined>|<get-joined>(){}[0]
+
+    final fun component1(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.component1|component1(){}[0]
+    final fun component2(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.component2|component2(){}[0]
+    final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.copy|copy(kotlin.Boolean;kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceMembershipFilter.toString|toString(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaImpl : de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUia { // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaImpl|null[0]
@@ -15003,7 +15235,7 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 
     final class Features { // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features|null[0]
-        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
 
         final val enableHistoricRoomKeySharing // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableHistoricRoomKeySharing|{}enableHistoricRoomKeySharing[0]
             final fun <get-enableHistoricRoomKeySharing>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableHistoricRoomKeySharing.<get-enableHistoricRoomKeySharing>|<get-enableHistoricRoomKeySharing>(){}[0]
@@ -15033,9 +15265,13 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final var enablePowerlevelEventConfigurationInRoomSettings // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePowerlevelEventConfigurationInRoomSettings|{}enablePowerlevelEventConfigurationInRoomSettings[0]
             final fun <get-enablePowerlevelEventConfigurationInRoomSettings>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePowerlevelEventConfigurationInRoomSettings.<get-enablePowerlevelEventConfigurationInRoomSettings>|<get-enablePowerlevelEventConfigurationInRoomSettings>(){}[0]
             final fun <set-enablePowerlevelEventConfigurationInRoomSettings>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePowerlevelEventConfigurationInRoomSettings.<set-enablePowerlevelEventConfigurationInRoomSettings>|<set-enablePowerlevelEventConfigurationInRoomSettings>(kotlin.Boolean){}[0]
+        final var enableSpaces // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableSpaces|{}enableSpaces[0]
+            final fun <get-enableSpaces>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableSpaces.<get-enableSpaces>|<get-enableSpaces>(){}[0]
+            final fun <set-enableSpaces>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableSpaces.<set-enableSpaces>|<set-enableSpaces>(kotlin.Boolean){}[0]
 
         final fun component1(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component1|component1(){}[0]
         final fun component10(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component10|component10(){}[0]
+        final fun component11(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component11|component11(){}[0]
         final fun component2(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component2|component2(){}[0]
         final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component3|component3(){}[0]
         final fun component4(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component4|component4(){}[0]
@@ -15044,7 +15280,7 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final fun component7(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component7|component7(){}[0]
         final fun component8(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component8|component8(){}[0]
         final fun component9(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component9|component9(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.toString|toString(){}[0]

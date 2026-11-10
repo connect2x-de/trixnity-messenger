@@ -44,7 +44,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.compose.view.util.UserIdText
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
-import kotlinx.coroutines.flow.map
 
 interface AccountAvatarView {
     @Composable fun RowScope.create(accountViewModel: AccountViewModel)
@@ -74,12 +73,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
     val accountSelectionOpen = remember { mutableStateOf(false) }
     val isSingleAccount = accountViewModel.isSingleAccount.collectAsState().value
 
-    val activeAccountInfo =
-        remember(accounts, activeAccount) {
-                accountViewModel.accounts.map { accounts -> accounts.find { it.userId == activeAccount } }
-            }
-            .collectAsState(null)
-            .value
+    val activeAccountInfo = accounts.find { it.userId == activeAccount }
 
     val globalNotificationCount = accountViewModel.globalNotificationCount.collectAsState().value
     val accountNotificationCounts = accountViewModel.accountNotificationCounts.collectAsState().value

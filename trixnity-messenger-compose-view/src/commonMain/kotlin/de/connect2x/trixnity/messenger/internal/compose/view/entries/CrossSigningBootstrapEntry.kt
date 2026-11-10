@@ -7,10 +7,13 @@ import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecorator
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.rememberComponent
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.NavigationEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.NavigationVisibility
 import de.connect2x.trixnity.messenger.internal.routes.selfverification.CrossSigningBootstrapRoute
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
 
 internal class CrossSigningBootstrapEntry : NavigationEntry<CrossSigningBootstrapRoute> {
+    override val metadata: Map<String, Any> = NavigationVisibility.Hidden.metadata()
+
     @Composable
     override fun Content(route: CrossSigningBootstrapRoute) {
         rememberComponent<CrossSigningBootstrapViewModel>()

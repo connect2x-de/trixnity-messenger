@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
@@ -23,6 +22,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.AccountColorBar
 import de.connect2x.trixnity.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.trixnity.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -108,12 +108,8 @@ class RoomListElementViewImpl : RoomListElementView {
 @Composable
 fun MatrixClientColor(roomElementViewModel: RoomListElementViewModel) {
     val accountColor = roomElementViewModel.accountColor.collectAsState().value
-    Box(Modifier.padding(start = 2.dp, end = 12.dp).fillMaxHeight().padding(vertical = 0.dp)) {
-        Box(
-            Modifier.width(if (accountColor != null) 6.dp else 0.dp)
-                .fillMaxHeight()
-                .background(if (accountColor != null) Color(accountColor) else Color.Transparent)
-        )
+    Box(Modifier.padding(start = 2.dp, end = 12.dp).fillMaxHeight().padding(vertical = 8.dp)) {
+        AccountColorBar(accountColor, Modifier.fillMaxHeight())
     }
 }
 

@@ -34,6 +34,7 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
@@ -42,12 +43,15 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -151,6 +155,7 @@ class MemberListViewModelTest {
 
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(isDirect = true, roomId = roomId))
 
+        everySuspend { userServiceMock.loadMembers(roomId, false) } returns Unit
         every { userServiceMock.getAll(roomId) } returns roomUserMapFlow
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(true)
         every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(true)
@@ -232,6 +237,42 @@ class MemberListViewModelTest {
         every {
             userServiceMock.getPowerLevel(me, createEvent, powerLevelsEventContent = powerLevelsEventContent)
         } returns PowerLevel.User(1)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `space member list loads without a timeline and stops its spinner after loading`() = runTest {
+        val room =
+            MutableStateFlow(
+                Room(
+                    roomId = roomId,
+                    createEventContent = CreateEventContent(type = CreateEventContent.RoomType.Space),
+                    membersLoaded = false,
+                )
+            )
+        val loaded = CompletableDeferred<Unit>()
+        every { roomServiceMock.getById(roomId) } returns room
+        everySuspend { userServiceMock.loadMembers(roomId, false) } calls
+            {
+                backgroundScope.launch {
+                    loaded.await()
+                    room.value = room.value.copy(membersLoaded = true)
+                }
+                Unit
+            }
+        val cut = memberListViewModel()
+        backgroundScope.launch { cut.showLoadingSpinner.collect {} }
+        runCurrent()
+
+        verifySuspend { userServiceMock.loadMembers(roomId, false) }
+        cut.showLoadingSpinner.value shouldBe true
+        cut.elements.value.size shouldBe 3
+
+        loaded.complete(Unit)
+        runCurrent()
+
+        cut.showLoadingSpinner.value shouldBe false
+        cut.elements.value.size shouldBe 3
     }
 
     @Test

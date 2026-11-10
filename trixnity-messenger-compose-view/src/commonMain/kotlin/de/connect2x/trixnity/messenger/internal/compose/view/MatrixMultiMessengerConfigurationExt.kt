@@ -45,6 +45,9 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.SearchGroup
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.SelfVerificationEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.SendAttachmentEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.ShareDataEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.SpaceBrowserEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.SpaceExploreEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.SpaceRoomListEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.SyncEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.TimelineElementDevInfoEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.TimelineElementMetadataEntry
@@ -71,8 +74,12 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.verificatio
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.AnyNavigationEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.EntryProvider
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.navigationOf
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.SceneDecoratorStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.SceneStrategyFactory
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.navigationbar.NavigationBarSceneDecoratorStrategyFactory
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.navigationrail.NavigationRailSceneDecoratorStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.overlay.OverlaySceneStrategyFactory
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.sceneDecoratorStrategyOf
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.sceneStrategyOf
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.singlepane.SinglePaneSceneStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.threepane.ThreePaneSceneStrategyFactory
@@ -100,16 +107,20 @@ fun MatrixMultiMessengerConfiguration.nav3ViewOptIn() {
 private fun nav3ViewModuleFactory(): Module {
     return module {
         singleOf(::ClientView)
+        single { EntryProvider(entries = getAll<AnyNavigationEntry<*>>()) }
         single<NavigationView> {
             NavigationView(
                 backHandler = get<BackHandler>(),
                 navigation = get<GetRouteNavigation>(),
                 entryDecorators = getSorted<EntryDecoratorFactory>(),
                 sceneStrategies = getSorted<SceneStrategyFactory>(),
-                entryProvider = EntryProvider(entries = getAll<AnyNavigationEntry<*>>()),
+                sceneDecorators = getSorted<SceneDecoratorStrategyFactory>(),
+                entryProvider = get<EntryProvider>(),
             )
         }
 
+        sceneDecoratorStrategyOf(::NavigationRailSceneDecoratorStrategyFactory)
+        sceneDecoratorStrategyOf(::NavigationBarSceneDecoratorStrategyFactory)
         sceneStrategyOf(::OverlaySceneStrategyFactory) { before<ThreePaneSceneStrategyFactory>() }
         sceneStrategyOf(::ThreePaneSceneStrategyFactory) {
             after<OverlaySceneStrategyFactory>()
@@ -158,6 +169,9 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::RoomCallEntry)
         navigationOf(::RoomDevInfoEntry)
         navigationOf(::RoomListEntry)
+        navigationOf(::SpaceBrowserEntry)
+        navigationOf(::SpaceRoomListEntry)
+        navigationOf(::SpaceExploreEntry)
         navigationOf(::RoomSettingsEntry)
         navigationOf(::SearchGroupEntry)
         navigationOf(::SelfVerificationEntry)
