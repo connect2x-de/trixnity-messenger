@@ -11,6 +11,7 @@ data class HomeserverUserSearchResult(
     override val initials: String,
     override val image: StateFlow<ByteArray?>,
     val presence: StateFlow<Presence?>,
+    val warning: String? = null,
 ) : UserSearchResult {
 
     override val id: String = userId.full
@@ -24,6 +25,7 @@ data class HomeserverUserSearchResult(
         if (userId != other.userId) return false
         if (displayName != other.displayName) return false
         if (initials != other.initials) return false
+        if (warning != other.warning) return false
         if (!image.value.contentEquals(other.image.value)) return false
         if (presence.value != other.presence.value) return false
 
@@ -34,6 +36,7 @@ data class HomeserverUserSearchResult(
         var result = userId.hashCode()
         result = 31 * result + displayName.hashCode()
         result = 31 * result + initials.hashCode()
+        result = 31 * result + warning.hashCode()
         result = 31 * result + (image.value?.contentHashCode() ?: 0)
         result = 31 * result + presence.hashCode()
         return result
