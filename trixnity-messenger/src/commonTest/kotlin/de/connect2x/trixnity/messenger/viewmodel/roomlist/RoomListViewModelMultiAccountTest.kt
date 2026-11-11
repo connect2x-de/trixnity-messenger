@@ -69,6 +69,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -730,6 +731,43 @@ class RoomListViewModelMultiAccountTest {
         matrixClients.value = mapOf(UserId("test1", "server") to matrixClientMock1)
         delay(10)
         cut.elements.value shouldHaveSize 2
+    }
+
+    @Test
+    fun `remove logged out rooms when resubscribing to the room list`() = runTest {
+        val loggedOut = MutableStateFlow(false)
+        val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+        val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+        every { roomServiceMock1.getAll() } returns flowOf(mapOf(roomId1 to flowOf(room1)))
+        every { roomServiceMock2.getAll() } returns flowOf(mapOf(roomId3 to flowOf(room3)))
+        every { roomServiceMock3.getAll() } returns flowOf(emptyMap())
+        every { roomServiceMock1.getById(roomId1) } returns flowOf(room1)
+        every { roomServiceMock2.getById(roomId3) } returns flowOf(room3)
+        every { userServiceMock2.getAccountData(DirectEventContent::class) } returns
+            loggedOut.map {
+                check(!it) { "Database is closed" }
+                null
+            }
+        every { roomServiceMock2.getState(roomId3, CreateEventContent::class, "") } returns
+            loggedOut.map {
+                check(!it) { "Database is closed" }
+                null
+            }
+
+        val cut = roomListViewModel()
+
+        val subscription = subscribe(cut)
+        delay(10)
+        cut.elements.value.map { it.roomId }.toSet() shouldBe setOf(roomId1, roomId3)
+
+        subscription.cancel()
+        delay(10)
+        loggedOut.value = true
+        matrixClients.value = mapOf(me1 to matrixClientMock1)
+
+        subscribe(cut)
+        delay(10)
+        cut.elements.value.map { it.roomId } shouldBe listOf(roomId1)
     }
 
     @OptIn(TrixnityMessengerCallApi::class)
