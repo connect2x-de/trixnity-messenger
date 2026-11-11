@@ -73,11 +73,33 @@ internal fun ViewModelContext.getSpaceOverview(
                                         .filterNotNull()
                                         .filter {
                                             it.type == CreateEventContent.RoomType.Space &&
-                                                ((it.membership == Membership.JOIN && membershipFilter.joined) ||
-                                                    (it.membership == Membership.INVITE && membershipFilter.invited))
+                                                (it.membership == Membership.JOIN || it.membership == Membership.INVITE)
                                         }
                                         .map { it.toBrowserItem(account) }
                                 local to parents.associate { it.roomId to it.children }
+                            }
+                            .flatMapLatest { (items, parents) ->
+                                val children =
+                                    items
+                                        .filter { it.joined }
+                                        .map { space ->
+                                            client.room
+                                                .getAllState(space.roomId, ChildEventContent::class)
+                                                .flatten()
+                                                .map { events ->
+                                                    events
+                                                        .filterValues { it?.content?.via?.isNotEmpty() == true }
+                                                        .keys - space.roomId.full
+                                                }
+                                        }
+                                combine(children + flowOf(parents.values.flatten().map { it.full }.toSet())) { links ->
+                                    val nested = links.flatMap { it }.toSet()
+                                    items.filter {
+                                        it.roomId.full !in nested &&
+                                            ((it.joined && membershipFilter.joined) ||
+                                                (it.invited && membershipFilter.invited))
+                                    } to parents
+                                }
                             }
                             .distinctUntilChanged()
                             .flatMapLatest { (items, parents) ->

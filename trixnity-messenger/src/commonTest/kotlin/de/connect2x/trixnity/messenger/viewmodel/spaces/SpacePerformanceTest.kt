@@ -294,7 +294,7 @@ class SpacePerformanceTest {
             setOf(spaceId, invitedId)
         roomCollectors shouldBe 1
         parentCollections shouldBe 0
-        childCollections shouldBe 0
+        childCollections shouldBe 1
         subscription.cancel()
         runCurrent()
         roomCollectors shouldBe 0
