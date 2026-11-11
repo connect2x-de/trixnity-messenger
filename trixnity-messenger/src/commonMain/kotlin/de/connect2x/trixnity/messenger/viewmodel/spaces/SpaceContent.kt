@@ -55,7 +55,6 @@ private suspend fun MatrixClient.waitForMembershipSync(roomId: RoomId, matches: 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal fun ViewModelContext.getSpaceOverview(
     selectedAccount: UserId?,
-    membershipFilter: SpaceMembershipFilter = SpaceMembershipFilter(),
     loadDetails: Boolean = true,
 ): Flow<SpaceContent> =
     matrixClients
@@ -94,11 +93,7 @@ internal fun ViewModelContext.getSpaceOverview(
                                         }
                                 combine(children + flowOf(parents.values.flatten().map { it.full }.toSet())) { links ->
                                     val nested = links.flatMap { it }.toSet()
-                                    items.filter {
-                                        it.roomId.full !in nested &&
-                                            ((it.joined && membershipFilter.joined) ||
-                                                (it.invited && membershipFilter.invited))
-                                    } to parents
+                                    items.filter { it.roomId.full !in nested } to parents
                                 }
                             }
                             .distinctUntilChanged()

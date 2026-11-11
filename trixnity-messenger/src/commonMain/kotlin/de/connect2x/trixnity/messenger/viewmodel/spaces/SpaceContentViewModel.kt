@@ -105,8 +105,6 @@ interface SpaceContentViewModel {
     fun back()
 }
 
-data class SpaceMembershipFilter(val joined: Boolean = true, val invited: Boolean = true)
-
 interface SpaceContentViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
@@ -115,7 +113,6 @@ interface SpaceContentViewModelFactory {
         onSelect: (SpaceBrowserItem) -> Unit,
         onBack: () -> Unit,
         loadHierarchy: Boolean = true,
-        membershipFilter: SpaceMembershipFilter = SpaceMembershipFilter(),
         loadDetails: Boolean = true,
     ): SpaceContentViewModel =
         SpaceContentViewModelImpl(
@@ -125,7 +122,6 @@ interface SpaceContentViewModelFactory {
             onSelect = onSelect,
             onBack = onBack,
             loadHierarchy = loadHierarchy,
-            membershipFilter = membershipFilter,
             loadDetails = loadDetails,
         )
 
@@ -140,7 +136,6 @@ internal class SpaceContentViewModelImpl(
     private val onSelect: (SpaceBrowserItem) -> Unit,
     private val onBack: () -> Unit,
     private val loadHierarchy: Boolean = true,
-    private val membershipFilter: SpaceMembershipFilter = SpaceMembershipFilter(),
     private val loadDetails: Boolean = true,
 ) : ViewModelContext by viewModelContext, SpaceContentViewModel {
     private val membershipActions = MutableStateFlow<Map<Pair<UserId, RoomId>, SpaceMembershipActionState>>(emptyMap())
@@ -157,7 +152,7 @@ internal class SpaceContentViewModelImpl(
             .flatMapLatest { account ->
                 val content =
                     when {
-                        spaceId == null -> getSpaceOverview(account, membershipFilter, loadDetails)
+                        spaceId == null -> getSpaceOverview(account, loadDetails)
                         loadHierarchy -> getSpaceExploreContent(requireNotNull(account), spaceId)
                         else -> getJoinedSpaceContent(requireNotNull(account), spaceId)
                     }

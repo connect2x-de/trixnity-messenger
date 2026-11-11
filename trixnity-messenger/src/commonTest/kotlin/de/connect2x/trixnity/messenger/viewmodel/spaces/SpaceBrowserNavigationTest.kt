@@ -84,7 +84,6 @@ class SpaceBrowserNavigationTest {
                     onSelect: (SpaceBrowserItem) -> Unit,
                     onBack: () -> Unit,
                     loadHierarchy: Boolean,
-                    membershipFilter: SpaceMembershipFilter,
                     loadDetails: Boolean,
                 ): SpaceContentViewModel =
                     object : SpaceContentViewModel {

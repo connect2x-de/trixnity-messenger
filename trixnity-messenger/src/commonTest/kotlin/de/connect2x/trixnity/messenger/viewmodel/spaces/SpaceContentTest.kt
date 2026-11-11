@@ -278,32 +278,6 @@ class SpaceContentTest {
     }
 
     @Test
-    fun `overview membership filter independently selects joined spaces and invitations`() = runTest {
-        val invited = space.copy(roomId = RoomId("!invited:example.org"), membership = Membership.INVITE)
-        val source = testSpaceBrowserContext(MutableStateFlow(mapOf(alice to client(listOf(space, invited)))))
-        for (joined in listOf(false, true)) {
-            for (invite in listOf(false, true)) {
-                for (discovery in listOf(false, true)) {
-                    val items =
-                        source
-                            .getSpaceOverview(
-                                alice,
-                                membershipFilter = SpaceMembershipFilter(joined = joined, invited = invite),
-                                loadDetails = discovery,
-                            )
-                            .first()
-                            .items
-                    items.map { it.roomId }.toSet() shouldBe
-                        buildSet {
-                            if (joined) add(spaceId)
-                            if (invite) add(invited.roomId)
-                        }
-                }
-            }
-        }
-    }
-
-    @Test
     fun `explore shows invitation without fetching hierarchy`() = runTest {
         val service = mock<RoomService>()
         val invited = space.copy(membership = Membership.INVITE)

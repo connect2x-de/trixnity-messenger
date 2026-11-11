@@ -59,7 +59,7 @@ class SpacePerformanceTest {
         val content = mock<SpaceContentViewModel>()
         every { content.state } returns expectedState
         val factory = mock<SpaceContentViewModelFactory>()
-        every { factory.create(any(), any(), any(), any(), any(), any(), any(), any()) } returns content
+        every { factory.create(any(), any(), any(), any(), any(), any(), any()) } returns content
         context.getKoin().declare<SpaceContentViewModelFactory>(factory)
         val rail = SpaceNavigationRailViewModelFactory.create(context) {}
         assertSame(expectedState, rail.state)
