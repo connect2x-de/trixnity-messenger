@@ -202,7 +202,7 @@ class SpaceParentsTest {
     }
 
     @Test
-    fun `overview follows joined parent claims without fetching departed parents`() = runTest {
+    fun `overview and rail follow joined parent claims without fetching departed parents`() = runTest {
         val fixture = SpaceBrowserFixture(alice, parent)
         fixture.space.value = fixture.space.value!!.copy(membership = Membership.LEAVE)
         fixture.content.value =
@@ -225,26 +225,35 @@ class SpaceParentsTest {
             }
         var overview = SpaceContent()
         val context = fixture.context(this)
+        val rail = SpaceNavigationRailViewModelFactory.create(context) {}
+        backgroundScope.launch { rail.state.collect {} }
         backgroundScope.launch { context.getSpaceOverview(alice).collect { overview = it } }
+        fun railItems() = (rail.state.value as SpaceContentState.Ready).content.items.map { it.roomId }
         runCurrent()
         overview.items.map { it.roomId } shouldBe listOf(child)
+        railItems() shouldBe listOf(child)
         fixture.space.value = fixture.space.value!!.copy(membership = Membership.JOIN)
         runCurrent()
         overview.items.map { it.roomId } shouldBe listOf(parent)
         overview.items.single().childCount shouldBe 1
+        railItems() shouldBe listOf(parent)
         powers.value = power.copy(content = PowerLevelsEventContent(users = mapOf(bob to 49)))
         runCurrent()
         overview.items.map { it.roomId }.toSet() shouldBe setOf(parent, child)
+        railItems().toSet() shouldBe setOf(parent, child)
         powers.value = power
         runCurrent()
         overview.items.map { it.roomId } shouldBe listOf(parent)
         overview.items.single().childCount shouldBe 1
+        railItems() shouldBe listOf(parent)
         reciprocal.value = event(ChildEventContent(via = setOf(alice.domain)), child.full)
         runCurrent()
         overview.items.single().childCount shouldBe 1
+        railItems() shouldBe listOf(parent)
         fixture.space.value = fixture.space.value!!.copy(membership = Membership.LEAVE)
         runCurrent()
         overview.items.map { it.roomId } shouldBe listOf(child)
+        railItems() shouldBe listOf(child)
         requests shouldBe 0
     }
 

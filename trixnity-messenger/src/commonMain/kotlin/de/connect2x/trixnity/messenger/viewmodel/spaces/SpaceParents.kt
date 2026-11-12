@@ -29,86 +29,96 @@ internal data class SpaceParentCandidate(val childId: RoomId, val parentEvent: S
 internal data class SpaceParent(val roomId: RoomId, val children: Set<RoomId>)
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal fun getSpaceParents(client: MatrixClient, onlyParent: RoomId? = null): Flow<List<SpaceParent>> =
-    client.room
+internal fun getSpaceParents(client: MatrixClient, onlyParent: RoomId? = null): Flow<List<SpaceParent>> {
+    return client.room
         .getAll()
         .flatten()
         .map { rooms ->
             rooms.values.filterNotNull().filter { it.membership == Membership.JOIN }.map { it.roomId }.toSet()
         }
         .distinctUntilChanged()
-        .flatMapLatest { rooms ->
-            if (rooms.isEmpty()) flowOf(emptyList())
-            else
-                combine(
-                    rooms.map { child ->
-                        client.room.getAllState(child, ParentEventContent::class).flatten().map { events ->
-                            events.values
-                                .filterNotNull()
-                                .filter {
-                                    it.content.via.isNotEmpty() &&
-                                        RoomId.isValid(it.stateKey) &&
-                                        it.stateKey != child.full &&
-                                        (onlyParent == null || it.stateKey == onlyParent.full)
-                                }
-                                .map { SpaceParentCandidate(child, it) }
-                        }
-                    }
-                ) {
-                    it.flatMap { links -> links }
-                }
+        .flatMapLatest { getSpaceParents(client, it, onlyParent) }
+}
+
+/**
+ * Validates parent claims from the supplied joined rooms without opening another room subscription. Only joined parents
+ * are returned. [onlyParent] restricts claims to the space currently being viewed, or leaves all parents eligible when
+ * null.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun getSpaceParents(
+    client: MatrixClient,
+    joinedRoomIds: Set<RoomId>,
+    onlyParent: RoomId? = null,
+): Flow<List<SpaceParent>> {
+    if (joinedRoomIds.isEmpty()) return flowOf(emptyList())
+    return combine(joinedRoomIds.map { client.getSpaceParentCandidates(it, onlyParent) }) {
+            it.flatMap { candidates -> candidates }
         }
         .distinctUntilChanged()
-        .flatMapLatest { links ->
-            val parents = links.groupBy { RoomId(it.parentEvent.stateKey) }
-            if (parents.isEmpty()) flowOf(emptyList()) else getValidatedSpaceParents(client, parents)
+        .flatMapLatest { parentCandidates ->
+            val candidatesByParent = parentCandidates.groupBy { RoomId(it.parentEvent.stateKey) }
+            if (candidatesByParent.isEmpty()) return@flatMapLatest flowOf(emptyList())
+            combine(candidatesByParent.map { (parentId, candidates) -> getSpaceParent(client, parentId, candidates) }) {
+                it.filterNotNull()
+            }
         }
+}
+
+private fun MatrixClient.getSpaceParentCandidates(
+    childId: RoomId,
+    onlyParent: RoomId?,
+): Flow<List<SpaceParentCandidate>> {
+    return room.getAllState(childId, ParentEventContent::class).flatten().map { events ->
+        events.values
+            .filterNotNull()
+            .filter {
+                it.content.via.isNotEmpty() &&
+                    RoomId.isValid(it.stateKey) &&
+                    it.stateKey != childId.full &&
+                    (onlyParent == null || it.stateKey == onlyParent.full)
+            }
+            .map { SpaceParentCandidate(childId, it) }
+    }
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
-private fun getValidatedSpaceParents(
-    client: MatrixClient,
-    parents: Map<RoomId, List<SpaceParentCandidate>>,
-): Flow<List<SpaceParent>> =
-    combine(
-        parents.map { (parent, candidates) ->
-            client.room
-                .getById(parent)
-                .map { it?.membership == Membership.JOIN }
-                .distinctUntilChanged()
-                .flatMapLatest { joined -> if (joined) getJoinedParent(client, parent, candidates) else flowOf(null) }
-        }
-    ) {
-        it.filterNotNull()
-    }
-
-private fun getJoinedParent(
+private fun getSpaceParent(
     client: MatrixClient,
     parent: RoomId,
     candidates: List<SpaceParentCandidate>,
-): Flow<SpaceParent?> =
-    combine(
-        listOf(
-            client.room.getState<CreateEventContent>(parent),
-            client.room.getState<PowerLevelsEventContent>(parent),
-        ) +
-            candidates
-                .map { it.childId }
-                .distinct()
-                .map { child -> client.room.getState<ChildEventContent>(parent, child.full) } +
-            candidates
-                .map { it.parentEvent.sender }
-                .distinct()
-                .map { sender -> client.room.getState<MemberEventContent>(parent, sender.full) }
-    ) { events ->
-        val state = events.filterNotNull()
-        val missingMembership = candidates.any { (child, event) ->
-            state.event<ChildEventContent>(child.full)?.content?.via?.isNotEmpty() != true &&
-                state.event<MemberEventContent>(event.sender.full) == null
+): Flow<SpaceParent?> {
+    return client.room
+        .getById(parent)
+        .map { it?.membership == Membership.JOIN }
+        .distinctUntilChanged()
+        .flatMapLatest { isJoined ->
+            if (!isJoined) return@flatMapLatest flowOf(null)
+            combine(
+                listOf(
+                    client.room.getState<CreateEventContent>(parent),
+                    client.room.getState<PowerLevelsEventContent>(parent),
+                ) +
+                    candidates
+                        .map { it.childId }
+                        .distinct()
+                        .map { child -> client.room.getState<ChildEventContent>(parent, child.full) } +
+                    candidates
+                        .map { it.parentEvent.sender }
+                        .distinct()
+                        .map { sender -> client.room.getState<MemberEventContent>(parent, sender.full) }
+            ) { events ->
+                val state = events.filterNotNull()
+                val missingMembership = candidates.any { (child, event) ->
+                    state.event<ChildEventContent>(child.full)?.content?.via?.isNotEmpty() != true &&
+                        state.event<MemberEventContent>(event.sender.full) == null
+                }
+                if (missingMembership) client.user.loadMembers(parent, wait = false)
+                val valid = filterValidSpaceParents(candidates, state)
+                if (valid.isEmpty()) null else SpaceParent(parent, valid.map { it.childId }.toSet())
+            }
         }
-        if (missingMembership) client.user.loadMembers(parent, wait = false)
-        val valid = filterValidSpaceParents(candidates, state)
-        if (valid.isEmpty()) null else SpaceParent(parent, valid.map { it.childId }.toSet())
-    }
+}
 
 internal fun filterValidSpaceParents(
     candidates: List<SpaceParentCandidate>,
@@ -131,6 +141,12 @@ internal fun filterValidSpaceParents(
     }
 }
 
+/**
+ * Checks a claim against the claimed parent's [state]. The parent must be a space with either a reciprocal child link
+ * or a joined claim sender allowed to send child events there.
+ *
+ * See [parent relationship validation](https://spec.matrix.org/v1.19/client-server-api/#mspaceparent-relationships).
+ */
 internal fun isValidSpaceParent(
     child: RoomId,
     parent: StateBaseEvent<ParentEventContent>,
@@ -141,8 +157,6 @@ internal fun isValidSpaceParent(
     if (create.content.type != CreateEventContent.RoomType.Space) return false
     // Removing via unlinks a child without removing its state event.
     if (state.event<ChildEventContent>(child.full)?.content?.via?.isNotEmpty() == true) return true
-    // A parent claim is authorized in the child room. Without a reciprocal link, its sender must be able
-    // to send m.space.child in the parent: https://spec.matrix.org/v1.19/client-server-api/#mspaceparent-relationships
     if (state.event<MemberEventContent>(parent.sender.full)?.content?.membership != Membership.JOIN) return false
     val power = state.event<PowerLevelsEventContent>()?.content
     val required =
@@ -153,4 +167,6 @@ internal fun isValidSpaceParent(
 @Suppress("UNCHECKED_CAST")
 private inline fun <reified C : StateEventContent> List<StateBaseEvent<*>>.event(
     stateKey: String = ""
-): StateBaseEvent<C>? = firstOrNull { it.stateKey == stateKey && it.content is C } as? StateBaseEvent<C>
+): StateBaseEvent<C>? {
+    return firstOrNull { it.stateKey == stateKey && it.content is C } as? StateBaseEvent<C>
+}
