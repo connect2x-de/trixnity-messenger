@@ -3,36 +3,26 @@ package de.connect2x.trixnity.messenger.viewmodel.spaces
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.Room
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.model.room.GetHierarchy
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StrippedStateEvent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
-import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ParentEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
-import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
-import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertSame
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
@@ -63,87 +53,6 @@ class SpacePerformanceTest {
         context.getKoin().declare<SpaceContentViewModelFactory>(factory)
         val rail = SpaceNavigationRailViewModelFactory.create(context) {}
         assertSame(expectedState, rail.state)
-    }
-
-    @Test
-    fun `joining a parent mid-batch does not refetch a completed parent`() = runTest {
-        val user = UserId("alice", "example.org")
-        val child = RoomId("!child:example.org")
-        val a = RoomId("!a:example.org")
-        val b = RoomId("!b:example.org")
-        val membership = MutableStateFlow<Room?>(null)
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        val api = mock<MatrixClientServerApiClient>()
-        val roomApi = mock<RoomApiClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        every { client.api } returns api
-        every { api.room } returns roomApi
-        every { service.getAll() } returns flowOf(mapOf(child to flowOf(Room(child)), a to membership))
-        every { service.getAllState(a, ParentEventContent::class) } returns flowOf(emptyMap())
-        every { service.getAllState(child, ParentEventContent::class) } returns
-            flowOf(
-                listOf(a, b).associate {
-                    it.full to
-                        flowOf(
-                            ClientEvent.StrippedStateEvent(
-                                ParentEventContent(via = setOf("example.org")),
-                                sender = user,
-                                stateKey = it.full,
-                            )
-                        )
-                }
-            )
-        every { service.getById(a) } returns membership
-        every { service.getById(b) } returns flowOf(null)
-        val create =
-            ClientEvent.StrippedStateEvent(
-                CreateEventContent(type = CreateEventContent.RoomType.Space),
-                sender = user,
-                stateKey = "",
-            )
-        val power =
-            ClientEvent.StrippedStateEvent(
-                PowerLevelsEventContent(users = mapOf(user to 100)),
-                sender = user,
-                stateKey = "",
-            )
-        val member =
-            ClientEvent.StrippedStateEvent(
-                MemberEventContent(membership = Membership.JOIN),
-                sender = user,
-                stateKey = user.full,
-            )
-        every { service.getState(a, CreateEventContent::class, "") } returns flowOf(create)
-        every { service.getState(a, PowerLevelsEventContent::class, "") } returns flowOf(power)
-        every { service.getState(a, MemberEventContent::class, user.full) } returns flowOf(member)
-        every { service.getState(a, ChildEventContent::class, child.full) } returns flowOf(null)
-        val pendingParent = CompletableDeferred<Unit>()
-        var otherRequests = 0
-        everySuspend { roomApi.getState(any()) } calls
-            { args ->
-                val id = args.arg<RoomId>(0)
-                if (id == b) otherRequests++
-                if (id == a) pendingParent.await()
-                Result.success(
-                    listOf(create, power, member).map {
-                        ClientEvent.RoomEvent.StateEvent(
-                            it.content,
-                            EventId("$" + it.stateKey),
-                            it.sender,
-                            id,
-                            1L,
-                            stateKey = it.stateKey,
-                        )
-                    }
-                )
-            }
-        backgroundScope.launch { getSpaceParents(client).collect {} }
-        runCurrent()
-        assertEquals(1, otherRequests)
-        membership.value = Room(a)
-        runCurrent()
-        assertEquals(1, otherRequests)
     }
 
     @Test
