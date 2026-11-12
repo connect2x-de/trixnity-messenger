@@ -29,28 +29,25 @@ internal fun <T> getJoinedSpaceChildren(
     ) { rooms, children, parentLinks ->
         val space = rooms.find { it.roomId == spaceId }
         val joinedRooms =
-            if (space?.membership == Membership.JOIN) filterJoinedSpaceChildren(spaceId, rooms, children, parentLinks)
+            if (space?.membership == Membership.JOIN) filterJoinedSpaceChildren(rooms, children, parentLinks)
             else emptySet()
         transform(space, joinedRooms)
     }
 
 private fun spaceChildIds(
-    spaceId: RoomId,
     children: Map<String, StateBaseEvent<ChildEventContent>?>,
     parents: List<SpaceParent>,
 ): Set<RoomId> =
     (children.filterValues { it != null && it.content.via.isNotEmpty() }.keys.map(::RoomId) +
             parents.flatMap { it.children })
-        .filter { it != spaceId }
         .toSet()
 
 internal fun filterJoinedSpaceChildren(
-    spaceId: RoomId,
     rooms: Collection<Room>,
     children: Map<String, StateBaseEvent<ChildEventContent>?>,
     parents: List<SpaceParent>,
 ): Set<Room> {
-    val ids = spaceChildIds(spaceId, children, parents)
+    val ids = spaceChildIds(children, parents)
     return rooms.filterTo(mutableSetOf()) { it.membership == Membership.JOIN && it.roomId in ids }
 }
 
@@ -69,7 +66,7 @@ internal fun buildSpaceHierarchyItems(
                     (it.roomId.full !in childEvents || childEvents[it.roomId.full]?.content?.via?.isNotEmpty() == true)
             }
             .associateBy { it.roomId }
-    val ids = spaceChildIds(spaceId, childEvents, parents) + discovered.keys
+    val ids = spaceChildIds(childEvents, parents) + discovered.keys
     val hierarchyChildren =
         hierarchy.find { it.roomId == spaceId }?.childrenState?.associateBy { it.stateKey }.orEmpty()
     val knownSpaces =

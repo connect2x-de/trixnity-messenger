@@ -253,6 +253,36 @@ class SpaceContentTest {
     }
 
     @Test
+    fun `self linked spaces appear as children without treating the hierarchy root as a child`() {
+        val selfLink =
+            ClientEvent.StrippedStateEvent(
+                ChildEventContent(via = setOf(alice.domain)),
+                sender = alice,
+                stateKey = spaceId.full,
+            )
+        val cases =
+            listOf(
+                emptyMap<String, ClientEvent.StateBaseEvent<ChildEventContent>?>() to emptyList(),
+                mapOf(spaceId.full to selfLink) to listOf(spaceId),
+                mapOf(spaceId.full to selfLink.copy(content = ChildEventContent(via = emptySet()))) to emptyList(),
+            )
+        for ((childEvents, expectedIds) in cases) {
+            filterJoinedSpaceChildren(listOf(space), childEvents, emptyList()).map { it.roomId } shouldBe expectedIds
+            val explored =
+                buildSpaceHierarchyItems(
+                    alice,
+                    spaceId,
+                    mapOf(spaceId to space),
+                    childEvents,
+                    listOf(hierarchyRoom(spaceId).copy(roomType = CreateEventContent.RoomType.Space)),
+                    emptyList(),
+                )
+            explored.map { it.roomId } shouldBe expectedIds
+            explored.map { it.isSpace } shouldBe expectedIds.map { true }
+        }
+    }
+
+    @Test
     fun `list preserves account identity for a shared space and filters the selected account`() = runTest {
         val clients = MutableStateFlow(mapOf(alice to client(listOf(space)), bob to client(listOf(space))))
         val source = testSpaceBrowserContext(clients)
@@ -275,32 +305,6 @@ class SpaceContentTest {
             items.map { it.roomId }
         items.map { it.roomId }.toSet() shouldBe setOf(spaceId, child.roomId, invited.roomId)
         items.single { it.roomId == invited.roomId }.let { it.invited && it.canJoin && !it.joined } shouldBe true
-    }
-
-    @Test
-    fun `overview membership filter independently selects joined spaces and invitations`() = runTest {
-        val invited = space.copy(roomId = RoomId("!invited:example.org"), membership = Membership.INVITE)
-        val source = testSpaceBrowserContext(MutableStateFlow(mapOf(alice to client(listOf(space, invited)))))
-        for (joined in listOf(false, true)) {
-            for (invite in listOf(false, true)) {
-                for (discovery in listOf(false, true)) {
-                    val items =
-                        source
-                            .getSpaceOverview(
-                                alice,
-                                membershipFilter = SpaceMembershipFilter(joined = joined, invited = invite),
-                                loadDetails = discovery,
-                            )
-                            .first()
-                            .items
-                    items.map { it.roomId }.toSet() shouldBe
-                        buildSet {
-                            if (joined) add(spaceId)
-                            if (invite) add(invited.roomId)
-                        }
-                }
-            }
-        }
     }
 
     @Test

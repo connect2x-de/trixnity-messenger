@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.spaces
 
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -10,6 +11,7 @@ import de.connect2x.trixnity.messenger.settings.set
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
@@ -20,6 +22,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
@@ -62,6 +65,12 @@ class SpaceContentViewModelTest {
     ): SpaceContentViewModel {
         aliceFixture.content.value = SpaceContent(items = listOf(item))
         bobFixture.content.value = SpaceContent(items = listOf(item.copy(userId = bob)))
+        if (spaceId == null) {
+            for (fixture in listOf(aliceFixture, bobFixture)) {
+                every { fixture.rooms.getAllState(fixture.spaceId, ChildEventContent::class) } returns
+                    flowOf(emptyMap())
+            }
+        }
         val context = testSpaceBrowserContext(clients, roomName)
         context.getKoin().declare<MatrixMessengerSettingsHolder>(settings)
         return SpaceContentViewModelImpl(context, userId, spaceId, { selected += it }, {}, loadHierarchy).also { vm ->

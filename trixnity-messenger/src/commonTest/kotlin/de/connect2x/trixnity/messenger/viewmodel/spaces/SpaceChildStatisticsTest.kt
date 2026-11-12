@@ -116,43 +116,4 @@ class SpaceChildStatisticsTest {
         result.subspaceCount shouldBe 2
         result.unknownChildCount shouldBe 0
     }
-
-    @Test
-    fun `overview counts validated parent links without requiring joined spaces`() = runTest {
-        val client = mock<MatrixClient>()
-        val rooms = mock<RoomService>()
-        every { client.di } returns koinApplication { modules(module { single { rooms } }) }.koin
-        every { rooms.getAll() } returns
-            flowOf(
-                mapOf(
-                    nested to
-                        flowOf(
-                            Room(
-                                nested,
-                                createEventContent = CreateEventContent(type = CreateEventContent.RoomType.Space),
-                            )
-                        )
-                )
-            )
-        val item = SpaceBrowserItem(user, parent, "Parent", isSpace = true, joined = false)
-        val result =
-            spaceChildStatistics(listOf(item), client, mapOf(parent to setOf(nested, unknown))).first().single()
-        result.childCount shouldBe 2
-        result.subspaceCount shouldBe 1
-        result.unknownChildCount shouldBe 1
-    }
-
-    @Test
-    fun `overview merges parent and child links without counting duplicates`() = runTest {
-        val client = mock<MatrixClient>()
-        val rooms = mock<RoomService>()
-        every { client.di } returns koinApplication { modules(module { single { rooms } }) }.koin
-        every { rooms.getAll() } returns flowOf(emptyMap())
-        every { rooms.getAllState(parent, ChildEventContent::class) } returns
-            flowOf(mapOf(nested.full to flowOf(link(nested))))
-        val item = SpaceBrowserItem(user, parent, "Parent", isSpace = true, joined = true)
-        val result =
-            spaceChildStatistics(listOf(item), client, mapOf(parent to setOf(nested, unknown))).first().single()
-        result.childCount shouldBe 2
-    }
 }

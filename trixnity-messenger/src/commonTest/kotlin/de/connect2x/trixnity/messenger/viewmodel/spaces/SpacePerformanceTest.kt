@@ -3,36 +3,26 @@ package de.connect2x.trixnity.messenger.viewmodel.spaces
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.Room
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.model.room.GetHierarchy
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StrippedStateEvent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
-import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ParentEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
-import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
-import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertSame
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
@@ -59,91 +49,10 @@ class SpacePerformanceTest {
         val content = mock<SpaceContentViewModel>()
         every { content.state } returns expectedState
         val factory = mock<SpaceContentViewModelFactory>()
-        every { factory.create(any(), any(), any(), any(), any(), any(), any(), any()) } returns content
+        every { factory.create(any(), any(), any(), any(), any(), any(), any()) } returns content
         context.getKoin().declare<SpaceContentViewModelFactory>(factory)
         val rail = SpaceNavigationRailViewModelFactory.create(context) {}
         assertSame(expectedState, rail.state)
-    }
-
-    @Test
-    fun `joining a parent mid-batch does not refetch a completed parent`() = runTest {
-        val user = UserId("alice", "example.org")
-        val child = RoomId("!child:example.org")
-        val a = RoomId("!a:example.org")
-        val b = RoomId("!b:example.org")
-        val membership = MutableStateFlow<Room?>(null)
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        val api = mock<MatrixClientServerApiClient>()
-        val roomApi = mock<RoomApiClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        every { client.api } returns api
-        every { api.room } returns roomApi
-        every { service.getAll() } returns flowOf(mapOf(child to flowOf(Room(child)), a to membership))
-        every { service.getAllState(a, ParentEventContent::class) } returns flowOf(emptyMap())
-        every { service.getAllState(child, ParentEventContent::class) } returns
-            flowOf(
-                listOf(a, b).associate {
-                    it.full to
-                        flowOf(
-                            ClientEvent.StrippedStateEvent(
-                                ParentEventContent(via = setOf("example.org")),
-                                sender = user,
-                                stateKey = it.full,
-                            )
-                        )
-                }
-            )
-        every { service.getById(a) } returns membership
-        every { service.getById(b) } returns flowOf(null)
-        val create =
-            ClientEvent.StrippedStateEvent(
-                CreateEventContent(type = CreateEventContent.RoomType.Space),
-                sender = user,
-                stateKey = "",
-            )
-        val power =
-            ClientEvent.StrippedStateEvent(
-                PowerLevelsEventContent(users = mapOf(user to 100)),
-                sender = user,
-                stateKey = "",
-            )
-        val member =
-            ClientEvent.StrippedStateEvent(
-                MemberEventContent(membership = Membership.JOIN),
-                sender = user,
-                stateKey = user.full,
-            )
-        every { service.getState(a, CreateEventContent::class, "") } returns flowOf(create)
-        every { service.getState(a, PowerLevelsEventContent::class, "") } returns flowOf(power)
-        every { service.getState(a, MemberEventContent::class, user.full) } returns flowOf(member)
-        every { service.getState(a, ChildEventContent::class, child.full) } returns flowOf(null)
-        val pendingParent = CompletableDeferred<Unit>()
-        var otherRequests = 0
-        everySuspend { roomApi.getState(any()) } calls
-            { args ->
-                val id = args.arg<RoomId>(0)
-                if (id == b) otherRequests++
-                if (id == a) pendingParent.await()
-                Result.success(
-                    listOf(create, power, member).map {
-                        ClientEvent.RoomEvent.StateEvent(
-                            it.content,
-                            EventId("$" + it.stateKey),
-                            it.sender,
-                            id,
-                            1L,
-                            stateKey = it.stateKey,
-                        )
-                    }
-                )
-            }
-        backgroundScope.launch { getSpaceParents(client).collect {} }
-        runCurrent()
-        assertEquals(1, otherRequests)
-        membership.value = Room(a)
-        runCurrent()
-        assertEquals(1, otherRequests)
     }
 
     @Test
@@ -173,6 +82,8 @@ class SpacePerformanceTest {
         runCurrent()
         vm.select(items().single())
         selected.single().avatarUrl shouldBe "mxc://example.org/new"
+        first.parentCollectors shouldBe 0
+        second.parentCollectors shouldBe 1
         second.space.value = second.space.value!!.copy(membership = Membership.LEAVE)
         runCurrent()
         items() shouldBe emptyList()
@@ -255,48 +166,49 @@ class SpacePerformanceTest {
     }
 
     @Test
-    fun `rail in a large account collects rooms once and no discovery state`() = runTest {
-        val user = UserId("alice", "example.org")
-        val spaceId = RoomId("!space:example.org")
-        val invitedId = RoomId("!invited:example.org")
-        val type = CreateEventContent(type = CreateEventContent.RoomType.Space)
-        val rooms =
-            (0 until 2_000).map { Room(RoomId("!room$it:example.org")) } +
-                Room(spaceId, createEventContent = type) +
-                Room(invitedId, createEventContent = type, membership = Membership.INVITE)
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        var roomCollectors = 0
-        var parentCollections = 0
-        var childCollections = 0
-        every { service.getAll() } returns
-            flow {
-                    emit(rooms.associate { it.roomId to flowOf(it) })
-                    awaitCancellation()
-                }
-                .onStart { roomCollectors++ }
-                .onCompletion { roomCollectors-- }
-        every { service.getAllState(any(), ParentEventContent::class) } returns
-            flowOf(emptyMap<String, Flow<StateBaseEvent<ParentEventContent>?>>()).onStart { parentCollections++ }
-        every { service.getAllState(any(), ChildEventContent::class) } returns
-            flowOf(emptyMap<String, Flow<StateBaseEvent<ChildEventContent>?>>()).onStart { childCollections++ }
-        val vm =
-            SpaceNavigationRailViewModelFactory.create(
-                testSpaceBrowserContext(MutableStateFlow(mapOf(user to client))),
-                onSelect = {},
-            )
-        runCurrent()
-        roomCollectors shouldBe 0
-        val subscription = backgroundScope.launch { vm.state.collect() }
-        runCurrent()
-        (vm.state.value as SpaceContentState.Ready).content.items.map { it.roomId }.toSet() shouldBe
-            setOf(spaceId, invitedId)
-        roomCollectors shouldBe 1
-        parentCollections shouldBe 0
-        childCollections shouldBe 0
-        subscription.cancel()
-        runCurrent()
-        roomCollectors shouldBe 0
+    fun `overview and rail share room and child state subscriptions`() = runTest {
+        for (loadDetails in listOf(false, true)) {
+            val user = UserId("alice", "example.org")
+            val spaceId = RoomId("!space:example.org")
+            val invitedId = RoomId("!invited:example.org")
+            val type = CreateEventContent(type = CreateEventContent.RoomType.Space)
+            val rooms =
+                (0 until 2_000).map { Room(RoomId("!room$it:example.org")) } +
+                    Room(spaceId, createEventContent = type) +
+                    Room(invitedId, createEventContent = type, membership = Membership.INVITE)
+            val service = mock<RoomService>()
+            val client = mock<MatrixClient>()
+            every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
+            var roomCollectors = 0
+            var parentCollections = 0
+            var childCollections = 0
+            every { service.getAll() } returns
+                flow {
+                        emit(rooms.associate { it.roomId to flowOf(it) })
+                        awaitCancellation()
+                    }
+                    .onStart { roomCollectors++ }
+                    .onCompletion { roomCollectors-- }
+            every { service.getAllState(any(), ParentEventContent::class) } returns
+                flowOf(emptyMap<String, Flow<StateBaseEvent<ParentEventContent>?>>()).onStart { parentCollections++ }
+            every { service.getAllState(any(), ChildEventContent::class) } returns
+                flowOf(emptyMap<String, Flow<StateBaseEvent<ChildEventContent>?>>()).onStart { childCollections++ }
+            val context = testSpaceBrowserContext(MutableStateFlow(mapOf(user to client)))
+            val vm: SpaceContentViewModel =
+                if (loadDetails) SpaceContentViewModelFactory.create(context, null, null, {}, {})
+                else SpaceNavigationRailViewModelFactory.create(context, onSelect = {})
+            runCurrent()
+            roomCollectors shouldBe 0
+            val subscription = backgroundScope.launch { vm.state.collect() }
+            runCurrent()
+            (vm.state.value as SpaceContentState.Ready).content.items.map { it.roomId }.toSet() shouldBe
+                setOf(spaceId, invitedId)
+            roomCollectors shouldBe 1
+            parentCollections shouldBe if (loadDetails) 2_001 else 1
+            childCollections shouldBe 1
+            subscription.cancel()
+            runCurrent()
+            roomCollectors shouldBe 0
+        }
     }
 }

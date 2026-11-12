@@ -84,7 +84,6 @@ class SpaceBrowserNavigationTest {
                     onSelect: (SpaceBrowserItem) -> Unit,
                     onBack: () -> Unit,
                     loadHierarchy: Boolean,
-                    membershipFilter: SpaceMembershipFilter,
                     loadDetails: Boolean,
                 ): SpaceContentViewModel =
                     object : SpaceContentViewModel {
@@ -487,7 +486,7 @@ class SpaceBrowserNavigationTest {
     }
 
     @Test
-    fun `following a cycle preserves the open room`() = runTest {
+    fun `following a loop preserves the open room`() = runTest {
         val timeline = TimelineRoute(user, RoomId("!room:example.org"))
         val (browser, navigation) = browser(listOf(RoomListRoute, parent, child, timeline), child)
         browser.select(SpaceBrowserItem(user, parent.spaceId, "Parent", isSpace = true, joined = true))
@@ -514,7 +513,7 @@ class SpaceBrowserNavigationTest {
     }
 
     @Test
-    fun `following a cycle returns to the existing ancestor`() = runTest {
+    fun `following a loop returns to the existing ancestor`() = runTest {
         val (browser, navigation) = browser(listOf(RoomListRoute, list, parent, child), child)
         browser.select(SpaceBrowserItem(user, parent.spaceId, "Parent", isSpace = true, joined = true))
         navigation.routes.value shouldBe listOf(RoomListRoute, list, parent)

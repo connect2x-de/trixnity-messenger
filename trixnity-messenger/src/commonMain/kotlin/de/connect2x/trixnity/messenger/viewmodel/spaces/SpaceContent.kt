@@ -4,15 +4,12 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
-import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.joinedMemberCount
-import de.connect2x.trixnity.client.store.type
 import de.connect2x.trixnity.clientserverapi.model.room.GetHierarchy
 import de.connect2x.trixnity.clientserverapi.model.room.GetHierarchy.Response.SpaceHierarchyRoomsChunk
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
-import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.TopicEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
@@ -29,7 +26,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.core.component.get
 
@@ -53,46 +49,8 @@ private suspend fun MatrixClient.waitForMembershipSync(roomId: RoomId, matches: 
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal fun ViewModelContext.getSpaceOverview(
-    selectedAccount: UserId?,
-    membershipFilter: SpaceMembershipFilter = SpaceMembershipFilter(),
-    loadDetails: Boolean = true,
-): Flow<SpaceContent> =
-    matrixClients
-        .map { clients -> clients.filterKeys { selectedAccount == null || it == selectedAccount } }
-        .distinctUntilChanged()
-        .flatMapLatest { clients ->
-            if (clients.isEmpty()) flowOf(SpaceContent())
-            else
-                combine(
-                    clients.map { (account, client) ->
-                        val parents = if (loadDetails) getSpaceParents(client) else flowOf(emptyList())
-                        combine(client.room.getAll().flatten(), parents) { rooms, parents ->
-                                val local =
-                                    rooms.values
-                                        .filterNotNull()
-                                        .filter {
-                                            it.type == CreateEventContent.RoomType.Space &&
-                                                ((it.membership == Membership.JOIN && membershipFilter.joined) ||
-                                                    (it.membership == Membership.INVITE && membershipFilter.invited))
-                                        }
-                                        .map { it.toBrowserItem(account) }
-                                local to parents.associate { it.roomId to it.children }
-                            }
-                            .distinctUntilChanged()
-                            .flatMapLatest { (items, parents) ->
-                                if (loadDetails) spaceChildStatistics(items, client, parents) else flowOf(items)
-                            }
-                            .flatMapLatest { getNamedItems(it, client) }
-                    }
-                ) { items ->
-                    SpaceContent(items = items.flatMap { it }.sortedByName().sortedByDescending { it.invited })
-                }
-        }
-
-@OptIn(ExperimentalCoroutinesApi::class)
-internal fun ViewModelContext.getJoinedSpaceContent(userId: UserId, spaceId: RoomId): Flow<SpaceContent> =
-    matrixClients
+internal fun ViewModelContext.getJoinedSpaceContent(userId: UserId, spaceId: RoomId): Flow<SpaceContent> {
+    return matrixClients
         .map { it[userId] }
         .distinctUntilChanged()
         .flatMapLatest { client ->
@@ -108,17 +66,20 @@ internal fun ViewModelContext.getJoinedSpaceContent(userId: UserId, spaceId: Roo
                 .distinctUntilChanged()
                 .flatMapLatest { content ->
                     combine(
-                        getNamedItems(content.items, client).flatMapLatest { spaceChildStatistics(it, client) },
+                        getNamedItems(content.items, client).flatMapLatest {
+                            spaceChildStatistics(it.sortedByName(), client)
+                        },
                         get<RoomName>().getRoomName(spaceId, client, formatted = false),
                     ) { items, name ->
                         content.copy(items = items, name = name)
                     }
                 }
         }
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal fun ViewModelContext.getSpaceExploreContent(userId: UserId, spaceId: RoomId): Flow<SpaceContent> =
-    matrixClients
+internal fun ViewModelContext.getSpaceExploreContent(userId: UserId, spaceId: RoomId): Flow<SpaceContent> {
+    return matrixClients
         .map { it[userId] }
         .distinctUntilChanged()
         .flatMapLatest { client ->
@@ -148,6 +109,7 @@ internal fun ViewModelContext.getSpaceExploreContent(userId: UserId, spaceId: Ro
                     }
                 }
         }
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun ViewModelContext.getJoinedSpaceExploreContent(
@@ -185,7 +147,7 @@ private fun ViewModelContext.getJoinedSpaceExploreContent(
             }
             .distinctUntilChanged()
             .flatMapLatest { content ->
-                getNamedItems(content.items, client, sortByName = false)
+                getNamedItems(content.items, client)
                     .flatMapLatest { spaceChildStatistics(it, client) }
                     .map { content.copy(items = it) }
             }
@@ -201,47 +163,14 @@ private fun ViewModelContext.getJoinedSpaceExploreContent(
     }
 }
 
-private fun ViewModelContext.getNamedItems(
-    items: List<SpaceBrowserItem>,
-    client: MatrixClient,
-    sortByName: Boolean = true,
-): Flow<List<SpaceBrowserItem>> =
-    if (items.isEmpty()) flowOf(emptyList())
-    else
-        combine(
-            items.map { item ->
-                if (item.joined)
-                    get<RoomName>().getRoomName(item.roomId, client, formatted = false).map { item.copy(name = it) }
-                else flowOf(item)
-            }
-        ) {
-            it.toList().let { items -> if (sortByName) items.sortedByName() else items }
-        }
-
-internal fun Room.toBrowserItem(userId: UserId) =
-    SpaceBrowserItem(
-        userId,
-        roomId,
-        name?.explicitName ?: roomId.full,
-        isSpace = type == CreateEventContent.RoomType.Space,
-        joined = membership == Membership.JOIN,
-        invited = membership == Membership.INVITE,
-        canJoin = membership == Membership.INVITE,
-        memberCount = joinedMemberCount,
-        avatarUrl = avatarUrl,
-    )
-
-private fun List<SpaceBrowserItem>.sortedByName() =
-    sortedWith(compareBy<SpaceBrowserItem> { it.name.lowercase() }.thenBy { it.userId.full }.thenBy { it.roomId.full })
-
 internal data class SpaceHierarchy(
     val rooms: List<SpaceHierarchyRoomsChunk> = emptyList(),
     val loading: Boolean = true,
     val failed: Boolean = false,
 )
 
-internal fun loadSpaceHierarchy(fetch: suspend (String?) -> Result<GetHierarchy.Response>): Flow<SpaceHierarchy> =
-    flow {
+internal fun loadSpaceHierarchy(fetch: suspend (String?) -> Result<GetHierarchy.Response>): Flow<SpaceHierarchy> {
+    return flow {
         val rooms = linkedMapOf<RoomId, SpaceHierarchyRoomsChunk>()
         val seenTokens = mutableSetOf<String>()
         var from: String? = null
@@ -260,12 +189,14 @@ internal fun loadSpaceHierarchy(fetch: suspend (String?) -> Result<GetHierarchy.
             emit(SpaceHierarchy(rooms.values.toList(), loading = false, failed = true))
         }
     }
+}
 
 internal fun spaceChildComparator(children: Map<String, StateBaseEvent<*>>): Comparator<SpaceBrowserItem> {
-    fun order(item: SpaceBrowserItem) =
-        (children[item.roomId.full]?.content as? ChildEventContent)?.order?.takeIf {
+    fun order(item: SpaceBrowserItem): String? {
+        return (children[item.roomId.full]?.content as? ChildEventContent)?.order?.takeIf {
             it.length <= 50 && it.all { char -> char in ' '..'~' }
         }
+    }
     return compareBy<SpaceBrowserItem> { order(it) == null }
         .thenBy { order(it) }
         .thenBy { children[it.roomId.full]?.originTimestamp ?: Long.MAX_VALUE }

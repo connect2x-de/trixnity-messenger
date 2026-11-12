@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -46,8 +47,14 @@ internal fun LazyListScope.spaceNavigationItems(
                 state.content.items.filter { it.joined || it.invited },
                 key = { "${it.userId.full}/${it.roomId.full}" },
             ) { item ->
+                val label =
+                    when {
+                        item.isInLoop -> "${item.name}: ${i18n.spacesLoopWarning()}"
+                        item.invited -> "${item.name} (${i18n.spacesInvitations()})"
+                        else -> item.name
+                    }
                 AppNavigationRailItem(
-                    if (item.invited) "${item.name} (${i18n.spacesInvitations()})" else item.name,
+                    label,
                     selectedSpace == (item.userId to item.roomId),
                     { viewModel.select(item) },
                 ) {
@@ -55,7 +62,14 @@ internal fun LazyListScope.spaceNavigationItems(
                         AccountColorBar(item.accountColor, Modifier.height(36.dp).offset(x = (-10).dp))
                         BadgedBox(
                             badge = {
-                                if (item.invited) {
+                                if (item.isInLoop) {
+                                    Badge(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                    ) {
+                                        Icon(Icons.Default.Warning, null, Modifier.size(12.dp))
+                                    }
+                                } else if (item.invited) {
                                     Badge(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         contentColor = MaterialTheme.colorScheme.onPrimary,

@@ -4676,6 +4676,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun spacesInvitations(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesInvitations|spacesInvitations(){}[0]
     open fun spacesJoining(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesJoining|spacesJoining(){}[0]
     open fun spacesLoadError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesLoadError|spacesLoadError(){}[0]
+    open fun spacesLoopWarning(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesLoopWarning|spacesLoopWarning(){}[0]
     open fun spacesMemberCount(kotlin/Long): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesMemberCount|spacesMemberCount(kotlin.Long){}[0]
     open fun spacesMembershipError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesMembershipError|spacesMembershipError(){}[0]
     open fun spacesNavigationHome(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesNavigationHome|spacesNavigationHome(){}[0]

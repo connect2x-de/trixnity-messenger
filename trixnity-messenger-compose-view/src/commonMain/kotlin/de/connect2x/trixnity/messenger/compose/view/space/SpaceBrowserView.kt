@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +41,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.AccountColorBar
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.LocalAccountColorsEnabled
 import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingButton
+import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountAvatar
@@ -153,7 +157,22 @@ internal fun SpaceBrowserItemView(
                 style = if (item.isSpace) AvatarStyle.space() else MaterialTheme.components.avatar,
             )
             Column(Modifier.weight(1f)) {
-                RoomName(item.name)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (item.isInLoop) {
+                        Tooltip(tooltip = { Text(i18n.spacesLoopWarning(), Modifier.widthIn(max = 280.dp)) }) {
+                            Icon(
+                                Icons.Default.Warning,
+                                i18n.spacesLoopWarning(),
+                                Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
+                    RoomName(item.name)
+                }
                 if (showAccount) SpaceAccountName(item.userId)
                 item.memberCount?.let { Text(i18n.spacesMemberCount(it), style = MaterialTheme.typography.bodySmall) }
                 item.childCount?.let {

@@ -1868,6 +1868,12 @@ open class I18nView(
         DE - "Ablehnen"
     }
 
+    open fun spacesLoopWarning() = translate {
+        EN - "This space is part of a loop and is shown at the top level. This should be fixed by the space admin."
+        DE -
+            "Dieser Space ist Teil einer Schleife und wird auf oberster Ebene angezeigt. Dies sollte von der Space-Administration behoben werden."
+    }
+
     open fun spacesMembershipError() = translate {
         EN - "Could not update membership. Please try again."
         DE - "Mitgliedschaft konnte nicht geändert werden. Bitte erneut versuchen."

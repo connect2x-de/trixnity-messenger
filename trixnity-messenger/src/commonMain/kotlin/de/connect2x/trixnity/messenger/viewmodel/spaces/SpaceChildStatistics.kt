@@ -16,33 +16,28 @@ import kotlinx.coroutines.flow.map
 internal fun SpaceBrowserItem.withChildStatistics(
     children: Set<RoomId>,
     knownSpaces: Map<RoomId, Boolean>,
-): SpaceBrowserItem =
-    copy(
+): SpaceBrowserItem {
+    return copy(
         childCount = children.size,
         subspaceCount = children.count { knownSpaces[it] == true },
         unknownChildCount = children.count { it !in knownSpaces },
     )
+}
 
-internal fun spaceChildStatistics(
-    items: List<SpaceBrowserItem>,
-    client: MatrixClient,
-    parentChildren: Map<RoomId, Set<RoomId>> = emptyMap(),
-): Flow<List<SpaceBrowserItem>> {
+internal fun spaceChildStatistics(items: List<SpaceBrowserItem>, client: MatrixClient): Flow<List<SpaceBrowserItem>> {
     val spaces = items.filter { it.isSpace && it.joined }
-    if (spaces.isEmpty() && parentChildren.isEmpty()) return flowOf(items)
+    if (spaces.isEmpty()) return flowOf(items)
     val children =
-        if (spaces.isEmpty()) flowOf(emptyMap())
-        else
-            combine(
-                spaces.map { space ->
-                    client.room.getAllState(space.roomId, ChildEventContent::class).flatten().map { events ->
-                        space.roomId to
-                            events.filterValues { it != null && it.content.via.isNotEmpty() }.keys.map(::RoomId).toSet()
-                    }
+        combine(
+            spaces.map { space ->
+                client.room.getAllState(space.roomId, ChildEventContent::class).flatten().map { events ->
+                    space.roomId to
+                        events.filterValues { it != null && it.content.via.isNotEmpty() }.keys.map(::RoomId).toSet()
                 }
-            ) {
-                it.toMap()
             }
+        ) {
+            it.toMap()
+        }
     val knownSpaces =
         client.room
             .getAll()
@@ -55,11 +50,7 @@ internal fun spaceChildStatistics(
             .distinctUntilChanged()
     return combine(children, knownSpaces) { links, types ->
             val knownTypes = items.associate { it.roomId to it.isSpace } + types
-            items.map { item ->
-                (links[item.roomId]?.plus(parentChildren[item.roomId].orEmpty()) ?: parentChildren[item.roomId])?.let {
-                    item.withChildStatistics(it, knownTypes)
-                } ?: item
-            }
+            items.map { item -> links[item.roomId]?.let { item.withChildStatistics(it, knownTypes) } ?: item }
         }
         .distinctUntilChanged()
 }

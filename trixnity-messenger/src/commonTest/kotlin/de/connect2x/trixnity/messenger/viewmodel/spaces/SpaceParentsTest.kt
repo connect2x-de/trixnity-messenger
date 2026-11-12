@@ -4,18 +4,13 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.user.UserService
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
-import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ParentEventContent
@@ -185,166 +180,81 @@ class SpaceParentsTest {
     }
 
     @Test
-    fun `remote parent discovery bounds requests and releases them when hidden`() = runTest {
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        val api = mock<MatrixClientServerApiClient>()
-        val roomApi = mock<RoomApiClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        every { client.api } returns api
-        every { api.room } returns roomApi
-        every { service.getAll() } returns flowOf(mapOf(child to flowOf(Room(child))))
-        every { service.getAllState(child, ParentEventContent::class) } returns
-            flowOf(
-                (0 until 20).associate { index ->
-                    val id = RoomId("!parent$index:example.org")
-                    id.full to flowOf(parentEvent.copy(stateKey = id.full))
-                }
-            )
-        every { service.getById(any()) } returns flowOf(null)
-        val release = CompletableDeferred<Unit>()
-        var active = 0
-        var peak = 0
+    fun `parent lookup and overview ignore unjoined parents without fetching them`() = runTest {
+        val fixture = SpaceBrowserFixture(alice, child)
+        every { fixture.rooms.getAllState(child, ParentEventContent::class) } returns
+            flowOf(mapOf(parent.full to flowOf(parentEvent)))
         var requests = 0
-        everySuspend { roomApi.getState(any()) } calls
+        everySuspend { fixture.roomApi.getState(parent) } calls
             {
                 requests++
-                active++
-                peak = maxOf(peak, active)
-                try {
-                    release.await()
-                    Result.success(emptyList())
-                } finally {
-                    active--
-                }
+                Result.failure(IllegalStateException("offline"))
             }
-        val subscription = backgroundScope.launch { getSpaceParents(client).collect {} }
+        var parents = emptyList<SpaceParent>()
+        var overview = SpaceContent()
+        val context = fixture.context(this)
+        backgroundScope.launch { getSpaceParents(fixture.client).collect { parents = it } }
+        backgroundScope.launch { context.getSpaceOverview(alice).collect { overview = it } }
         runCurrent()
-        active shouldBe 4
-        subscription.cancel()
-        runCurrent()
-        active shouldBe 0
-        requests shouldBe 4
-        release.complete(Unit)
-        backgroundScope.launch { getSpaceParents(client).collect {} }
-        runCurrent()
-        requests shouldBe 24
-        peak shouldBe 4
+        parents shouldBe emptyList()
+        overview.items.map { it.roomId } shouldBe listOf(child)
+        requests shouldBe 0
     }
 
     @Test
-    fun `remote batches publish incrementally while joined parents stay reactive`() = runTest {
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        val api = mock<MatrixClientServerApiClient>()
-        val roomApi = mock<RoomApiClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        every { client.api } returns api
-        every { api.room } returns roomApi
-        val remoteParents = (0 until 5).map { RoomId("!remote$it:example.org") }
-        every { service.getAll() } returns flowOf(mapOf(child to flowOf(Room(child))))
-        every { service.getAllState(child, ParentEventContent::class) } returns
-            flowOf(
-                (listOf(parent) + remoteParents).associate { it.full to flowOf(parentEvent.copy(stateKey = it.full)) }
-            )
-        every { service.getById(any()) } returns flowOf(null)
-        every { service.getById(parent) } returns flowOf(Room(parent))
-        every { service.getState(parent, CreateEventContent::class, "") } returns flowOf(create)
+    fun `overview and rail follow joined parent claims without fetching departed parents`() = runTest {
+        val fixture = SpaceBrowserFixture(alice, parent)
+        fixture.space.value = fixture.space.value!!.copy(membership = Membership.LEAVE)
+        fixture.content.value =
+            SpaceContent(items = listOf(SpaceBrowserItem(alice, child, "Child", isSpace = true, joined = true)))
+        every { fixture.rooms.getAllState(child, ParentEventContent::class) } returns
+            flowOf(mapOf(parent.full to flowOf(parentEvent)))
+        val reciprocal = MutableStateFlow<ClientEvent.StateBaseEvent<ChildEventContent>?>(null)
+        every { fixture.rooms.getAllState(parent, ChildEventContent::class) } returns
+            flowOf(mapOf(child.full to reciprocal))
+        every { fixture.rooms.getState(parent, CreateEventContent::class, "") } returns flowOf(create)
         val powers = MutableStateFlow(power)
-        every { service.getState(parent, PowerLevelsEventContent::class, "") } returns powers
-        every { service.getState(parent, ChildEventContent::class, child.full) } returns flowOf(null)
-        every { service.getState(parent, MemberEventContent::class, bob.full) } returns flowOf(member)
-        val gates = List(5) { CompletableDeferred<Unit>() }
-        val requests = mutableListOf<RoomId>()
-        everySuspend { roomApi.getState(any()) } calls
-            { args ->
-                val id = args.arg<RoomId>(0)
-                val index = remoteParents.indexOf(id)
-                requests += id
-                gates[index].await()
-                if (index == 1) Result.failure(IllegalStateException("unavailable"))
-                else
-                    Result.success(
-                        listOf(create, power, member).map {
-                            ClientEvent.RoomEvent.StateEvent(
-                                it.content,
-                                EventId("$" + it.stateKey),
-                                it.sender,
-                                id,
-                                1L,
-                                stateKey = it.stateKey,
-                            )
-                        }
-                    )
+        every { fixture.rooms.getState(parent, PowerLevelsEventContent::class, "") } returns powers
+        every { fixture.rooms.getState(parent, ChildEventContent::class, child.full) } returns reciprocal
+        every { fixture.rooms.getState(parent, MemberEventContent::class, bob.full) } returns flowOf(member)
+        var requests = 0
+        everySuspend { fixture.roomApi.getState(parent) } calls
+            {
+                requests++
+                Result.failure(IllegalStateException("offline"))
             }
-        var latest = emptyList<SpaceParent>()
-        backgroundScope.launch { getSpaceParents(client).collect { latest = it } }
+        var overview = SpaceContent()
+        val context = fixture.context(this)
+        val rail = SpaceNavigationRailViewModelFactory.create(context) {}
+        backgroundScope.launch { rail.state.collect {} }
+        backgroundScope.launch { context.getSpaceOverview(alice).collect { overview = it } }
+        fun railItems() = (rail.state.value as SpaceContentState.Ready).content.items.map { it.roomId }
         runCurrent()
-        requests shouldBe remoteParents.take(4)
-        latest.map { it.roomId } shouldBe listOf(parent)
+        overview.items.map { it.roomId } shouldBe listOf(child)
+        railItems() shouldBe listOf(child)
+        fixture.space.value = fixture.space.value!!.copy(membership = Membership.JOIN)
+        runCurrent()
+        overview.items.map { it.roomId } shouldBe listOf(parent)
+        overview.items.single().childCount shouldBe 1
+        railItems() shouldBe listOf(parent)
         powers.value = power.copy(content = PowerLevelsEventContent(users = mapOf(bob to 49)))
         runCurrent()
-        latest shouldBe emptyList()
-        gates[0].complete(Unit)
-        runCurrent()
-        requests.size shouldBe 4
-        latest.map { it.roomId } shouldBe listOf(remoteParents[0])
-        (1..3).forEach { gates[it].complete(Unit) }
-        runCurrent()
-        requests shouldBe remoteParents
-        latest.map { it.roomId }.toSet() shouldBe setOf(remoteParents[0], remoteParents[2], remoteParents[3])
-        gates[4].complete(Unit)
-        runCurrent()
-        latest.map { it.roomId }.toSet() shouldBe (remoteParents - remoteParents[1]).toSet()
+        overview.items.map { it.roomId }.toSet() shouldBe setOf(parent, child)
+        railItems().toSet() shouldBe setOf(parent, child)
         powers.value = power
         runCurrent()
-        latest.map { it.roomId }.toSet() shouldBe (remoteParents - remoteParents[1] + parent).toSet()
-        requests.size shouldBe 5
-    }
-
-    @Test
-    fun `unjoined parent retains only state needed for validation and display`() = runTest {
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        val api = mock<MatrixClientServerApiClient>()
-        val roomApi = mock<RoomApiClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        every { client.api } returns api
-        every { api.room } returns roomApi
-        every { service.getAll() } returns flowOf(mapOf(child to flowOf(Room(child))))
-        every { service.getAllState(child, ParentEventContent::class) } returns
-            flowOf(mapOf(parent.full to flowOf(parentEvent)))
-        every { service.getById(parent) } returns flowOf(null)
-        val needed =
-            listOf(
-                create,
-                power,
-                member,
-                event(NameEventContent("Discovered")),
-                event(JoinRulesEventContent(JoinRulesEventContent.JoinRule.Public)),
-            )
-        val unrelated =
-            (0 until 10_000).map { index ->
-                event(MemberEventContent(membership = Membership.JOIN), "@other$index:example.org")
-            }
-        everySuspend { roomApi.getState(parent) } returns
-            Result.success(
-                (needed + unrelated).map {
-                    ClientEvent.RoomEvent.StateEvent(
-                        it.content,
-                        EventId("$" + it.stateKey),
-                        it.sender,
-                        parent,
-                        1L,
-                        stateKey = it.stateKey,
-                    )
-                }
-            )
-        val result = getSpaceParents(client).first { it.isNotEmpty() }.single()
-        result.state.map { it.content to it.stateKey } shouldBe needed.map { it.content to it.stateKey }
-        result.children shouldBe setOf(child)
-        result.toBrowserItem(alice, emptyMap()).name shouldBe "Discovered"
-        result.toBrowserItem(alice, emptyMap()).canJoin shouldBe true
+        overview.items.map { it.roomId } shouldBe listOf(parent)
+        overview.items.single().childCount shouldBe 1
+        railItems() shouldBe listOf(parent)
+        reciprocal.value = event(ChildEventContent(via = setOf(alice.domain)), child.full)
+        runCurrent()
+        overview.items.single().childCount shouldBe 1
+        railItems() shouldBe listOf(parent)
+        fixture.space.value = fixture.space.value!!.copy(membership = Membership.LEAVE)
+        runCurrent()
+        overview.items.map { it.roomId } shouldBe listOf(child)
+        railItems() shouldBe listOf(child)
+        requests shouldBe 0
     }
 
     @Test
@@ -422,61 +332,6 @@ class SpaceParentsTest {
     }
 
     @Test
-    fun `parent lookup retries when discovery restarts`() = runTest {
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        val api = mock<MatrixClientServerApiClient>()
-        val roomApi = mock<RoomApiClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        every { client.api } returns api
-        every { api.room } returns roomApi
-        every { service.getAll() } returns flowOf(mapOf(child to flowOf(Room(child))))
-        every { service.getAllState(child, ParentEventContent::class) } returns
-            flowOf(mapOf(parent.full to flowOf(parentEvent)))
-        every { service.getById(parent) } returns flowOf(null)
-        val state =
-            listOf(
-                create,
-                power,
-                member,
-                event(NameEventContent("Discovered")),
-                event(JoinRulesEventContent(JoinRulesEventContent.JoinRule.Knock)),
-            )
-        everySuspend { roomApi.getState(parent) } returns Result.failure(IllegalStateException("offline"))
-        var rail = emptyList<SpaceParent>()
-        val railSubscription = backgroundScope.launch { getSpaceParents(client).collect { rail = it } }
-        runCurrent()
-        rail shouldBe emptyList()
-        everySuspend { roomApi.getState(parent) } returns
-            Result.success(
-                state.map {
-                    ClientEvent.RoomEvent.StateEvent(
-                        it.content,
-                        EventId("$" + it.stateKey),
-                        it.sender,
-                        parent,
-                        1L,
-                        stateKey = it.stateKey,
-                    )
-                }
-            )
-        var latest = emptyList<SpaceParent>()
-        backgroundScope.launch { getSpaceParents(client).collect { latest = it } }
-        runCurrent()
-        rail shouldBe emptyList()
-        railSubscription.cancel()
-        backgroundScope.launch { getSpaceParents(client).collect { rail = it } }
-        runCurrent()
-        rail shouldBe latest
-        val item = latest.single().toBrowserItem(alice, emptyMap())
-        item.roomId shouldBe parent
-        item.userId shouldBe alice
-        item.name shouldBe "Discovered"
-        item.via shouldBe setOf("example.org")
-        item.canJoin shouldBe false
-    }
-
-    @Test
     fun `parent discovery accepts legacy and serverless room ids and rejects malformed ids`() = runTest {
         val service = mock<RoomService>()
         val client = mock<MatrixClient>()
@@ -495,25 +350,5 @@ class SpaceParentsTest {
             every { service.getState(roomId, MemberEventContent::class, bob.full) } returns flowOf(member)
         }
         getSpaceParents(client).first().map { it.roomId }.toSet() shouldBe validParents.toSet()
-    }
-
-    @Test
-    fun `inaccessible unjoined parents are ignored`() = runTest {
-        val service = mock<RoomService>()
-        val client = mock<MatrixClient>()
-        val api = mock<MatrixClientServerApiClient>()
-        val roomApi = mock<RoomApiClient>()
-        every { client.di } returns koinApplication { modules(module { single { service } }) }.koin
-        every { client.api } returns api
-        every { api.room } returns roomApi
-        every { service.getAll() } returns flowOf(mapOf(child to flowOf(Room(child))))
-        every { service.getAllState(child, ParentEventContent::class) } returns
-            flowOf(mapOf(parent.full to flowOf(parentEvent)))
-        every { service.getById(parent) } returns flowOf(null)
-        everySuspend { roomApi.getState(parent) } returns Result.failure(IllegalStateException("forbidden"))
-        var latest = emptyList<SpaceParent>()
-        backgroundScope.launch { getSpaceParents(client).collect { latest = it } }
-        runCurrent()
-        latest shouldBe emptyList()
     }
 }
