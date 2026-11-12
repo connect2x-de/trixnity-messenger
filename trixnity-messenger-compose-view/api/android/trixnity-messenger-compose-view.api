@@ -5623,8 +5623,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/space/Composable
 public final class de/connect2x/trixnity/messenger/compose/view/space/ComposableSingletons$SpaceNavigationItemsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/space/ComposableSingletons$SpaceNavigationItemsKt;
 	public fun <init> ()V
+	public final fun getLambda$-1204782134$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-32246629$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-583963529$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1889043819$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1216330802$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/space/SpaceBrowserViewKt {
