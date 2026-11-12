@@ -1772,6 +1772,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun spacesInvitations ()Ljava/lang/String;
 	public fun spacesJoining ()Ljava/lang/String;
 	public fun spacesLoadError ()Ljava/lang/String;
+	public fun spacesLoopWarning ()Ljava/lang/String;
 	public fun spacesMemberCount (J)Ljava/lang/String;
 	public fun spacesMembershipError ()Ljava/lang/String;
 	public fun spacesNavigationHome ()Ljava/lang/String;
@@ -5429,7 +5430,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/space/Composable
 	public fun <init> ()V
 	public final fun getLambda$-583963529$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$1889043819$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$768215217$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/space/SpaceBrowserViewKt {
