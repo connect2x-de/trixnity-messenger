@@ -41,6 +41,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingButton
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountAvatar
+import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountOptions
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomName
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarStyle
@@ -68,12 +69,14 @@ fun SpaceBrowserView(viewModel: SpaceContentViewModel, accountViewModel: Account
             SpaceHeader {
                 AccountAvatar(accountViewModel)
                 SpaceSearchButton(showSearch) { showSearch = it }
+                AccountOptions(accountViewModel)
             }
             SpaceSearchBanner(showSearch, searchTerm, { searchTerm = it }, { showSearch = false }, i18n.spacesSearch())
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 Column(Modifier.fillMaxSize()) {
                     when (val current = state) {
-                        SpaceContentState.Loading -> LoadingSpinner()
+                        SpaceContentState.Loading ->
+                            LoadingSpinner(Modifier.fillMaxSize().padding(MaterialTheme.messengerDpConstants.middle))
                         SpaceContentState.Error -> SpaceError(viewModel)
                         is SpaceContentState.Ready -> {
                             val content = current.content

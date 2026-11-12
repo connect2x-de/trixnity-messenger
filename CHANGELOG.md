@@ -132,6 +132,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Warn instead of blocking invitations when homeserver verification fails
 - SDK, UI: properly remove rooms from room list after logout
 
+
 ### Security
 
 ## 4.10.3

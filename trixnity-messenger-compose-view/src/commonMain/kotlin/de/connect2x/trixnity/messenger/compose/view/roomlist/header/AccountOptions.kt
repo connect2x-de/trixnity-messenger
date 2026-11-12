@@ -38,37 +38,44 @@ fun AccountOptions(accountViewModel: AccountViewModel, roomListViewModel: RoomLi
 class AccountOptionsViewImpl : AccountOptionsView {
     @Composable
     override fun create(accountViewModel: AccountViewModel, roomListViewModel: RoomListViewModel) {
-        val i18n = DI.get<I18nView>()
-        val config = DI.get<MatrixMessengerConfiguration>()
-        val menuOpen = remember { mutableStateOf(false) }
-        Tooltip(tooltip = { Text(i18n.accountMoreSettings()) }) {
-            ThemedIconButton(
-                style = MaterialTheme.components.commonIconButton,
-                onClick = { menuOpen.value = menuOpen.value.not() },
-                modifier = Modifier.expandable(menuOpen),
-            ) {
-                Icon(Icons.Default.MoreVert, i18n.accountMoreSettings())
-                ThemedDropdownMenu(
-                    menuOpen.value,
-                    { menuOpen.value = menuOpen.value.not() },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                ) {
-                    ThemedDropdownMenuItem(
-                        text = { Text(i18n.commonSettings().capitalize(Locale.current)) },
-                        accountViewModel::openUserSettings,
-                        modifier = Modifier.focusOnFirstRender(),
-                    )
-                    ThemedDropdownMenuItem(
-                        text = { Text(i18n.accountAboutTheApp(config.appName)) },
-                        accountViewModel::openAppInfo,
-                    )
+        AccountOptionsMenu(accountViewModel, roomListViewModel::sendLogs)
+    }
+}
 
-                    config.sendLogsEmailAddress?.let {
-                        ThemedDropdownMenuItem(
-                            text = { Text(i18n.accountSendErrorLogs()) },
-                            roomListViewModel::sendLogs,
-                        )
-                    }
+@Composable
+internal fun AccountOptions(accountViewModel: AccountViewModel) {
+    AccountOptionsMenu(accountViewModel)
+}
+
+@Composable
+private fun AccountOptionsMenu(accountViewModel: AccountViewModel, onSendLogs: (() -> Unit)? = null) {
+    val i18n = DI.get<I18nView>()
+    val config = DI.get<MatrixMessengerConfiguration>()
+    val menuOpen = remember { mutableStateOf(false) }
+    Tooltip(tooltip = { Text(i18n.accountMoreSettings()) }) {
+        ThemedIconButton(
+            style = MaterialTheme.components.commonIconButton,
+            onClick = { menuOpen.value = menuOpen.value.not() },
+            modifier = Modifier.expandable(menuOpen),
+        ) {
+            Icon(Icons.Default.MoreVert, i18n.accountMoreSettings())
+            ThemedDropdownMenu(
+                menuOpen.value,
+                { menuOpen.value = menuOpen.value.not() },
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            ) {
+                ThemedDropdownMenuItem(
+                    text = { Text(i18n.commonSettings().capitalize(Locale.current)) },
+                    accountViewModel::openUserSettings,
+                    modifier = Modifier.focusOnFirstRender(),
+                )
+                ThemedDropdownMenuItem(
+                    text = { Text(i18n.accountAboutTheApp(config.appName)) },
+                    accountViewModel::openAppInfo,
+                )
+
+                if (config.sendLogsEmailAddress != null && onSendLogs != null) {
+                    ThemedDropdownMenuItem(text = { Text(i18n.accountSendErrorLogs()) }, onSendLogs)
                 }
             }
         }
