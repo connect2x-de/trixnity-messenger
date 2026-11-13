@@ -4,6 +4,7 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.store.ServerData
 import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
+import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.clientserverapi.model.server.Capabilities
 import de.connect2x.trixnity.clientserverapi.model.server.Capability
 import de.connect2x.trixnity.clientserverapi.model.server.GetCapabilities
@@ -18,7 +19,8 @@ import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarHeight
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarWidth
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -78,10 +80,10 @@ class AccountsViewModelTest {
         everySuspend {
             mediaServiceMock2.getThumbnail(
                 "mxc://localhost/098765",
-                avatarSize().toLong(),
-                avatarSize().toLong(),
+                largeAvatarWidth().toLong(),
+                largeAvatarHeight().toLong(),
                 any(),
-                method = any(),
+                method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
                 progress = any(),
                 saveToCache = any(),
@@ -112,10 +114,10 @@ class AccountsViewModelTest {
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
-                avatarSize().toLong(),
-                avatarSize().toLong(),
+                largeAvatarWidth().toLong(),
+                largeAvatarHeight().toLong(),
                 any(),
-                method = any(),
+                method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
                 progress = any(),
                 saveToCache = any(),
@@ -148,10 +150,10 @@ class AccountsViewModelTest {
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
-                avatarSize().toLong(),
-                avatarSize().toLong(),
+                largeAvatarWidth().toLong(),
+                largeAvatarHeight().toLong(),
                 any(),
-                method = any(),
+                method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
                 progress = any(),
                 saveToCache = any(),
@@ -180,10 +182,10 @@ class AccountsViewModelTest {
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
-                avatarSize().toLong(),
-                avatarSize().toLong(),
+                largeAvatarWidth().toLong(),
+                largeAvatarHeight().toLong(),
                 any(),
-                method = any(),
+                method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
                 progress = any(),
                 saveToCache = any(),

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
 import de.connect2x.trixnity.clientserverapi.model.server.setDisplayName
@@ -19,7 +20,8 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarHeight
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarWidth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -119,7 +121,13 @@ class AccountSingleViewModelImpl(
                         ?.takeIf { it.isNotBlank() }
                         ?.let { avatarUrl ->
                             matrixClient.media
-                                .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
+                                .getThumbnail(
+                                    avatarUrl,
+                                    largeAvatarWidth().toLong(),
+                                    largeAvatarHeight().toLong(),
+                                    maxThumbnailSize,
+                                    method = ThumbnailResizingMethod.SCALE,
+                                )
                                 .fold(
                                     onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) },
                                     onFailure = {

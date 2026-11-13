@@ -14929,6 +14929,8 @@ public final class de/connect2x/trixnity/messenger/viewmodel/uia/UiaStepRegistra
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/ConstantsKt {
 	public static final fun avatarSize ()I
+	public static final fun largeAvatarHeight ()I
+	public static final fun largeAvatarWidth ()I
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/CoroutineScopeKt {

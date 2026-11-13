@@ -180,7 +180,7 @@ fun AvatarContentImageStack(images: List<ImageBitmap>, size: Dp, maxSlices: Int 
 
 @Composable
 fun AvatarContentImage(image: ImageBitmap, size: Dp) {
-    Image(image, modifier = Modifier.size(size), contentScale = ContentScale.Fit, contentDescription = null)
+    Image(image, modifier = Modifier.size(size), contentScale = ContentScale.Crop, contentDescription = null)
 }
 
 @Composable
