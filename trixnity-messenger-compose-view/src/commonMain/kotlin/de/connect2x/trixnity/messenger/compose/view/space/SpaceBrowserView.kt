@@ -41,6 +41,7 @@ import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.AccountColorBar
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.LocalAccountColorsEnabled
+import de.connect2x.trixnity.messenger.compose.view.common.NotificationAndUnreadMarker
 import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingButton
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -194,6 +195,7 @@ internal fun SpaceBrowserItemView(
                     }
                 }
             }
+            item.notificationCount?.let { NotificationAndUnreadMarker(it) }
             SpaceMembershipButtons(viewModel, item)
             if (showOpenAction && item.joined) {
                 ThemedIconButton(onClick = { viewModel.select(item) }, modifier = Modifier.buttonPointerModifier()) {

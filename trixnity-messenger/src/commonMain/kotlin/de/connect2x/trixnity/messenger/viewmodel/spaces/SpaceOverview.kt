@@ -3,13 +3,16 @@ package de.connect2x.trixnity.messenger.viewmodel.spaces
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.flattenNotNull
+import de.connect2x.trixnity.client.notification
 import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.type
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
+import de.connect2x.trixnity.messenger.util.getNotificationDisplayCount
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -81,10 +84,45 @@ private fun ViewModelContext.getAccountSpaceOverview(
                     .associate { it.roomId to (it.type == CreateEventContent.RoomType.Space) }
             else emptyMap()
         combine(childLinkFlows + parentLinksFlow) { hierarchyLinkSnapshots ->
-                localSpaces.topLevelOverviewItems(hierarchyLinkSnapshots, isSpaceByRoomId, loadDetails)
+                val childrenBySpace = localSpaces.associate { it.roomId to mutableSetOf<RoomId>() }
+                hierarchyLinkSnapshots.forEach { childLinksBySpace ->
+                    childLinksBySpace.forEach { (spaceId, childIds) -> childrenBySpace[spaceId]?.addAll(childIds) }
+                }
+                childrenBySpace
             }
             .distinctUntilChanged()
+            .flatMapLatest { childrenBySpace ->
+                localSpaces
+                    .topLevelOverviewItems(childrenBySpace, isSpaceByRoomId, loadDetails)
+                    .withNotificationCounts(matrixClient, childrenBySpace, localRooms)
+            }
             .flatMapLatest { topLevelSpaces -> getNamedItems(topLevelSpaces, matrixClient) }
+    }
+}
+
+private fun List<SpaceBrowserItem>.withNotificationCounts(
+    matrixClient: MatrixClient,
+    childrenBySpace: Map<RoomId, Set<RoomId>>,
+    localRooms: List<Room>,
+): Flow<List<SpaceBrowserItem>> {
+    if (isEmpty()) return flowOf(emptyList())
+    val activeRoomIds =
+        localRooms
+            .filter { it.membership == Membership.JOIN || it.membership == Membership.INVITE }
+            .map { it.roomId }
+            .toSet()
+    return combine(
+        map { space ->
+            val childRoomIds =
+                childrenBySpace[space.roomId].orEmpty().filter { it != space.roomId && it in activeRoomIds }
+            if (!space.joined || childRoomIds.isEmpty()) flowOf(space)
+            else
+                combine(childRoomIds.map { matrixClient.notification.getCount(it) }) { counts ->
+                    space.copy(notificationCount = getNotificationDisplayCount(counts.sum()))
+                }
+        }
+    ) { spaces ->
+        spaces.toList()
     }
 }
 
@@ -102,14 +140,10 @@ private fun MatrixClient.getSpaceChildLinks(spaceId: RoomId): Flow<Map<RoomId, S
 }
 
 private fun List<SpaceBrowserItem>.topLevelOverviewItems(
-    hierarchyLinkSnapshots: Array<Map<RoomId, Set<RoomId>>>,
+    childrenBySpace: Map<RoomId, Set<RoomId>>,
     isSpaceByRoomId: Map<RoomId, Boolean>,
     loadDetails: Boolean,
 ): List<SpaceBrowserItem> {
-    val childrenBySpace = associate { it.roomId to mutableSetOf<RoomId>() }
-    hierarchyLinkSnapshots.forEach { childLinksBySpace ->
-        childLinksBySpace.forEach { (spaceId, childIds) -> childrenBySpace[spaceId]?.addAll(childIds) }
-    }
     val hierarchyRoots = spaceHierarchyRoots(childrenBySpace)
     return filter { it.roomId in hierarchyRoots.topLevel }
         .map { localSpace ->

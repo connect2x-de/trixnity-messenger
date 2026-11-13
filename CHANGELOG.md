@@ -82,6 +82,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   and `RoomListViewModelImpl`
 - UI: Fade out text based reply previews if they would exceed the preview size
 
+
 ### Deprecated
 
 ### Removed
