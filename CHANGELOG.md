@@ -135,6 +135,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Require message content and timestamp in compact message bubbles
 - UI: Fix pixelated avatars in profile and room settings
 - UI: Limit memory use of timeline BlurHash previews
+- UI: Show blurred download placeholders for missing timeline images
 
 ### Security
 

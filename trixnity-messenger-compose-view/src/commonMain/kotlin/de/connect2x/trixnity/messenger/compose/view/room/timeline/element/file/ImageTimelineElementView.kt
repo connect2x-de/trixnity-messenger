@@ -37,13 +37,17 @@ internal fun ImageTimelineElementView(
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier.fillMaxSize(),
     contentDescription: String? = null,
+    showPlaceholder: Boolean = true,
+    showLoading: Boolean = true,
+    fallbackBlurhash: String? = null,
 ) {
     val thumbnail = element.thumbnail.collectAsState().value
-    val loading = element.thumbnailLoading.collectAsState().value
+    val loading =
+        element.thumbnailLoading.collectAsState().value || element.loadMediaProgress.collectAsState().value != null
     val bitmap = rememberImageBitmapOrNull(thumbnail, IntSize(800, 800))
     val painter = remember(bitmap) { bitmap?.let(::BitmapPainter) }
-    val blurhash = element.blurhash
-    val size = timelineImageSize(element)
+    val blurhash = element.blurhash ?: fallbackBlurhash
+    val size = timelineImageSize(element) ?: if (fallbackBlurhash != null) defaultTimelineImageSize else null
     val fallback =
         remember(blurhash, size) {
             if (blurhash != null && size != null) decodeTimelineBlurhash(blurhash, size)?.let(::BitmapPainter) else null
@@ -58,18 +62,23 @@ internal fun ImageTimelineElementView(
                 contentScale = ContentScale.Fit,
                 modifier = imageModifier,
             )
-        } else {
+        } else if (showPlaceholder) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
                 Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(64.dp))
                 Text(element.name, style = MaterialTheme.typography.bodySmall)
             }
         }
-        if (loading) LoadingSpinner()
+        if (loading && showLoading) LoadingSpinner()
     }
 }
 
-internal fun Modifier.timelineImageAspectRatio(element: FileBasedTimelineElementViewModel.Image): Modifier {
-    val size = timelineImageSize(element) ?: return this
+internal val defaultTimelineImageSize = IntSize(4, 3)
+
+internal fun Modifier.timelineImageAspectRatio(
+    element: FileBasedTimelineElementViewModel.Image,
+    defaultSize: IntSize? = null,
+): Modifier {
+    val size = timelineImageSize(element) ?: defaultSize ?: return this
     return aspectRatio(size.width.toFloat() / size.height.toFloat())
 }
 
