@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
@@ -13,7 +14,8 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarHeight
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarWidth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -66,7 +68,13 @@ class ChangeAvatarViewModelImpl(
             .map { room ->
                 room?.avatarUrl?.let { avatar ->
                     matrixClient.media
-                        .getThumbnail(avatar, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
+                        .getThumbnail(
+                            avatar,
+                            largeAvatarWidth().toLong(),
+                            largeAvatarHeight().toLong(),
+                            maxThumbnailSize,
+                            method = ThumbnailResizingMethod.SCALE,
+                        )
                         .fold(
                             onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) },
                             onFailure = {

@@ -14,6 +14,7 @@ import de.connect2x.trixnity.client.user.getAccountData
 import de.connect2x.trixnity.client.verification
 import de.connect2x.trixnity.client.verification.ActiveVerificationState
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
 import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
@@ -36,7 +37,8 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarHeight
+import de.connect2x.trixnity.messenger.viewmodel.util.largeAvatarWidth
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -311,7 +313,13 @@ class UserProfileViewModelImpl(
     private suspend fun getImage(matrixClient: MatrixClient, avatarUrl: String?): ByteArray? {
         return avatarUrl?.let { url ->
             matrixClient.media
-                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
+                .getThumbnail(
+                    url,
+                    largeAvatarWidth().toLong(),
+                    largeAvatarHeight().toLong(),
+                    maxThumbnailSize,
+                    method = ThumbnailResizingMethod.SCALE,
+                )
                 .fold(onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) }, onFailure = { null })
         }
     }

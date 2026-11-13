@@ -133,6 +133,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Warn instead of blocking invitations when homeserver verification fails
 - SDK, UI: properly remove rooms from room list after logout
 - UI: Require message content and timestamp in compact message bubbles
+- UI: Fix pixelated avatars in profile and room settings
 
 
 ### Security
