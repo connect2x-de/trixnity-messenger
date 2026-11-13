@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
@@ -27,6 +28,7 @@ import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrN
 import de.connect2x.trixnity.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.trixnity.messenger.compose.view.util.animateImage
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
+import kotlin.math.roundToInt
 
 @OptIn(MSC2448::class)
 @Composable
@@ -44,7 +46,7 @@ internal fun ImageTimelineElementView(
     val size = timelineImageSize(element)
     val fallback =
         remember(blurhash, size) {
-            if (blurhash != null && size != null) BlurHashDecoder.decode(blurhash, size)?.let(::BitmapPainter) else null
+            if (blurhash != null && size != null) decodeTimelineBlurhash(blurhash, size)?.let(::BitmapPainter) else null
         }
     val imagePainter = animateImage(painter, fallback)
 
@@ -82,4 +84,11 @@ private fun timelineImageSize(element: FileBasedTimelineElementViewModel.Image):
         width != null && width > 0 && height != null && height > 0 -> IntSize(width, height)
         else -> null
     }
+}
+
+internal fun decodeTimelineBlurhash(blurhash: String, size: IntSize): ImageBitmap? {
+    val scale = 32.0 / maxOf(size.width, size.height)
+    val decodeSize =
+        IntSize((size.width * scale).roundToInt().coerceAtLeast(1), (size.height * scale).roundToInt().coerceAtLeast(1))
+    return BlurHashDecoder.decode(blurhash, intrinsicSize = decodeSize, decodeSize = decodeSize)
 }

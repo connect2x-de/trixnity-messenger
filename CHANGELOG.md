@@ -134,7 +134,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK, UI: properly remove rooms from room list after logout
 - UI: Require message content and timestamp in compact message bubbles
 - UI: Fix pixelated avatars in profile and room settings
-
+- UI: Limit memory use of timeline BlurHash previews
 
 ### Security
 
