@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +24,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.modifier.customClicka
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.file.ImageDownloadPlaceholder
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.file.ImageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.file.timelineImageAspectRatio
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
@@ -117,6 +119,12 @@ internal fun ImageMessageElementOverlay(element: Image) {
 
 @Composable
 internal fun ColumnScope.MessageImage(element: Image, showActionMenu: () -> Unit, onSave: () -> Unit) {
+    if (element.thumbnail.collectAsState().value == null) {
+        ImageDownloadPlaceholder(element, showActionMenu) {
+            if (element.loadMediaProgress.value == null) element.loadMedia()
+        }
+        return
+    }
     val i18n = DI.get<I18nView>()
 
     ImageTimelineElementView(

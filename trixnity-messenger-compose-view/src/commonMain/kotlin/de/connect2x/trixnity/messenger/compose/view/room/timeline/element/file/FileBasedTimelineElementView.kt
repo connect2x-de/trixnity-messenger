@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -225,6 +226,7 @@ internal fun FileBasedView(
 
     var openElementDetails by remember { mutableStateOf(false) }
     val open = onOpen ?: { openElementDetails = true }
+    val isImage = element is RoomMessageTimelineElementViewModel.FileBased.Image
     val widthModifier =
         when (element) {
             is RoomMessageTimelineElementViewModel.FileBased.File -> Modifier.width(300.dp)
@@ -233,7 +235,12 @@ internal fun FileBasedView(
         }
     Box(widthModifier) {
         Column(
-            Modifier.pointerInput(Unit) { detectTapGestures(onTap = { open() }, onLongPress = { showActionMenu() }) }
+            Modifier.pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = if (isImage) null else ({ _ -> open() }),
+                        onLongPress = { showActionMenu() },
+                    )
+                }
                 .buttonPointerModifier()
                 .then(
                     if (isPreview) Modifier
@@ -250,11 +257,17 @@ internal fun FileBasedView(
                         )
                 )
         ) {
-            Box(modifier = Modifier.width(IntrinsicSize.Min)) {
+            Box(modifier = if (isImage) Modifier else Modifier.width(IntrinsicSize.Min)) {
                 Column { content(showActionMenu, open) }
                 if (!isPreview) {
-                    FileContentOverlay(hoverMessage, overlay)
+                    if (isImage) {
+                        Box(Modifier.matchParentSize()) { FileContentOverlay(hoverMessage, overlay) }
+                    } else FileContentOverlay(hoverMessage, overlay)
                 }
+            }
+            if (isImage) {
+                val error = element.loadMediaError.collectAsState().value
+                if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
             }
             if (!displayProgressOverElement) {
                 LoadingProgresses(holder, element, Modifier.align(Alignment.CenterHorizontally))

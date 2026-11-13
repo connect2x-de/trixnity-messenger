@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
@@ -27,6 +28,7 @@ import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrN
 import de.connect2x.trixnity.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.trixnity.messenger.compose.view.util.animateImage
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
+import kotlin.math.roundToInt
 
 @OptIn(MSC2448::class)
 @Composable
@@ -35,16 +37,20 @@ internal fun ImageTimelineElementView(
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier.fillMaxSize(),
     contentDescription: String? = null,
+    showPlaceholder: Boolean = true,
+    showLoading: Boolean = true,
+    fallbackBlurhash: String? = null,
 ) {
     val thumbnail = element.thumbnail.collectAsState().value
-    val loading = element.thumbnailLoading.collectAsState().value
+    val loading =
+        element.thumbnailLoading.collectAsState().value || element.loadMediaProgress.collectAsState().value != null
     val bitmap = rememberImageBitmapOrNull(thumbnail, IntSize(800, 800))
     val painter = remember(bitmap) { bitmap?.let(::BitmapPainter) }
-    val blurhash = element.blurhash
-    val size = timelineImageSize(element)
+    val blurhash = element.blurhash ?: fallbackBlurhash
+    val size = timelineImageSize(element) ?: if (fallbackBlurhash != null) defaultTimelineImageSize else null
     val fallback =
         remember(blurhash, size) {
-            if (blurhash != null && size != null) BlurHashDecoder.decode(blurhash, size)?.let(::BitmapPainter) else null
+            if (blurhash != null && size != null) decodeTimelineBlurhash(blurhash, size)?.let(::BitmapPainter) else null
         }
     val imagePainter = animateImage(painter, fallback)
 
@@ -56,18 +62,23 @@ internal fun ImageTimelineElementView(
                 contentScale = ContentScale.Fit,
                 modifier = imageModifier,
             )
-        } else {
+        } else if (showPlaceholder) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
                 Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(64.dp))
                 Text(element.name, style = MaterialTheme.typography.bodySmall)
             }
         }
-        if (loading) LoadingSpinner()
+        if (loading && showLoading) LoadingSpinner()
     }
 }
 
-internal fun Modifier.timelineImageAspectRatio(element: FileBasedTimelineElementViewModel.Image): Modifier {
-    val size = timelineImageSize(element) ?: return this
+internal val defaultTimelineImageSize = IntSize(4, 3)
+
+internal fun Modifier.timelineImageAspectRatio(
+    element: FileBasedTimelineElementViewModel.Image,
+    defaultSize: IntSize? = null,
+): Modifier {
+    val size = timelineImageSize(element) ?: defaultSize ?: return this
     return aspectRatio(size.width.toFloat() / size.height.toFloat())
 }
 
@@ -82,4 +93,11 @@ private fun timelineImageSize(element: FileBasedTimelineElementViewModel.Image):
         width != null && width > 0 && height != null && height > 0 -> IntSize(width, height)
         else -> null
     }
+}
+
+internal fun decodeTimelineBlurhash(blurhash: String, size: IntSize): ImageBitmap? {
+    val scale = 32.0 / maxOf(size.width, size.height)
+    val decodeSize =
+        IntSize((size.width * scale).roundToInt().coerceAtLeast(1), (size.height * scale).roundToInt().coerceAtLeast(1))
+    return BlurHashDecoder.decode(blurhash, intrinsicSize = decodeSize, decodeSize = decodeSize)
 }
