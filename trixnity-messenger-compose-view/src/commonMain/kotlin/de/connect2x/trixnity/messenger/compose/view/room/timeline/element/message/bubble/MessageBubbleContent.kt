@@ -53,34 +53,19 @@ internal object MessageBubbleMeasurePolicy : MeasurePolicy {
         val contentConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val sender = measurables.firstOrNull { it.layoutId == LayoutId.SENDER }?.measure(contentConstraints)
         val senderHeight = sender?.height ?: 0
-        val message = measurables.firstOrNull { it.layoutId == LayoutId.MESSAGE }?.measure(contentConstraints)
-        requireNotNull(message) { "Cannot layout message bubble without message content" }
-        val date = measurables.firstOrNull { it.layoutId == LayoutId.TIMESTAMP }?.measure(contentConstraints)
-        return date?.let {
-            if (message.width + spacing + date.width < constraints.maxWidth) {
-                // add extra padding to bottom that is missing otherwise
-                val height = senderHeight + message.height + 10.dp.roundToPx()
-                val width = constraints.constrainWidth(maxOf(sender?.width ?: 0, message.width + spacing + date.width))
-                layout(width = width, height = height) {
-                    sender?.place(0, 0)
-                    message.place(0, senderHeight)
-                    date.place(width - date.width, height - date.height)
-                }
-            } else {
-                layout(width = constraints.maxWidth, height = senderHeight + message.height + date.height) {
-                    sender?.place(0, 0)
-                    message.place(0, senderHeight)
-                    date.place(constraints.maxWidth - date.width, senderHeight + message.height)
-                }
-            }
+        val message = measurables.first { it.layoutId == LayoutId.MESSAGE }.measure(contentConstraints)
+        val date = measurables.first { it.layoutId == LayoutId.TIMESTAMP }.measure(contentConstraints)
+        val dateFitsInLine = message.width + spacing + date.width < constraints.maxWidth
+        val width =
+            if (dateFitsInLine) {
+                constraints.constrainWidth(maxOf(sender?.width ?: 0, message.width + spacing + date.width))
+            } else constraints.maxWidth
+        val height = senderHeight + message.height + if (dateFitsInLine) spacing else date.height
+        return layout(width = width, height = height) {
+            sender?.place(0, 0)
+            message.place(0, senderHeight)
+            date.place(width - date.width, height - date.height)
         }
-            ?: layout(
-                constraints.constrainWidth(maxOf(sender?.width ?: 0, message.width)),
-                senderHeight + message.height,
-            ) {
-                sender?.place(0, 0)
-                message.place(0, senderHeight)
-            }
     }
 
     override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int {
