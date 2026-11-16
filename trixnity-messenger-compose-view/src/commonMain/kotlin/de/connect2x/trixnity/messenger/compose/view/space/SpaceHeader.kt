@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.space
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -38,6 +40,7 @@ import de.connect2x.trixnity.messenger.util.GetAccountProfileDisplayName
 @Composable
 internal fun SpaceHeader(
     contentPadding: PaddingValues = PaddingValues(MaterialTheme.messengerDpConstants.small),
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
     content: @Composable RowScope.() -> Unit,
 ) {
     HeaderSurface {
@@ -45,11 +48,25 @@ internal fun SpaceHeader(
             Row(
                 Modifier.fillMaxWidth().minHeaderHeight().padding(contentPadding),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+                horizontalArrangement = horizontalArrangement,
                 content = content,
             )
             ThemedHorizontalDivider(Modifier.fillMaxWidth())
         }
+    }
+}
+
+@Composable
+internal fun SpaceAccountHeader(onBack: (() -> Unit)? = null, content: @Composable RowScope.() -> Unit) {
+    SpaceHeader(
+        contentPadding =
+            PaddingValues(start = if (onBack == null) 10.dp else 8.dp, top = 4.dp, end = 10.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        if (onBack != null) {
+            Box(Modifier.padding(end = 8.dp)) { SpaceBackButton(onBack) }
+        }
+        content()
     }
 }
 

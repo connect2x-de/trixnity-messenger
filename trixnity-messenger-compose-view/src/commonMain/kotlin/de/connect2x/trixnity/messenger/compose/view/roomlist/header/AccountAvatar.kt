@@ -79,8 +79,8 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
     val accountNotificationCounts = accountViewModel.accountNotificationCounts.collectAsState().value
     val avatarImages = remember(accounts) { accounts.mapNotNull { info -> info.avatar } }
 
-    if (activeAccountInfo != null) {
-        Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
+    Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
+        if (activeAccountInfo != null) {
             ThemedButton(
                 style = MaterialTheme.components.accountSelector,
                 onClick = {

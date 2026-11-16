@@ -70,7 +70,7 @@ fun SpaceBrowserView(viewModel: SpaceContentViewModel, accountViewModel: Account
     val query = if (showSearch) searchTerm.text.trim() else ""
     ThemedSurface(style = MaterialTheme.components.sidebar) {
         Column(Modifier.fillMaxSize()) {
-            SpaceHeader {
+            SpaceAccountHeader {
                 AccountAvatar(accountViewModel)
                 SpaceSearchButton(showSearch) { showSearch = it }
                 AccountOptions(accountViewModel)
