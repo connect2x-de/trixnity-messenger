@@ -9,16 +9,7 @@ pluginManagement {
 }
 
 plugins {
-  id("de.connect2x.conventions.c2x-settings-plugin") version "20260917.190917"
-}
-
-dependencyResolutionManagement {
-  repositories {
-    exclusiveContent {
-      forRepository { maven("https://jitpack.io") }
-      filter { includeModule("com.github.davidliu", "audioswitch") }
-    }
-  }
+  id("de.connect2x.conventions.c2x-settings-plugin") version "20261116.171406"
 }
 
 rootProject.name = "LiveKitnity"
