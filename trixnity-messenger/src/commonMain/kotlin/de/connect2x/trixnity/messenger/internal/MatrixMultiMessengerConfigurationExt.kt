@@ -6,6 +6,8 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
+import de.connect2x.trixnity.messenger.call.CallSignallingFactory
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.internal.adapters.AccountSetupViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.AccountsViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.adapters.AddMatrixAccountViewModelFactoryAdapter
@@ -107,6 +109,8 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.onOptions
@@ -130,8 +134,17 @@ fun MatrixMessengerConfiguration.nav3ViewModelOptIn() {
     modulesFactories += ::nav3ViewModelModuleFactory
 }
 
+@OptIn(TrixnityMessengerCallApi::class)
 private fun nav3ViewModelModuleFactory(): Module {
     return module {
+        single<CallSignallingFactory> {
+            CallSignallingFactory(
+                configuration = get<MatrixMessengerConfiguration>(),
+                initials = get<Initials>(),
+                roomName = get<RoomName>(),
+                i18n = get<I18n>(),
+            )
+        }
         single<CloseAppIfPossible> { CloseAppIfPossible(closeApp = getOrNull<CloseApp>()) }
         single<MinimizeAppIfPossible> { MinimizeAppIfPossible(minimizeApp = getOrNull<MinimizeApp>()) }
         single<SendLogToDevsIfPossible> { SendLogToDevsIfPossible(sendLogToDevs = getOrNull<SendLogToDevs>()) }

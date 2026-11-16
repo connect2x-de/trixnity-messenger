@@ -1,7 +1,8 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.call
+package de.connect2x.trixnity.messenger.call
 
-import com.arkivanov.essenty.lifecycle.doOnDestroy
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.rtc
 import de.connect2x.trixnity.client.rtc.PerMemberRtcSlotMembershipEncryptionInfo
@@ -22,12 +23,10 @@ import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
-import de.connect2x.trixnity.messenger.util.BackCallback
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.call.CallSignalling.LiveKitCallParameters
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -35,6 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import io.ktor.http.Url
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -42,21 +42,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import org.koin.core.component.get
 
 @TrixnityMessengerCallApi
-interface RoomCallViewModel {
+interface CallSignalling : AutoCloseable {
     val roomInfo: StateFlow<RoomInfoElement?>
     val publishing: StateFlow<LiveKitCallParameters?>
 
@@ -65,8 +67,7 @@ interface RoomCallViewModel {
     val members: StateFlow<Map<Pair<UserId, RtcMemberId>, UserInfoElement>>
     val error: StateFlow<String?>
 
-    fun back()
-
+    @TrixnityMessengerCallApi
     @OptIn(MSC4143::class)
     data class LiveKitCallParameters(
         val url: String,
@@ -79,19 +80,37 @@ interface RoomCallViewModel {
     )
 }
 
-@OptIn(MSC4143::class, MSC4195::class, MSC4193::class, TrixnityMessengerCallApi::class)
-internal class RoomCallViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext,
+@OptIn(MSC4143::class, MSC4195::class, MSC4193::class)
+@TrixnityMessengerCallApi
+internal class MatrixRtcSignalling(
+    private val coroutineScope: CoroutineScope,
+    private val matrixClient: MatrixClient,
     private val roomId: RoomId,
-    private val onBack: () -> Unit,
-) : RoomCallViewModel, MatrixClientViewModelContext by viewModelContext {
-    private val configuration = viewModelContext.get<MatrixMessengerConfiguration>()
-    private val initials: Initials = viewModelContext.get<Initials>()
+    configuration: MatrixMessengerConfiguration,
+    private val initials: Initials,
+    private val getRoomName: RoomName,
+    private val i18n: I18n,
+    private val onEnded: () -> Unit,
+) : CallSignalling {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.call.MatrixRtcSignalling")
+    }
+
+    private val userId = matrixClient.userId
     private val maxThumbnailSize = configuration.downloadLimits.thumbnail
-    private val getRoomName = viewModelContext.get<RoomName>()
 
     private val slotId: RtcSlotId = CallRtcApplication.SLOT_ID
-    private val membership = MutableStateFlow<RtcSlotMembership?>(null)
+
+    private sealed interface MembershipState {
+        data object Joining : MembershipState
+
+        data class Joined(val membership: RtcSlotMembership) : MembershipState
+
+        data object Left : MembershipState
+    }
+
+    private val membershipState = MutableStateFlow<MembershipState>(MembershipState.Joining)
+    private val membership = membershipState.map { (it as? MembershipState.Joined)?.membership }
 
     override val error = MutableStateFlow<String?>(null)
 
@@ -103,12 +122,15 @@ internal class RoomCallViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     init {
-        check(configuration.features.enableVideoCalls) {
-            "RoomCallViewModel must not be used without video calls enabled"
-        }
+        check(configuration.features.enableVideoCalls) { "RTC sessions require video calls to be enabled" }
         coroutineScope.launch { join() }
-        registerBackCallback(BackCallback(onBack = ::back))
-        lifecycle.doOnDestroy { leave() }
+        coroutineScope.launch {
+            membership.filterNotNull().collectLatest { joined ->
+                joined.state.filterIsInstance<RtcSlotMembership.State.Leave>().first()
+                membershipState.value = MembershipState.Left
+                onEnded()
+            }
+        }
         coroutineScope.launch { matrixClient.user.loadMembers(roomId, wait = false) }
     }
 
@@ -205,13 +227,13 @@ internal class RoomCallViewModelImpl(
             }
             .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
 
-    override fun back() {
-        leave()
-        onBack()
+    override fun close() {
+        val previous = membershipState.getAndUpdate { MembershipState.Left }
+        (previous as? MembershipState.Joined)?.membership?.leave(null)
     }
 
-    private fun leave() {
-        membership.value?.leave(null)
+    private fun attachMembership(joined: RtcSlotMembership) {
+        if (!membershipState.compareAndSet(MembershipState.Joining, MembershipState.Joined(joined))) joined.leave(null)
     }
 
     private suspend fun join() {
@@ -221,7 +243,7 @@ internal class RoomCallViewModelImpl(
                     it.roomId == roomId && it.slotId == slotId && it.state.first().content is RtcMemberEventContent.Join
                 }
             if (existing != null) {
-                membership.value = existing
+                attachMembership(existing)
                 return
             }
             check(matrixClient.user.canSendEvent<RtcMemberEventContent>(roomId).first()) {
@@ -239,7 +261,7 @@ internal class RoomCallViewModelImpl(
                     "Server does not have a LiveKitRtcTransport"
                 }
             currentCoroutineContext().ensureActive()
-            membership.value =
+            attachMembership(
                 matrixClient.rtc
                     .joinSlot(
                         roomId = roomId,
@@ -252,9 +274,10 @@ internal class RoomCallViewModelImpl(
                             ),
                     )
                     .getOrThrow()
+            )
         } catch (cancelled: CancellationException) {
             try {
-                leave()
+                close()
             } catch (t: Throwable) {
                 cancelled.addSuppressed(t)
             }

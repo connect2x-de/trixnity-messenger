@@ -19,7 +19,7 @@ import de.connect2x.livekitnity.api.room.Room
 import de.connect2x.livekitnity.compose.local.LiveKitLocal
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
-import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallViewModel.LiveKitCallParameters
+import de.connect2x.trixnity.messenger.call.CallSignalling.LiveKitCallParameters
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext

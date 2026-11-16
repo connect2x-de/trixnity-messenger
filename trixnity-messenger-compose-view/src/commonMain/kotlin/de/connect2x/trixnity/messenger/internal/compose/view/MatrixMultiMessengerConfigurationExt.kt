@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.internal.compose.view
 
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.EntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecoratorFactory
@@ -105,6 +106,7 @@ fun MatrixMultiMessengerConfiguration.nav3ViewOptIn() {
     messengerConfiguration { modulesFactories += ::nav3ViewModuleFactory }
 }
 
+@OptIn(TrixnityMessengerCallApi::class)
 private fun nav3ViewModuleFactory(): Module {
     return module {
         singleOf(::ClientView)
