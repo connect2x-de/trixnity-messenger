@@ -9,6 +9,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.11.0
+
+### Added
+
 - UI: Display custom image reactions with shortcode or reaction key fallback
 - UI: Render inline images and custom emotes in messages and formatted reply previews
 - UI: Open user info in room settings by clicking or tapping a sender's name in the timeline
@@ -84,9 +98,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Adapt MatrixRTC call layouts to participant count and preserve full video frames
 - INTERNAL: bump conventions to 20261116.171406
 
-
-### Deprecated
-
 ### Removed
 
 - SDK: Terser webpack plugin
@@ -139,8 +150,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Limit memory use of timeline BlurHash previews
 - UI: Show blurred download placeholders for missing timeline images
 - UI: Don't show image upload process while loading placeholders
-
-### Security
 
 ## 4.10.3
 
