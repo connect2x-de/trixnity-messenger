@@ -16,6 +16,7 @@ interface FileBasedRoomMessageTimelineElementView {
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
+        displayProgress: Boolean,
         displayProgressOverElement: Boolean,
         index: Int,
         overlay: (@Composable BoxScope.() -> Unit)?,
@@ -28,13 +29,14 @@ fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     isPreview: Boolean = false,
+    displayProgress: Boolean = true,
     displayProgressOverElement: Boolean = false,
     index: Int,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
-        .create(holder, element, isPreview, displayProgressOverElement, index, overlay, content)
+        .create(holder, element, isPreview, displayProgress, displayProgressOverElement, index, overlay, content)
 }
 
 class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimelineElementView {
@@ -43,6 +45,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
+        displayProgress: Boolean,
         displayProgressOverElement: Boolean,
         index: Int,
         overlay: (@Composable BoxScope.() -> Unit)?,
@@ -52,6 +55,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             holder = holder,
             element = element,
             isPreview = isPreview,
+            displayProgress = displayProgress,
             displayProgressOverElement = displayProgressOverElement,
             index = index,
             overlay = overlay,
