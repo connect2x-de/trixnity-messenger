@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeout
 
@@ -43,17 +44,15 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) =
                     combine(
                         roomListElements
                             .filter { !it.isLeave.debounce(100.milliseconds).filterNotNull().first() }
-                            .map { it.roomName }
-                    ) { names ->
-                        log.debug { "roomNames: ${names.joinToString { it ?: "<unknown>" }}" }
-                        names.any { it == username }
+                            .map { room -> room.roomName.map { name -> room to name } }
+                    ) { rooms ->
+                        log.debug { "roomNames: ${rooms.joinToString { it.second ?: "<unknown>" }}" }
+                        rooms.firstOrNull { it.second == username }?.first
                     }
                 }
-                .first { it }
-            log.debug { "found room -> return" }
-            sortedRoomListElementViewModels.value
-                .filter { !it.isLeave.debounce(100.milliseconds).filterNotNull().first() }
-                .first { it.roomName.value == username }
+                .filterNotNull()
+                .first()
+                .also { log.debug { "found room -> return" } }
         }
     }
 
@@ -81,14 +80,14 @@ suspend fun MatrixMessengerWithRoot.createGroupWithUsers(groupName: String, vara
                 roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel.elements
             sortedRoomListElementViewModels
                 .flatMapLatest { roomListElements ->
-                    combine(roomListElements.map { it.roomName }) { roomNames ->
-                        log.debug { "roomNames: ${roomNames.joinToString { it ?: "<unknown>" }}" }
-                        roomNames.any { it == groupName }
+                    combine(roomListElements.map { room -> room.roomName.map { name -> room to name } }) { rooms ->
+                        log.debug { "roomNames: ${rooms.joinToString { it.second ?: "<unknown>" }}" }
+                        rooms.firstOrNull { it.second == groupName }?.first
                     }
                 }
-                .first { it }
-            log.debug { "found group -> return" }
-            sortedRoomListElementViewModels.value.first { it.roomName.value == groupName }
+                .filterNotNull()
+                .first()
+                .also { log.debug { "found group -> return" } }
         }
     }
 

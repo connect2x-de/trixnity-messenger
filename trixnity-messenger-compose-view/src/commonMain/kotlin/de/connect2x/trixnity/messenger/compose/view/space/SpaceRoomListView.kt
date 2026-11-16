@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -72,8 +71,7 @@ internal fun SpaceRoomListView(
     val subspaces = content?.items.orEmpty().filter { it.joined && it.isSpace }
     ThemedSurface(style = MaterialTheme.components.sidebar) {
         Column(Modifier.fillMaxSize()) {
-            SpaceHeader(contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)) {
-                if (!LocalAppNavigationRailVisible.current) SpaceBackButton(onBack = viewModel::back)
+            SpaceAccountHeader(onBack = if (LocalAppNavigationRailVisible.current) null else viewModel::back) {
                 AccountAvatar(roomListViewModel.accountViewModel)
                 ShowSearch(roomListViewModel)
                 AccountOptions(roomListViewModel.accountViewModel, roomListViewModel)

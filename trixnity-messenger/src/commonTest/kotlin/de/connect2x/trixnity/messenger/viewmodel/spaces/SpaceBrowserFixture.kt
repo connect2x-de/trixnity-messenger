@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.spaces
 
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -64,7 +65,18 @@ internal class SpaceBrowserFixture(val account: UserId, val spaceId: RoomId) {
         every { client.api } returns api
         every { api.room } returns roomApi
         every { client.userId } returns account
-        every { client.di } returns koinApplication { modules(module { single { rooms } }) }.koin
+        val notifications = mock<NotificationService>()
+        every { notifications.getCount(any()) } returns flowOf(0)
+        every { client.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { rooms }
+                            single { notifications }
+                        }
+                    )
+                }
+                .koin
         every { rooms.getById(any()) } calls
             { args ->
                 val id = args.arg<RoomId>(0)

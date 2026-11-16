@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -40,6 +41,7 @@ import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.AccountColorBar
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.LocalAccountColorsEnabled
+import de.connect2x.trixnity.messenger.compose.view.common.NotificationAndUnreadMarker
 import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingButton
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -70,7 +72,7 @@ fun SpaceBrowserView(viewModel: SpaceContentViewModel, accountViewModel: Account
     val query = if (showSearch) searchTerm.text.trim() else ""
     ThemedSurface(style = MaterialTheme.components.sidebar) {
         Column(Modifier.fillMaxSize()) {
-            SpaceHeader {
+            SpaceAccountHeader {
                 AccountAvatar(accountViewModel)
                 SpaceSearchButton(showSearch) { showSearch = it }
                 AccountOptions(accountViewModel)
@@ -104,9 +106,9 @@ fun SpaceBrowserView(viewModel: SpaceContentViewModel, accountViewModel: Account
                                     val (invitations, spaces) = filtered.partition { it.invited }
                                     if (invitations.isNotEmpty()) {
                                         item { SpaceSectionHeader(i18n.spacesInvitations()) }
-                                        spaceListItems(viewModel, invitations, showAccount = content.userId == null)
+                                        spaceListItems(viewModel, invitations)
                                     }
-                                    spaceListItems(viewModel, spaces, showAccount = content.userId == null)
+                                    spaceListItems(viewModel, spaces)
                                 }
                                 VerticalScrollbar(
                                     Modifier.align(Alignment.CenterEnd),
@@ -126,7 +128,6 @@ fun SpaceBrowserView(viewModel: SpaceContentViewModel, accountViewModel: Account
 internal fun SpaceBrowserItemView(
     viewModel: SpaceContentViewModel,
     item: SpaceBrowserItem,
-    showAccount: Boolean = false,
     showOpenAction: Boolean = false,
 ) {
     val i18n = DI.get<I18nView>()
@@ -141,7 +142,7 @@ internal fun SpaceBrowserItemView(
                 Modifier.fillMaxWidth()
                     .alpha(if (available) 1f else 0.38f)
                     .clickable(enabled = item.joined, role = Role.Button) { viewModel.select(item) }
-                    .heightIn(min = 72.dp)
+                    .height(72.dp)
                     .padding(
                         start = if (LocalAccountColorsEnabled.current && item.accountColor != null) 20.dp else 14.dp,
                         end = 10.dp,
@@ -173,28 +174,28 @@ internal fun SpaceBrowserItemView(
                     }
                     RoomName(item.name)
                 }
-                if (showAccount) SpaceAccountName(item.userId)
-                item.memberCount?.let { Text(i18n.spacesMemberCount(it), style = MaterialTheme.typography.bodySmall) }
-                item.childCount?.let {
-                    Text(
-                        i18n.spacesChildCounts(
-                            it - item.subspaceCount - item.unknownChildCount,
-                            item.subspaceCount,
-                            item.unknownChildCount,
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                if (!item.joined && item.invited)
-                    Text(i18n.spacesInvitations(), style = MaterialTheme.typography.bodySmall)
-                if (item.membershipActionState == SpaceMembershipActionState.Failed) {
-                    Text(
-                        i18n.spacesMembershipError(),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                val isMembershipActionFailed = item.membershipActionState == SpaceMembershipActionState.Failed
+                val secondaryText =
+                    when {
+                        isMembershipActionFailed -> i18n.spacesMembershipError()
+                        !item.joined && item.invited -> i18n.spacesInvitations()
+                        else -> item.memberCount?.let { i18n.spacesMemberCount(it) }.orEmpty()
+                    }
+                if (secondaryText.isNotEmpty()) {
+                    Tooltip({ Text(secondaryText) }) {
+                        Text(
+                            secondaryText,
+                            color =
+                                if (isMembershipActionFailed) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
+            item.notificationCount?.let { NotificationAndUnreadMarker(it) }
             SpaceMembershipButtons(viewModel, item)
             if (showOpenAction && item.joined) {
                 ThemedIconButton(onClick = { viewModel.select(item) }, modifier = Modifier.buttonPointerModifier()) {
@@ -253,12 +254,11 @@ private fun SpaceJoinButton(viewModel: SpaceContentViewModel, item: SpaceBrowser
 internal fun LazyListScope.spaceListItems(
     viewModel: SpaceContentViewModel,
     spaces: List<SpaceBrowserItem>,
-    showAccount: Boolean = false,
     showOpenAction: Boolean = false,
 ) {
     itemsIndexed(spaces, key = { _, item -> "space/${item.userId.full}/${item.roomId.full}" }) { index, item ->
         Box {
-            SpaceBrowserItemView(viewModel, item, showAccount = showAccount, showOpenAction = showOpenAction)
+            SpaceBrowserItemView(viewModel, item, showOpenAction = showOpenAction)
             if (index > 0) ThemedHorizontalDivider(style = MaterialTheme.components.roomListDivider)
         }
     }

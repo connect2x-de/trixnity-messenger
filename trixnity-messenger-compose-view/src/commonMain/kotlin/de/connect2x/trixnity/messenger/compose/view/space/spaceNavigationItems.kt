@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.space
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -11,14 +12,15 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.common.AccountColorBar
+import de.connect2x.trixnity.messenger.compose.view.common.NotificationAndUnreadMarker
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.navigation.AppNavigationRailItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -58,33 +60,31 @@ internal fun LazyListScope.spaceNavigationItems(
                     selectedSpace == (item.userId to item.roomId),
                     { viewModel.select(item) },
                 ) {
-                    Box {
+                    Box(Modifier.size(36.dp)) {
                         AccountColorBar(item.accountColor, Modifier.height(36.dp).offset(x = (-10).dp))
-                        BadgedBox(
-                            badge = {
-                                if (item.isInLoop) {
-                                    Badge(
-                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                                    ) {
-                                        Icon(Icons.Default.Warning, null, Modifier.size(12.dp))
-                                    }
-                                } else if (item.invited) {
-                                    Badge(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                                    ) {
-                                        Icon(Icons.Default.Mail, null, Modifier.size(12.dp))
-                                    }
+                        SpaceAvatar(
+                            name = item.name,
+                            image = rememberSpaceAvatar(viewModel, item.userId, item.roomId),
+                            style = AvatarStyle.space(),
+                            size = 36.dp,
+                        )
+                        Row(Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-4).dp)) {
+                            if (item.isInLoop) {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                ) {
+                                    Icon(Icons.Default.Warning, null, Modifier.size(12.dp))
+                                }
+                            } else if (item.invited) {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                                ) {
+                                    Icon(Icons.Default.Mail, null, Modifier.size(12.dp))
                                 }
                             }
-                        ) {
-                            SpaceAvatar(
-                                name = item.name,
-                                image = rememberSpaceAvatar(viewModel, item.userId, item.roomId),
-                                style = AvatarStyle.space(),
-                                size = 36.dp,
-                            )
+                            item.notificationCount?.let { count -> NotificationAndUnreadMarker(count) }
                         }
                     }
                 }

@@ -50,6 +50,7 @@ data class SpaceBrowserItem(
     val unknownChildCount: Int = 0,
     val accountColor: Long? = null,
     val isInLoop: Boolean = false,
+    val notificationCount: String? = null,
 )
 
 enum class SpaceMembershipActionState {
