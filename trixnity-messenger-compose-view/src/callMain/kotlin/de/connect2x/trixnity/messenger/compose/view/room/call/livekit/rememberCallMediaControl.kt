@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import de.connect2x.livekitnity.api.room.Room
 import de.connect2x.livekitnity.api.room.track.Track
 import de.connect2x.livekitnity.compose.types.LocalMedia
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.call.CallMediaControl
 import kotlinx.coroutines.CancellationException
@@ -27,6 +28,7 @@ internal interface PermissionController {
 @Composable
 internal expect fun rememberPermissionController(onResult: (PermissionKind, Boolean) -> Unit): PermissionController
 
+@TrixnityMessengerCallApi
 @Composable
 internal fun rememberCallMediaControl(
     room: Room,

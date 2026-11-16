@@ -4252,6 +4252,41 @@ open class I18nView(
         DE - "Anruf"
     }
 
+    open fun callMute() = translate {
+        EN - "Mute microphone"
+        DE - "Mikrofon stummschalten"
+    }
+
+    open fun callUnmute() = translate {
+        EN - "Unmute microphone"
+        DE - "Mikrofon einschalten"
+    }
+
+    open fun callCameraOn() = translate {
+        EN - "Turn camera on"
+        DE - "Kamera einschalten"
+    }
+
+    open fun callCameraOff() = translate {
+        EN - "Turn camera off"
+        DE - "Kamera ausschalten"
+    }
+
+    open fun callBackground() = translate {
+        EN - "Show chat"
+        DE - "Chat anzeigen"
+    }
+
+    open fun callRestore() = translate {
+        EN - "Return to call"
+        DE - "Zum Anruf zurückkehren"
+    }
+
+    open fun callLeave() = translate {
+        EN - "Leave call"
+        DE - "Anruf verlassen"
+    }
+
     open fun callStart() = translate {
         EN - "Start call"
         DE - "Anruf starten"

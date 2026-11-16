@@ -9,7 +9,8 @@ import de.connect2x.livekitnity.api.room.track.Track
 import de.connect2x.livekitnity.compose.state.rememberTrackMuted
 import de.connect2x.livekitnity.compose.state.rememberTracks
 import de.connect2x.livekitnity.compose.types.TrackReference
-import de.connect2x.trixnity.messenger.compose.view.room.call.CallParticipant
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.call.CallParticipant
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 private data class LiveKitParticipant(
@@ -19,6 +20,7 @@ private data class LiveKitParticipant(
     val hasPublication: Boolean,
 )
 
+@TrixnityMessengerCallApi
 @Composable
 internal fun rememberCallParticipants(
     rooms: CallRooms,
@@ -78,7 +80,7 @@ internal fun rememberCallParticipants(
                     isLocal = id == localIdentity,
                     microphoneEnabled = microphoneEnabled,
                     isSpeaking = isSpeaking,
-                    video = if (item != null && !cameraMuted) CallVideo(item.room, item.camera) else null,
+                    video = if (item != null && !cameraMuted) LiveKitCallVideo(item.room, item.camera) else null,
                 ) to lastSpokeAt
             }
         }

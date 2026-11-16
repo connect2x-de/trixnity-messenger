@@ -9,11 +9,23 @@ import de.connect2x.livekitnity.api.room.Room
 import de.connect2x.livekitnity.compose.types.ScaleType
 import de.connect2x.livekitnity.compose.types.TrackReference
 import de.connect2x.livekitnity.compose.ui.VideoTrackView
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.call.CallVideo
 
-internal data class CallVideo(val room: Room, val track: TrackReference)
+private val log = Logger("de.connect2x.trixnity.messenger.compose.view.room.call.livekit.CallVideo")
 
+@TrixnityMessengerCallApi internal data class LiveKitCallVideo(val room: Room, val track: TrackReference) : CallVideo
+
+@TrixnityMessengerCallApi
 @Composable
-internal fun CallVideoView(video: CallVideo, modifier: Modifier, backgroundColor: Color) {
+internal fun CallVideoView(handle: CallVideo, modifier: Modifier, backgroundColor: Color) {
+    val video = handle as? LiveKitCallVideo
+    if (video == null) {
+        log.warn { "Unsupported call video type: ${handle::class}" }
+        return
+    }
     key(video.room, video.track.participant) {
         VideoTrackView(
             video.track,

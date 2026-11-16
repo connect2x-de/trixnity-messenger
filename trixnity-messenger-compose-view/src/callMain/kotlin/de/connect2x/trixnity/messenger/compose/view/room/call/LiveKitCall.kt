@@ -1,5 +1,3 @@
-@file:OptIn(TrixnityMessengerCallApi::class)
-
 package de.connect2x.trixnity.messenger.compose.view.room.call
 
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +26,7 @@ import de.connect2x.livekitnity.compose.local.LiveKitLocal
 import de.connect2x.livekitnity.compose.local.VideoTrackRendererLocal
 import de.connect2x.livekitnity.compose.types.VideoTrackRenderer
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.call.CallParticipant
 import de.connect2x.trixnity.messenger.compose.view.room.call.livekit.rememberCallState
 import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallViewModel
 
@@ -35,6 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallViewModel
 
 @Composable internal expect fun rememberVideoTrackRenderer(): VideoTrackRenderer
 
+@OptIn(TrixnityMessengerCallApi::class)
 @Composable
 internal actual fun LiveKitCall(viewModel: RoomCallViewModel) {
     CompositionLocalProvider(
@@ -45,6 +45,7 @@ internal actual fun LiveKitCall(viewModel: RoomCallViewModel) {
     }
 }
 
+@TrixnityMessengerCallApi
 @Composable
 private fun LiveKitCallImpl(viewModel: RoomCallViewModel) {
     when (val state = rememberCallState(viewModel)) {
@@ -56,17 +57,25 @@ private fun LiveKitCallImpl(viewModel: RoomCallViewModel) {
             ) {
                 state.messages.forEach { CallMessage(message = it) }
                 CallParticipants(state, Modifier.weight(1f))
-                CallControls(state.microphone, state.camera)
+                CallControls(
+                    state.microphone,
+                    state.camera,
+                    onLeave = viewModel::back,
+                    onMicrophone = state.microphone.onToggle,
+                    onCamera = state.camera.onToggle,
+                )
             }
         }
     }
 }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun CallMessage(modifier: Modifier = Modifier, message: CallState.Message) {
     Text(message.text, modifier, color = if (message.isError) MaterialTheme.colorScheme.error else Color.Unspecified)
 }
 
+@TrixnityMessengerCallApi
 @Composable
 private fun CallParticipants(state: CallState.Active, modifier: Modifier) {
     val participants = rememberOrderedParticipants(state)
@@ -79,14 +88,16 @@ private fun CallParticipants(state: CallState.Active, modifier: Modifier) {
 }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun rememberOrderedParticipants(state: CallState.Active): List<CallParticipant> =
     remember(state.featured, state.thumbnails) {
         (listOfNotNull(state.featured) + state.thumbnails).sortedWith(
-            compareBy<CallParticipant> { it.isLocal }.thenBy { it.id }
+            compareBy<CallParticipant> { it.isByMe }.thenBy { it.id }
         )
     }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun CallParticipantsOverlay(primary: CallParticipant, secondary: CallParticipant?, modifier: Modifier) {
     BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         key(primary.id) { CallParticipantTile(Modifier.fillMaxSize(), primary) }
@@ -106,6 +117,7 @@ private fun CallParticipantsOverlay(primary: CallParticipant, secondary: CallPar
 }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun CallParticipantsGrid(participants: List<CallParticipant>, modifier: Modifier) {
     BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val grid = calculateParticipantGrid(participants.size, maxWidth, maxHeight)
