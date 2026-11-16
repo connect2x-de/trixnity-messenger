@@ -1,11 +1,16 @@
 package de.connect2x.livekitnity.compose.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.HtmlElementView
 import de.connect2x.livekitnity.api.room.Room
 import de.connect2x.livekitnity.api.room.track.WebVideoTrack
@@ -25,13 +30,17 @@ public class WebVideoTrackRenderer : VideoTrackRenderer {
       room: Room?,
       mirror: Boolean,
       scaleType: ScaleType,
+      backgroundColor: Color,
+      shape: Shape,
   ) {
     VideoTrackView(
         trackReference = trackReference,
-        modifier = modifier,
+        modifier = modifier.clip(shape).background(backgroundColor),
         room = room,
         mirror = mirror,
         scaleType = scaleType,
+        backgroundColor = backgroundColor,
+        shape = shape,
     )
   }
 }
@@ -43,6 +52,8 @@ private fun VideoTrackView(
     room: Room? = null,
     mirror: Boolean = false,
     scaleType: ScaleType = ScaleType.Fill,
+    backgroundColor: Color,
+    shape: Shape,
 ) {
   val track by
       rememberStateOrDefault(null) {
@@ -58,6 +69,8 @@ private fun VideoTrackView(
       modifier = modifier,
       mirror = mirror,
       scaleType = scaleType,
+      backgroundColor = backgroundColor,
+      shape = shape,
   )
 }
 
@@ -67,6 +80,8 @@ private fun VideoTrackView(
     modifier: Modifier = Modifier,
     mirror: Boolean = false,
     scaleType: ScaleType = ScaleType.Fill,
+    backgroundColor: Color,
+    shape: Shape,
 ) {
   val video = remember {
     (document.createElement("video") as HTMLVideoElement).apply {
@@ -77,6 +92,7 @@ private fun VideoTrackView(
       setAttribute("playsinline", "")
       setAttribute("aria-hidden", "true")
       style.setProperty("display", "block")
+      style.setProperty("visibility", "hidden")
       style.setProperty("pointer-events", "none")
       style.setProperty("object-position", "center")
     }
@@ -91,6 +107,7 @@ private fun VideoTrackView(
   HtmlElementView(
       factory = { video },
       update = {
+        it.style.setProperty("background-color", backgroundColor.toCssColor())
         it.style.setProperty(
             "object-fit",
             when (scaleType) {
@@ -101,6 +118,11 @@ private fun VideoTrackView(
         it.style.setProperty("transform", if (mirror) "scaleX(-1)" else "none")
       },
       // Kept separate from track playback because this is a CMP DOM workaround.
-      modifier = modifier.htmlUnderlay(video),
+      modifier = modifier.htmlUnderlay(video, shape),
   )
+}
+
+private fun Color.toCssColor(): String {
+  val argb = toArgb().toUInt().toString(16).padStart(8, '0')
+  return "#${argb.drop(2)}${argb.take(2)}"
 }

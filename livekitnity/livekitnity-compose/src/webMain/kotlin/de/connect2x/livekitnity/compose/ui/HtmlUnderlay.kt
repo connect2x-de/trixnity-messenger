@@ -4,9 +4,17 @@ package de.connect2x.livekitnity.compose.ui
 
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.inset
+import androidx.compose.ui.graphics.toSvg
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.invalidateDraw
@@ -15,25 +23,33 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLVideoElement
+import org.w3c.dom.events.Event
 
 /**
  * CMP-version-specific HTML underlay adapter extracted from the supplied view. Changes the whole
  * viewport's interop stacking, so use only in a video-only interop viewport. Do not put this under
  * an offscreen compositing layer, saveLayer-producing alpha animation, or RenderEffect: Clear must
- * reach the main canvas. Callers own clipping, backgrounds, borders, and overlays. The remembered
- * element must not be reused through HtmlElementView.onReset.
+ * reach the main canvas. The supplied shape clips the HTML video. Callers own canvas clipping,
+ * backgrounds, borders, and overlays. The remembered element must not be reused through
+ * HtmlElementView.onReset.
  */
-internal fun Modifier.htmlUnderlay(element: HTMLElement): Modifier =
-    this then HtmlUnderlayElement(element)
+internal fun Modifier.htmlUnderlay(element: HTMLVideoElement, shape: Shape): Modifier {
+  return this then HtmlUnderlayElement(element, shape)
+}
 
 private data class HtmlUnderlayElement(
-    val element: HTMLElement,
+    val element: HTMLVideoElement,
+    val shape: Shape,
 ) : ModifierNodeElement<HtmlUnderlayNode>() {
 
-  override fun create(): HtmlUnderlayNode = HtmlUnderlayNode(element)
+  override fun create(): HtmlUnderlayNode {
+    return HtmlUnderlayNode(element, shape)
+  }
 
   override fun update(node: HtmlUnderlayNode) {
     node.updateElement(element)
+    node.updateShape(shape)
   }
 
   override fun InspectorInfo.inspectableProperties() {
@@ -43,7 +59,8 @@ private data class HtmlUnderlayElement(
 }
 
 private class HtmlUnderlayNode(
-    private var element: HTMLElement,
+    private var element: HTMLVideoElement,
+    private var shape: Shape,
 ) : Modifier.Node(), DrawModifierNode {
 
   private var job: Job? = null
@@ -61,7 +78,7 @@ private class HtmlUnderlayNode(
     super.onDetach()
   }
 
-  fun updateElement(newElement: HTMLElement) {
+  fun updateElement(newElement: HTMLVideoElement) {
     if (element != newElement) {
       element = newElement
       if (isAttached) {
@@ -70,18 +87,26 @@ private class HtmlUnderlayNode(
     }
   }
 
+  fun updateShape(newShape: Shape) {
+    shape = newShape
+  }
+
   private fun startAcquisition() {
     job?.cancel()
     ready = false
     invalidateDraw()
 
     job = coroutineScope.launch {
+      val video = element
+      val invalidate: (Event) -> Unit = { invalidateDraw() }
+      video.addEventListener("loadeddata", invalidate)
+      video.addEventListener("emptied", invalidate)
       var lease: JsAny? = null
       try {
         var attempts = 0
         while (lease == null && attempts < 120) {
           withFrameNanos {}
-          lease = acquireVideoUnderlay(element)
+          lease = acquireVideoUnderlay(video)
           attempts++
         }
         check(lease != null) {
@@ -92,6 +117,8 @@ private class HtmlUnderlayNode(
         invalidateDraw()
         awaitCancellation()
       } finally {
+        video.removeEventListener("loadeddata", invalidate)
+        video.removeEventListener("emptied", invalidate)
         ready = false
         invalidateDraw()
         lease?.let { releaseVideoUnderlay(it) }
@@ -102,9 +129,64 @@ private class HtmlUnderlayNode(
   override fun ContentDrawScope.draw() {
     drawContent()
     if (ready) {
-      drawRect(color = Color.Transparent, blendMode = BlendMode.Clear)
+      element.style.width = "${size.width / density}px"
+      element.style.height = "${size.height / density}px"
+      val outline = shape.createOutline(size, layoutDirection, this)
+      element.style.setProperty("clip-path", outline.toCssClipPath(size, density))
+      val hasDecodedFrame = element.readyState >= VideoReadyStateHaveCurrentData
+      element.style.setProperty("visibility", if (hasDecodedFrame) "visible" else "hidden")
+      if (hasDecodedFrame && size.minDimension > 2 * VideoCanvasInsetDevicePixels) {
+        inset(VideoCanvasInsetDevicePixels) {
+          drawRect(color = Color.Transparent, blendMode = BlendMode.Clear)
+        }
+      }
     }
   }
+}
+
+private const val VideoReadyStateHaveCurrentData = 2
+private const val VideoClipOverlapDevicePixels = 1f
+private const val VideoCanvasInsetDevicePixels = 1f
+
+private fun Outline.toCssClipPath(size: Size, density: Float): String {
+  return when (this) {
+    is Outline.Rectangle -> toRectangleCssClipPath(size, density)
+    is Outline.Rounded -> toRoundedCssClipPath(size, density)
+    is Outline.Generic -> toGenericCssClipPath(density)
+  }
+}
+
+private fun Outline.Rectangle.toRectangleCssClipPath(size: Size, density: Float): String {
+  return "inset(${videoClipInset(size, density)})"
+}
+
+private fun videoClipInset(size: Size, density: Float): String {
+  val overlap = VideoClipOverlapDevicePixels / density
+  return "-${overlap}px calc(100% - ${size.width / density + overlap}px) " +
+      "calc(100% - ${size.height / density + overlap}px) -${overlap}px"
+}
+
+private fun Outline.Rounded.toRoundedCssClipPath(size: Size, density: Float): String {
+  val overlap = VideoClipOverlapDevicePixels / density
+  val corners =
+      listOf(
+          roundRect.topLeftCornerRadius,
+          roundRect.topRightCornerRadius,
+          roundRect.bottomRightCornerRadius,
+          roundRect.bottomLeftCornerRadius,
+      )
+  val horizontal = corners.joinToString(" ") { "${it.x / density + overlap}px" }
+  val vertical = corners.joinToString(" ") { "${it.y / density + overlap}px" }
+  return "inset(${videoClipInset(size, density)} round $horizontal / $vertical)"
+}
+
+private fun Outline.Generic.toGenericCssClipPath(density: Float): String {
+  val path =
+      Path().apply {
+        addOutline(this@toGenericCssClipPath)
+        transform(Matrix().apply { scale(1 / density, 1 / density) })
+      }
+  return "path('${path.toSvg()}')"
 }
 
 // Private DOM hack. Locate the structure from this particular video, not from

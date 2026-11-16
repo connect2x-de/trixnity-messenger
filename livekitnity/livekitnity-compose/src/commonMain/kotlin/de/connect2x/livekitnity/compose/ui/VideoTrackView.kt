@@ -2,6 +2,9 @@ package de.connect2x.livekitnity.compose.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import de.connect2x.livekitnity.api.room.Room
 import de.connect2x.livekitnity.compose.local.VideoTrackRendererLocal
 import de.connect2x.livekitnity.compose.types.ScaleType
@@ -16,6 +19,8 @@ public fun VideoTrackView(
     mirror: Boolean = false,
     scaleType: ScaleType = ScaleType.Fill,
     videoTrackRenderer: VideoTrackRenderer = VideoTrackRendererLocal.current,
+    backgroundColor: Color = Color.Black,
+    shape: Shape = RectangleShape,
 ) {
   videoTrackRenderer.Content(
       trackReference = trackReference,
@@ -23,5 +28,7 @@ public fun VideoTrackView(
       room = room,
       mirror = mirror,
       scaleType = scaleType,
+      backgroundColor = backgroundColor,
+      shape = shape,
   )
 }
