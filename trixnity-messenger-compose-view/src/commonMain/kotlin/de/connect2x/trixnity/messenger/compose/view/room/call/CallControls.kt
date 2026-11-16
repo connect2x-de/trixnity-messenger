@@ -30,8 +30,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 
-@TrixnityMessengerCallApi
-internal data class CallMediaControl(val active: Boolean, val enabled: Boolean, val onToggle: () -> Unit = {})
+@TrixnityMessengerCallApi internal data class CallMediaControl(val active: Boolean, val enabled: Boolean)
 
 @Composable
 @TrixnityMessengerCallApi

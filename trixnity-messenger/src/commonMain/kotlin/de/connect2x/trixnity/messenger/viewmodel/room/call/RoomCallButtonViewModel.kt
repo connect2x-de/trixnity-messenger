@@ -16,8 +16,12 @@ import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.call.CallMediaFactory
+import de.connect2x.trixnity.messenger.call.CallService
+import de.connect2x.trixnity.messenger.call.CallSessionFactory
+import de.connect2x.trixnity.messenger.call.CallTarget
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
-import de.connect2x.trixnity.messenger.internal.routes.RoomCallRoute
+import de.connect2x.trixnity.messenger.internal.navigation.restoreCall
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -49,7 +53,15 @@ class RoomCallButtonViewModelFactoryImpl(private val messengerConfiguration: Mat
             return null
         }
 
-        return RoomCallButtonViewModelImpl(viewModelContext, roomId)
+        return RoomCallButtonViewModelImpl(
+            viewModelContext = viewModelContext,
+            roomId = roomId,
+            calls = viewModelContext.getOrNull<CallService>(),
+            sessionFactory =
+                if (viewModelContext.getOrNull<CallMediaFactory>() != null)
+                    viewModelContext.getOrNull<CallSessionFactory>()
+                else null,
+        )
     }
 }
 
@@ -78,8 +90,12 @@ interface RoomCallButtonViewModel {
 
 @OptIn(MSC4143::class, MSC4193::class, MSC4195::class)
 @TrixnityMessengerCallApi
-class RoomCallButtonViewModelImpl(viewModelContext: MatrixClientViewModelContext, private val roomId: RoomId) :
-    RoomCallButtonViewModel, MatrixClientViewModelContext by viewModelContext {
+class RoomCallButtonViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    private val roomId: RoomId,
+    private val calls: CallService?,
+    private val sessionFactory: CallSessionFactory?,
+) : RoomCallButtonViewModel, MatrixClientViewModelContext by viewModelContext {
 
     init {
         check(get<MatrixMessengerConfiguration>().features.enableVideoCalls) {
@@ -123,12 +139,15 @@ class RoomCallButtonViewModelImpl(viewModelContext: MatrixClientViewModelContext
             .map { it.experimental.enableVideoCalls }
             .distinctUntilChanged()
             .flatMapLatest { enabled ->
-                if (!enabled) return@flatMapLatest flowOf(RoomCallButtonViewModel.State.NoCall)
+                if (!enabled || calls == null || sessionFactory == null)
+                    return@flatMapLatest flowOf(RoomCallButtonViewModel.State.NoCall)
 
-                combine(membership.flatMapLatest { it?.state ?: flowOf(null) }, canCreateOrJoin, hasParticipants) {
-                    existingMembershipState,
+                combine(
+                    membership.flatMapLatest { it?.state ?: flowOf(null) },
                     canCreateOrJoin,
-                    hasParticipants ->
+                    hasParticipants,
+                    calls.session,
+                ) { existingMembershipState, canCreateOrJoin, hasParticipants, activeSession ->
                     when (existingMembershipState) {
                         is RtcSlotMembership.State.Join -> RoomCallButtonViewModel.State.Join
                         is RtcSlotMembership.State.Joining -> RoomCallButtonViewModel.State.Joining
@@ -139,7 +158,8 @@ class RoomCallButtonViewModelImpl(viewModelContext: MatrixClientViewModelContext
 
                         is RtcSlotMembership.State.Leave,
                         null ->
-                            if (canCreateOrJoin) RoomCallButtonViewModel.State.CallAvailable(hasParticipants)
+                            if (canCreateOrJoin && activeSession == null)
+                                RoomCallButtonViewModel.State.CallAvailable(hasParticipants)
                             else RoomCallButtonViewModel.State.NoCall
                     }
                 }
@@ -148,20 +168,29 @@ class RoomCallButtonViewModelImpl(viewModelContext: MatrixClientViewModelContext
     }
 
     override fun join() {
+        val service = calls ?: return
+        val navigation = routeNavigation ?: return
         if (state.value !is RoomCallButtonViewModel.State.CallAvailable) return
-        routeNavigation?.updateNavigation {
-            val route = RoomCallRoute(userId, roomId)
-            if (route !in items) push(route)
+        val factory = sessionFactory ?: return
+        val session = factory.create(CallTarget(userId, roomId))
+        if (!service.register(session)) {
+            session.close()
+            return
         }
+        navigation.updateNavigation { if (service.session.value === session) restoreCall(session.target) }
     }
 
     override fun leave() {
-        coroutineScope.launch {
-            membership
-                .first()
-                ?.takeIf { it.state.first().content is RtcMemberEventContent.Join }
-                ?.leave(RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.LEAVE.value))
-        }
+        val current = calls?.session?.value
+        if (current != null && current.target == CallTarget(userId, roomId)) {
+            calls.unregister(current)
+        } else
+            coroutineScope.launch {
+                membership
+                    .first()
+                    ?.takeIf { it.state.first().content is RtcMemberEventContent.Join }
+                    ?.leave(RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.LEAVE.value))
+            }
     }
 }
 

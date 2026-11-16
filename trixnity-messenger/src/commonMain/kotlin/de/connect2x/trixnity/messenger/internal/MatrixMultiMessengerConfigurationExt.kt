@@ -115,6 +115,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
+import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import kotlinx.coroutines.CoroutineScope
@@ -152,7 +153,7 @@ private fun nav3ViewModelModuleFactory(): Module {
                 i18n = get<I18n>(),
             )
         }
-        single<CallService> { CallServiceImpl() }.onOptions { bind<AutoCloseable>() }
+        single<CallService> { CallServiceImpl(get<RouteNavigation>()) }.onOptions { bind<AutoCloseable>() }
         single<CallSessionFactory> {
             CallSessionFactoryImpl(
                 coroutineScope = get<CoroutineScope>(),
@@ -187,6 +188,8 @@ private fun nav3ViewModelModuleFactory(): Module {
         }
 
         viewModelFactoryAdapterOf(::AccountSetupViewModelFactoryAdapter)
+        single<RoomCallViewModelFactory> { RoomCallViewModelFactory }
+        viewModelFactoryAdapterOf(::RoomCallViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::AccountsViewModelFactoryAdapter)
         viewModelFactoryAdapter { AddMatrixAccountViewModelFactoryAdapter(get(), get(), getOrNull(), get(), get()) }
         viewModelFactoryAdapterOf(::AddMembersViewModelFactoryAdapter)
@@ -214,7 +217,6 @@ private fun nav3ViewModelModuleFactory(): Module {
         viewModelFactoryAdapterOf(::RegisterMatrixAccountViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RemoveMatrixAccountViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::ReportMessageViewModelFactoryAdapter)
-        @OptIn(TrixnityMessengerCallApi::class) viewModelFactoryAdapterOf(::RoomCallViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomDevInfoViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::RoomListViewModelFactoryAdapter)
         viewModelFactoryAdapterOf(::SpaceSettingsViewModelFactoryAdapter)

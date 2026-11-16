@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.call
 
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
+import de.connect2x.trixnity.messenger.internal.navigation.removeCall
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -14,7 +16,7 @@ interface CallService : AutoCloseable {
 }
 
 @TrixnityMessengerCallApi
-internal class CallServiceImpl : CallService {
+internal class CallServiceImpl(private val navigation: RouteNavigation) : CallService {
     override val session = MutableStateFlow<CallSession?>(null)
 
     override fun register(call: CallSession): Boolean {
@@ -24,7 +26,10 @@ internal class CallServiceImpl : CallService {
     }
 
     override fun unregister(call: CallSession) {
-        if (session.compareAndSet(call, null)) call.close()
+        if (session.compareAndSet(call, null)) {
+            call.close()
+            navigation.updateNavigation { removeCall(call.target) }
+        }
     }
 
     override fun close() {

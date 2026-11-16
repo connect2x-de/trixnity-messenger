@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.internal.compose.view
 
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
+import de.connect2x.trixnity.messenger.compose.view.room.call.callMediaModule
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.EntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.entryDecoratorOf
@@ -109,6 +110,7 @@ fun MatrixMultiMessengerConfiguration.nav3ViewOptIn() {
 @OptIn(TrixnityMessengerCallApi::class)
 private fun nav3ViewModuleFactory(): Module {
     return module {
+        includes(callMediaModule())
         singleOf(::ClientView)
         single { EntryProvider(entries = getAll<AnyNavigationEntry<*>>()) }
         single<NavigationView> {
