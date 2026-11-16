@@ -82,6 +82,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   and `RoomListViewModelImpl`
 - UI: Fade out text based reply previews if they would exceed the preview size
 - UI: Adapt MatrixRTC call layouts to participant count and preserve full video frames
+- INTERNAL: bump conventions to 20261116.171406
 
 
 ### Deprecated

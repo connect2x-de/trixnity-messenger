@@ -10,7 +10,7 @@ pluginManagement {
     }
 }
 
-plugins { id("de.connect2x.conventions.c2x-settings-plugin") version "20261015.130157" }
+plugins { id("de.connect2x.conventions.c2x-settings-plugin") version "20261116.171406" }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -32,12 +32,4 @@ include(
 
 dependencyResolutionManagement {
     versionCatalogs { create("livekitnityLibs") { from(files("livekitnity/gradle/libs.versions.toml")) } }
-
-    @Suppress("UnstableApiUsage")
-    repositories {
-        exclusiveContent {
-            forRepository { maven("https://jitpack.io") }
-            filter { includeModule("com.github.davidliu", "audioswitch") }
-        }
-    }
 }
