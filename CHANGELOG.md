@@ -136,6 +136,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Fix pixelated avatars in profile and room settings
 - UI: Limit memory use of timeline BlurHash previews
 - UI: Show blurred download placeholders for missing timeline images
+- UI: Don't show image upload process while loading placeholders
 
 ### Security
 

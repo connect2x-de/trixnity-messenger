@@ -51,10 +51,13 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
 
     @Composable
     override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Image, index: Int) {
+        val thumbnailLoaded = element.thumbnail.collectAsState().value != null
+
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             overlay = { ImageMessageElementOverlay(element) },
+            displayProgress = thumbnailLoaded,
             displayProgressOverElement = true,
             index = index,
         ) { showActionMenu, onSave ->
@@ -64,10 +67,13 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
 
     @Composable
     override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Image, index: Int) {
+        val thumbnailLoaded = element.thumbnail.collectAsState().value != null
+
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             isPreview = true,
+            displayProgress = thumbnailLoaded,
             displayProgressOverElement = true,
             index = index,
             overlay = { ImageMessageElementOverlay(element) },

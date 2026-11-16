@@ -3151,18 +3151,18 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;II)V
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;II)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/file/FileBasedTimelineElementViewKt {
-	public static final fun FileBasedTimelineElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;III)V
-	public static final fun FileBasedTimelineElementMessageBubble (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Lkotlin/jvm/functions/Function0;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;III)V
+	public static final fun FileBasedTimelineElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;ZZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;III)V
+	public static final fun FileBasedTimelineElementMessageBubble (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Lkotlin/jvm/functions/Function0;ZZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZZZLandroidx/compose/runtime/Composer;III)V
 	public static final fun LoadingProgresses (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/file/FileBasedTimelineElementViewModel;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 }
 
@@ -3194,8 +3194,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/ComposableSingletons$StickerTimelineElementViewKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/ComposableSingletons$StickerTimelineElementViewKt;
 	public fun <init> ()V
-	public final fun getLambda$1011680046$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1604158365$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-269055172$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-861533491$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/ComposableSingletons$VerificationRequestRoomMessageTimelineElementViewKt {
@@ -3289,17 +3289,17 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/FileBasedRoomMessageTimelineElementView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;ZZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/FileBasedRoomMessageTimelineElementViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/FileBasedRoomMessageTimelineElementView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;ZZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/FileBasedRoomMessageTimelineElementViewKt {
-	public static final fun FileBasedRoomMessageTimelineElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;II)V
+	public static final fun FileBasedRoomMessageTimelineElement (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/BaseTimelineElementHolderViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;ZZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function5;Landroidx/compose/runtime/Composer;II)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/message/FileRoomMessageTimelineElementView : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementView {

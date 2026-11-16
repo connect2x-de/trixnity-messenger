@@ -50,6 +50,7 @@ interface FileBasedTimelineElementView {
         holder: BaseTimelineElementHolderViewModel,
         element: FileBasedTimelineElementViewModel,
         isPreview: Boolean,
+        displayProgress: Boolean,
         displayProgressOverElement: Boolean,
         index: Int,
         overlay: (@Composable BoxScope.() -> Unit)?,
@@ -68,6 +69,7 @@ fun FileBasedTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
     element: FileBasedTimelineElementViewModel,
     isPreview: Boolean = false,
+    displayProgress: Boolean = true,
     displayProgressOverElement: Boolean = false,
     index: Int,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
@@ -84,6 +86,7 @@ fun FileBasedTimelineElement(
             holder,
             element,
             isPreview,
+            displayProgress,
             displayProgressOverElement,
             index,
             overlay,
@@ -103,6 +106,7 @@ class FileBasedTimelineElementViewImpl : FileBasedTimelineElementView {
         holder: BaseTimelineElementHolderViewModel,
         element: FileBasedTimelineElementViewModel,
         isPreview: Boolean,
+        displayProgress: Boolean,
         displayProgressOverElement: Boolean,
         index: Int,
         overlay: (@Composable BoxScope.() -> Unit)?,
@@ -127,6 +131,7 @@ class FileBasedTimelineElementViewImpl : FileBasedTimelineElementView {
             element = element,
             onSave = { element.showSaveDialog() },
             isPreview = isPreview,
+            displayProgress = displayProgress,
             displayProgressOverElement = displayProgressOverElement,
             index = index,
             overlay = overlay,
@@ -147,6 +152,7 @@ fun FileBasedTimelineElementMessageBubble(
     element: FileBasedTimelineElementViewModel,
     onSave: () -> Unit,
     isPreview: Boolean = false,
+    displayProgress: Boolean,
     displayProgressOverElement: Boolean,
     index: Int,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
@@ -194,6 +200,7 @@ fun FileBasedTimelineElementMessageBubble(
                 holder = holder,
                 element = element,
                 showActionMenu = showActionMenu,
+                displayProgress = displayProgress,
                 displayProgressOverElement = displayProgressOverElement,
                 isPreview = isPreview,
                 overlay = overlay,
@@ -215,6 +222,7 @@ internal fun FileBasedView(
     holder: BaseTimelineElementHolderViewModel,
     element: FileBasedTimelineElementViewModel,
     showActionMenu: () -> Unit,
+    displayProgress: Boolean,
     displayProgressOverElement: Boolean,
     isPreview: Boolean,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
@@ -269,11 +277,11 @@ internal fun FileBasedView(
                 val error = element.loadMediaError.collectAsState().value
                 if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
             }
-            if (!displayProgressOverElement) {
+            if (displayProgress && !displayProgressOverElement) {
                 LoadingProgresses(holder, element, Modifier.align(Alignment.CenterHorizontally))
             }
         }
-        if (displayProgressOverElement) {
+        if (displayProgress && displayProgressOverElement) {
             LoadingProgresses(holder, element, Modifier.align(Alignment.Center))
         }
     }
