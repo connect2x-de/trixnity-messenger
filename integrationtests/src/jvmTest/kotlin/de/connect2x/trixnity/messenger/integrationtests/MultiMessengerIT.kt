@@ -60,8 +60,13 @@ class MultiMessengerIT {
             URLBuilder(protocol = URLProtocol.HTTP, host = synapseDocker.host, port = synapseDocker.firstMappedPort)
                 .build()
 
-        MatrixClientServerApiClientImpl(baseUrl).register("user1", password)
-        MatrixClientServerApiClientImpl(baseUrl).register("user2", password)
+        val registrationClient = MatrixClientServerApiClientImpl(baseUrl)
+        try {
+            registrationClient.register("user1", password)
+            registrationClient.register("user2", password)
+        } finally {
+            registrationClient.closeSuspending()
+        }
     }
 
     @AfterTest
