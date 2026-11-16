@@ -21,6 +21,7 @@ include:
 variables:
   FF_USE_FASTZIP: "true"
   ARTIFACT_COMPRESSION_LEVEL: "fastest"
+  CONVENTIONS_ALLOW_VERSION_MISMATCH: "true"
 
 .artifact-reports: &artifact-reports
   name: reports
