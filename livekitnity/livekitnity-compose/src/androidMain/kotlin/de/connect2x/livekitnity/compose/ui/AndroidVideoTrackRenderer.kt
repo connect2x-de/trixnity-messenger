@@ -15,7 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.viewinterop.AndroidView
@@ -45,10 +47,12 @@ public class AndroidVideoTrackRenderer(
       room: Room?,
       mirror: Boolean,
       scaleType: ScaleType,
+      backgroundColor: Color,
+      shape: Shape,
   ) {
     VideoTrackView(
         trackReference = trackReference,
-        modifier = modifier,
+        modifier = modifier.clip(shape).background(backgroundColor),
         room = room,
         mirror = mirror,
         scaleType = scaleType,
@@ -97,10 +101,10 @@ private fun VideoTrackView(
     rendererType: RendererType = RendererType.Texture,
     onFirstFrameRendered: (() -> Unit)? = null,
 ) {
-  // Show a black box for preview.
+  // Show the configured background for preview.
   if (LocalView.current.isInEditMode) {
     Box(
-        modifier = Modifier.background(Color.Black).then(modifier),
+        modifier = modifier,
     )
     return
   }

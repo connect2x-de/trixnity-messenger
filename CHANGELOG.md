@@ -48,7 +48,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
 - DEPENDENCY: Update c2x-conventions to 20260917.190917
-- DEPENDENCY: Update Trixnity to 5.11.0-SNAPSHOT.CI-20261110.195750
+- DEPENDENCY: Update Trixnity to 5.11.0
 - DEPENDENCY: Update SQLitenity to 0.0.8
 - SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
@@ -81,6 +81,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK, UI: (**breaking change**) Add spaces support to `MatrixMessengerConfiguration.Features`, `AvatarStyle`,
   and `RoomListViewModelImpl`
 - UI: Fade out text based reply previews if they would exceed the preview size
+- UI: Adapt MatrixRTC call layouts to participant count and preserve full video frames
 
 ### Deprecated
 

@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -42,17 +41,25 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @Composable
-internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant) {
+internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant, elevation: Dp = 0.dp) {
     val i18n = DI.get<I18nView>()
+    val containerColor =
+        if (elevation > 0.dp) MaterialTheme.colorScheme.surfaceContainerHigh
+        else MaterialTheme.colorScheme.surfaceContainer
     val speakingAlpha by
         animateFloatAsState(
             targetValue = if (item.isSpeaking) 1f else 0f,
             animationSpec = if (item.isSpeaking) snap() else tween(durationMillis = 500),
         )
-    Card(modifier, border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = speakingAlpha))) {
-        BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+    Card(
+        modifier,
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+        border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = speakingAlpha)),
+    ) {
+        BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (item.video != null) {
-                CallVideoView(item.video, Modifier.fillMaxSize())
+                CallVideoView(item.video, Modifier.fillMaxSize(), backgroundColor = containerColor)
             } else {
                 val avatarSize = (minOf(maxWidth, maxHeight) * 0.45f).coerceAtMost(120.dp)
                 CallAvatar(item.user, avatarSize)
@@ -95,7 +102,12 @@ private fun CallAvatar(user: UserInfoElement, size: Dp) {
 
 @Composable
 private fun CallBubble(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
-    Surface(modifier, shape = CircleShape, color = Color.Black.copy(alpha = 0.6f), contentColor = Color.White) {
+    Surface(
+        modifier,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
         Row(
             Modifier.heightIn(min = InputChipDefaults.Height)
                 .padding(horizontal = CallSpacing, vertical = CallSpacing / 2),
