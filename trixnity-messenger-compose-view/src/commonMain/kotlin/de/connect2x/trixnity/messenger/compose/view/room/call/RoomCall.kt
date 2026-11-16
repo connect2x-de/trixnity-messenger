@@ -59,6 +59,7 @@ internal fun RoomCall(viewModel: RoomCallViewModel) {
                     onLeave = viewModel::leave,
                     onMicrophone = viewModel::toggleMicrophone,
                     onCamera = viewModel::toggleCamera,
+                    onBackground = viewModel::showChat,
                 )
             }
         }

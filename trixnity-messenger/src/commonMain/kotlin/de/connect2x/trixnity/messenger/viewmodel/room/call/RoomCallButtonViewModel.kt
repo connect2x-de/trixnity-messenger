@@ -69,6 +69,7 @@ class RoomCallButtonViewModelFactoryImpl(private val messengerConfiguration: Mat
 interface RoomCallButtonViewModel {
     val state: StateFlow<State?>
 
+    /** Start or join this room's call, or reopen its active session. */
     fun join()
 
     fun leave()
@@ -77,6 +78,10 @@ interface RoomCallButtonViewModel {
         data object NoCall : State
 
         data class CallAvailable(val hasParticipants: Boolean) : State
+
+        data object ActiveCall : State
+
+        data object CallInAnotherRoom : State
 
         data object Joining : State
 
@@ -104,6 +109,7 @@ class RoomCallButtonViewModelImpl(
     }
 
     private val slotId = CallRtcApplication.SLOT_ID
+    private val target = CallTarget(userId, roomId, slotId)
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val routeNavigation = getOrNull<RouteNavigation>()
     private val membership =
@@ -148,6 +154,14 @@ class RoomCallButtonViewModelImpl(
                     hasParticipants,
                     calls.session,
                 ) { existingMembershipState, canCreateOrJoin, hasParticipants, activeSession ->
+                    if (activeSession != null) {
+                        return@combine when {
+                            activeSession.target == target -> RoomCallButtonViewModel.State.ActiveCall
+                            canCreateOrJoin -> RoomCallButtonViewModel.State.CallInAnotherRoom
+                            else -> RoomCallButtonViewModel.State.NoCall
+                        }
+                    }
+
                     when (existingMembershipState) {
                         is RtcSlotMembership.State.Join -> RoomCallButtonViewModel.State.Join
                         is RtcSlotMembership.State.Joining -> RoomCallButtonViewModel.State.Joining
@@ -158,8 +172,7 @@ class RoomCallButtonViewModelImpl(
 
                         is RtcSlotMembership.State.Leave,
                         null ->
-                            if (canCreateOrJoin && activeSession == null)
-                                RoomCallButtonViewModel.State.CallAvailable(hasParticipants)
+                            if (canCreateOrJoin) RoomCallButtonViewModel.State.CallAvailable(hasParticipants)
                             else RoomCallButtonViewModel.State.NoCall
                     }
                 }
@@ -170,19 +183,24 @@ class RoomCallButtonViewModelImpl(
     override fun join() {
         val service = calls ?: return
         val navigation = routeNavigation ?: return
-        if (state.value !is RoomCallButtonViewModel.State.CallAvailable) return
-        val factory = sessionFactory ?: return
-        val session = factory.create(CallTarget(userId, roomId))
-        if (!service.register(session)) {
-            session.close()
-            return
-        }
-        navigation.updateNavigation { if (service.session.value === session) restoreCall(session.target) }
+        val session =
+            service.session.value
+                ?: run {
+                    if (state.value !is RoomCallButtonViewModel.State.CallAvailable) return
+                    val newSession = sessionFactory?.create(target) ?: return
+                    if (!service.register(newSession)) {
+                        newSession.close()
+                        return
+                    }
+                    newSession
+                }
+        if (session.target != target) return
+        navigation.updateNavigation { if (service.session.value === session) restoreCall(target) }
     }
 
     override fun leave() {
         val current = calls?.session?.value
-        if (current != null && current.target == CallTarget(userId, roomId)) {
+        if (current != null && current.target == target) {
             calls.unregister(current)
         } else
             coroutineScope.launch {

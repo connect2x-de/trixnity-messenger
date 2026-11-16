@@ -4,11 +4,9 @@ package de.connect2x.trixnity.messenger.internal.compose.view
 
 import androidx.compose.runtime.Composable
 import com.arkivanov.decompose.ExperimentalDecomposeApi
-import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.compose.view.ClientView
 import de.connect2x.trixnity.messenger.compose.view.ClientViewLayout
-import de.connect2x.trixnity.messenger.compose.view.room.call.livekit.CallPermissionHost
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 
 internal fun ClientView(navigationView: NavigationView): ClientView {
@@ -17,12 +15,8 @@ internal fun ClientView(navigationView: NavigationView): ClientView {
 
 @TrixnityMessengerPrivateApi
 private class ClientViewImpl(private val navigationView: NavigationView) : ClientView {
-    @OptIn(TrixnityMessengerCallApi::class)
     @Composable
     override fun create(rootViewModel: RootViewModel) {
-        ClientViewLayout {
-            CallPermissionHost()
-            navigationView.Content()
-        }
+        ClientViewLayout { navigationView.Content() }
     }
 }

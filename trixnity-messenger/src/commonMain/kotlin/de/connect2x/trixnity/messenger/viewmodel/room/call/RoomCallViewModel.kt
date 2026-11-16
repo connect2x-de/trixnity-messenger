@@ -17,12 +17,18 @@ import org.koin.core.component.get
 
 @TrixnityMessengerCallApi
 interface RoomCallViewModelFactory {
-    fun create(viewModelContext: ViewModelContext, target: CallTarget, onBack: () -> Unit): RoomCallViewModel {
+    fun create(
+        viewModelContext: ViewModelContext,
+        target: CallTarget,
+        onBack: () -> Unit,
+        onShowChat: () -> Unit,
+    ): RoomCallViewModel {
         return RoomCallViewModelImpl(
             viewModelContext = viewModelContext,
             target = target,
             calls = viewModelContext.get<CallService>(),
             onBack = onBack,
+            onShowChat = onShowChat,
         )
     }
 
@@ -34,6 +40,8 @@ interface RoomCallViewModel {
     val state: StateFlow<CallSessionState?>
 
     fun back()
+
+    fun showChat()
 
     fun leave()
 
@@ -49,6 +57,7 @@ internal class RoomCallViewModelImpl(
     private val target: CallTarget,
     private val calls: CallService,
     private val onBack: () -> Unit,
+    private val onShowChat: () -> Unit,
 ) : RoomCallViewModel, ViewModelContext by viewModelContext {
     override val state =
         calls.session
@@ -65,6 +74,10 @@ internal class RoomCallViewModelImpl(
 
     override fun back() {
         onBack()
+    }
+
+    override fun showChat() {
+        onShowChat()
     }
 
     override fun leave() {

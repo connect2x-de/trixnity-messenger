@@ -7,7 +7,7 @@ import de.connect2x.trixnity.messenger.call.CallSessionState
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 
 @TrixnityMessengerCallApi
-internal fun CallSessionState.toCallState(i18n: I18nView): CallState {
+internal fun CallSessionState.toCallState(i18n: I18nView): CallState.Active {
     val status =
         when (media.connection) {
             CallConnectionState.CONNECTING -> CallState.Message(i18n.callJoining())
@@ -26,8 +26,8 @@ internal fun CallSessionState.toCallState(i18n: I18nView): CallState {
     return CallState.Active(
         media.participants.firstOrNull(),
         media.participants.drop(1),
-        CallMediaControl(media.microphoneEnabled, true),
-        CallMediaControl(media.cameraEnabled, true),
+        media.microphoneEnabled,
+        media.cameraEnabled,
         listOfNotNull(
             this.error?.let { CallState.Message(it, true) },
             status,

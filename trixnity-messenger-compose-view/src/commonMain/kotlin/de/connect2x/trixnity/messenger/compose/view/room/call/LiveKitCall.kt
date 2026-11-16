@@ -11,4 +11,5 @@ internal expect fun LiveKitCall(
     onLeave: () -> Unit,
     onMicrophone: () -> Unit,
     onCamera: () -> Unit,
+    onBackground: () -> Unit,
 )

@@ -4292,6 +4292,11 @@ open class I18nView(
         DE - "Anruf starten"
     }
 
+    open fun callAlreadyInProgress() = translate {
+        EN - "Another call is already in progress"
+        DE - "Ein anderer Anruf läuft bereits"
+    }
+
     open fun callStartWithError(error: String) = translate {
         EN - "Call failed: $error (Click to retry)"
         DE - "Anruf fehlgeschlagen: $error (Drücke um neu zu versuchen)"

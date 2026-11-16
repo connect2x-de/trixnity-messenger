@@ -115,6 +115,8 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlsViewModelFactoryImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
@@ -190,6 +192,9 @@ private fun nav3ViewModelModuleFactory(): Module {
         viewModelFactoryAdapterOf(::AccountSetupViewModelFactoryAdapter)
         single<RoomCallViewModelFactory> { RoomCallViewModelFactory }
         viewModelFactoryAdapterOf(::RoomCallViewModelFactoryAdapter)
+        single<CallControlsViewModelFactory> {
+            CallControlsViewModelFactoryImpl(get<CallService>(), get<RouteNavigation>())
+        }
         viewModelFactoryAdapterOf(::AccountsViewModelFactoryAdapter)
         viewModelFactoryAdapter { AddMatrixAccountViewModelFactoryAdapter(get(), get(), getOrNull(), get(), get()) }
         viewModelFactoryAdapterOf(::AddMembersViewModelFactoryAdapter)

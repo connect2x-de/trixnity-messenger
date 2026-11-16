@@ -10,8 +10,8 @@ internal sealed interface CallState {
     data class Active(
         val featured: CallParticipant?,
         val thumbnails: List<CallParticipant>,
-        val microphone: CallMediaControl,
-        val camera: CallMediaControl,
+        val microphoneEnabled: Boolean,
+        val cameraEnabled: Boolean,
         val messages: List<Message>,
     ) : CallState
 }

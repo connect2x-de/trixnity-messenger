@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.room.call
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -40,9 +39,10 @@ internal actual fun LiveKitCall(
     onLeave: () -> Unit,
     onMicrophone: () -> Unit,
     onCamera: () -> Unit,
+    onBackground: () -> Unit,
 ) {
     CompositionLocalProvider(VideoTrackRendererLocal provides rememberVideoTrackRenderer()) {
-        LiveKitCallImpl(state, onLeave, onMicrophone, onCamera)
+        LiveKitCallImpl(state, onLeave, onMicrophone, onCamera, onBackground)
     }
 }
 
@@ -53,28 +53,21 @@ private fun LiveKitCallImpl(
     onLeave: () -> Unit,
     onMicrophone: () -> Unit,
     onCamera: () -> Unit,
+    onBackground: () -> Unit,
 ) {
     val presentation = state.toCallState(DI.get<I18nView>())
-    val active = presentation as? CallState.Active
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(CallSpacing)) {
-        when (presentation) {
-            is CallState.Message ->
-                Box(Modifier.weight(1f).padding(CallSpacing * 2)) { CallMessage(message = presentation) }
-            is CallState.Active ->
-                Column(
-                    Modifier.weight(1f).padding(CallSpacing),
-                    verticalArrangement = Arrangement.spacedBy(CallSpacing),
-                ) {
-                    presentation.messages.forEach { CallMessage(message = it) }
-                    CallParticipants(presentation, Modifier.weight(1f))
-                }
+        Column(Modifier.weight(1f).padding(CallSpacing), verticalArrangement = Arrangement.spacedBy(CallSpacing)) {
+            presentation.messages.forEach { CallMessage(message = it) }
+            CallParticipants(presentation, Modifier.weight(1f))
         }
         CallControls(
-            active?.microphone,
-            active?.camera,
+            microphoneEnabled = presentation.microphoneEnabled,
+            cameraEnabled = presentation.cameraEnabled,
             onLeave = onLeave,
             onMicrophone = onMicrophone,
             onCamera = onCamera,
+            onBackground = onBackground,
         )
     }
 }

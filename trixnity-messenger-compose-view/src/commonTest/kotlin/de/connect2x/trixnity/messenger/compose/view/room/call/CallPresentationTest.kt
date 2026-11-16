@@ -10,7 +10,7 @@ import de.connect2x.trixnity.messenger.compose.view.util.createTestMatrixMesseng
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import kotlin.test.Test
-import kotlin.test.assertIs
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.datetime.TimeZone
 
@@ -32,30 +32,28 @@ class CallPresentationTest {
                     error = "Membership renewal failed",
                 )
                 .toCallState(i18n)
-        val active = assertIs<CallState.Active>(presentation)
-        assertTrue(active.microphone.active && active.microphone.enabled)
-        assertTrue(active.camera.active && active.camera.enabled)
-        assertTrue(active.messages.any { it.isError && it.text == "Membership renewal failed" })
+        assertTrue(presentation.microphoneEnabled)
+        assertTrue(presentation.cameraEnabled)
+        assertTrue(presentation.messages.any { it.isError && it.text == "Membership renewal failed" })
     }
 
     @Test
-    fun connectionFailuresAndPendingChangesLeaveBothControlsAvailable() {
+    fun connectionFailuresAndPendingChangesPreserveMediaChoices() {
         for (connection in CallConnectionState.entries) {
             val active =
-                assertIs<CallState.Active>(
-                    CallSessionState(
-                            media =
-                                CallMediaState(
-                                    connection = connection,
-                                    changingMedia = true,
-                                    error = CallMediaError.CONNECTION,
-                                    participantsUnavailable = true,
-                                )
-                        )
-                        .toCallState(i18n)
-                )
-            assertTrue(active.microphone.enabled)
-            assertTrue(active.camera.enabled)
+                CallSessionState(
+                        media =
+                            CallMediaState(
+                                connection = connection,
+                                microphoneEnabled = true,
+                                changingMedia = true,
+                                error = CallMediaError.CONNECTION,
+                                participantsUnavailable = true,
+                            )
+                    )
+                    .toCallState(i18n)
+            assertTrue(active.microphoneEnabled)
+            assertFalse(active.cameraEnabled)
             assertTrue(active.messages.any { it.isError })
         }
     }

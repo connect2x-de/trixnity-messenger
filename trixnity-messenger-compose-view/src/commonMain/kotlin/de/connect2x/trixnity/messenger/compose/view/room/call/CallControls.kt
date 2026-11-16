@@ -19,6 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -26,17 +28,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.modifier.minHeaderHeight
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
-
-@TrixnityMessengerCallApi internal data class CallMediaControl(val active: Boolean, val enabled: Boolean)
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlsViewModel
 
 @Composable
 @TrixnityMessengerCallApi
 internal fun CallControls(
-    microphone: CallMediaControl?,
-    camera: CallMediaControl?,
+    microphoneEnabled: Boolean,
+    cameraEnabled: Boolean,
     onLeave: () -> Unit,
     onMicrophone: () -> Unit,
     onCamera: () -> Unit,
@@ -53,7 +55,7 @@ internal fun CallControls(
                 ThemedIconButton(onClick = onBackground) { Icon(Icons.AutoMirrored.Filled.Chat, i18n.callBackground()) }
             }
             MediaControlButton(
-                control = microphone,
+                active = microphoneEnabled,
                 activeIcon = Icons.Default.Mic,
                 inactiveIcon = Icons.Default.MicOff,
                 activeDescription = i18n.callMute(),
@@ -61,7 +63,7 @@ internal fun CallControls(
                 onToggle = onMicrophone,
             )
             MediaControlButton(
-                control = camera,
+                active = cameraEnabled,
                 activeIcon = Icons.Default.Videocam,
                 inactiveIcon = Icons.Default.VideocamOff,
                 activeDescription = i18n.callCameraOff(),
@@ -73,33 +75,31 @@ internal fun CallControls(
     }
 }
 
-@Composable
 @TrixnityMessengerCallApi
-internal fun CompactCallBar(
-    roomName: String,
-    status: String?,
-    microphone: CallMediaControl?,
-    onMicrophone: () -> Unit,
-    onRestore: () -> Unit,
-    onLeave: () -> Unit,
-) {
+@Composable
+internal fun CompactCall(viewModel: CallControlsViewModel) {
+    val currentState by viewModel.state.collectAsState()
+    val state = currentState ?: return
     val i18n = DI.get<I18nView>()
+    val presentation = state.toCallState(i18n)
+    val roomName = state.roomInfo?.name.orEmpty()
+    val status = presentation.messages.firstOrNull()?.text
     Surface(color = MaterialTheme.colorScheme.primaryContainer) {
         Row(
             Modifier.fillMaxWidth()
-                .clickable(onClickLabel = i18n.callRestore(), onClick = onRestore)
-                .heightIn(min = 64.dp)
-                .padding(8.dp),
+                .clickable(onClickLabel = i18n.callRestore(), onClick = viewModel::openFullscreenCall)
+                .minHeaderHeight()
+                .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             MediaControlButton(
-                control = microphone,
+                active = presentation.microphoneEnabled,
                 activeIcon = Icons.Default.Mic,
                 inactiveIcon = Icons.Default.MicOff,
                 activeDescription = i18n.callMute(),
                 inactiveDescription = i18n.callUnmute(),
-                onToggle = onMicrophone,
+                onToggle = viewModel::toggleMicrophone,
             )
             Column(Modifier.weight(1f)) {
                 Text(
@@ -111,13 +111,13 @@ internal fun CompactCallBar(
                 if (status != null) {
                     Text(
                         status,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelSmall,
                     )
                 }
             }
-            LeaveCallButton(onLeave, i18n.callLeave())
+            LeaveCallButton(viewModel::leave, i18n.callLeave())
         }
     }
 }
@@ -133,15 +133,14 @@ private fun LeaveCallButton(onLeave: () -> Unit, description: String) {
 @Composable
 @TrixnityMessengerCallApi
 private fun MediaControlButton(
-    control: CallMediaControl?,
+    active: Boolean,
     activeIcon: ImageVector,
     inactiveIcon: ImageVector,
     activeDescription: String,
     inactiveDescription: String,
     onToggle: () -> Unit,
 ) {
-    val active = control?.active == true
-    ThemedIconButton(enabled = control?.enabled == true, onClick = onToggle) {
+    ThemedIconButton(onClick = onToggle) {
         Icon(if (active) activeIcon else inactiveIcon, if (active) activeDescription else inactiveDescription)
     }
 }

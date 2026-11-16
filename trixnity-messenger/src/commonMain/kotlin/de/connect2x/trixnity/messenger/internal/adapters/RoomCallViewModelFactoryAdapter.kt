@@ -1,11 +1,10 @@
 package de.connect2x.trixnity.messenger.internal.adapters
 
-import com.arkivanov.essenty.lifecycle.doOnDestroy
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
-import de.connect2x.trixnity.messenger.call.CallService
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
 import de.connect2x.trixnity.messenger.internal.navigation.ViewModelFactoryAdapter
 import de.connect2x.trixnity.messenger.internal.navigation.navigationCallback
+import de.connect2x.trixnity.messenger.internal.navigation.openRoom
 import de.connect2x.trixnity.messenger.internal.navigation.removeCall
 import de.connect2x.trixnity.messenger.internal.routes.RoomCallRoute
 import de.connect2x.trixnity.messenger.util.BackCallback
@@ -21,7 +20,6 @@ import org.koin.core.parameter.ParametersHolder
 internal class RoomCallViewModelFactoryAdapter(
     private val factory: RoomCallViewModelFactory,
     private val navigation: RouteNavigation,
-    private val calls: CallService,
 ) : ViewModelFactoryAdapter<RoomCallViewModel> {
     override fun create(parameters: ParametersHolder): RoomCallViewModel {
         val route = parameters.get<RoomCallRoute>()
@@ -30,11 +28,8 @@ internal class RoomCallViewModelFactoryAdapter(
             factory.create(
                 viewModelContext = context,
                 target = route.target,
-                onBack =
-                    navigation.navigationCallback {
-                        val session = calls.session.value
-                        if (session?.target == route.target) calls.unregister(session) else removeCall(route.target)
-                    },
+                onBack = navigation.navigationCallback { removeCall(route.target) },
+                onShowChat = navigation.navigationCallback { openRoom(route.target.userId, route.target.roomId) },
             )
         context.registerBackCallback(
             BackCallback(
@@ -49,7 +44,6 @@ internal class RoomCallViewModelFactoryAdapter(
                 onBack = viewModel::back,
             )
         )
-        context.lifecycle.doOnDestroy { viewModel.leave() }
         return viewModel
     }
 }

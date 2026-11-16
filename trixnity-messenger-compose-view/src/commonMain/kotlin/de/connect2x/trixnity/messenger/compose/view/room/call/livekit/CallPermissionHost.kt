@@ -11,8 +11,6 @@ import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.call.CallPermissionKind
 import de.connect2x.trixnity.messenger.call.CallService
 import de.connect2x.trixnity.messenger.call.CallSession
-import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.get
 
 @TrixnityMessengerCallApi
 internal fun interface PermissionController {
@@ -25,8 +23,7 @@ internal expect fun rememberPermissionController(onResult: (Boolean) -> Unit): P
 
 @TrixnityMessengerCallApi
 @Composable
-internal fun CallPermissionHost() {
-    val service = DI.get<CallService>()
+internal fun CallPermissionHost(service: CallService) {
     val session by service.session.collectAsState()
     val pending = session?.permissionRequest?.collectAsState()?.value
     var launchedRequest by remember { mutableStateOf<Pair<CallSession, CallPermissionKind>?>(null) }

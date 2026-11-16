@@ -11,6 +11,7 @@ internal actual fun LiveKitCall(
     onLeave: () -> Unit,
     onMicrophone: () -> Unit,
     onCamera: () -> Unit,
+    onBackground: () -> Unit,
 ) {
     // LiveKit is not currently supported on this platform
 }
