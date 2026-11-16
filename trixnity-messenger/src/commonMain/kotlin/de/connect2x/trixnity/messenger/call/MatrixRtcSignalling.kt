@@ -86,11 +86,12 @@ internal class MatrixRtcSignalling(
     private val coroutineScope: CoroutineScope,
     private val matrixClient: MatrixClient,
     private val roomId: RoomId,
+    private val slotId: RtcSlotId,
     configuration: MatrixMessengerConfiguration,
     private val initials: Initials,
     private val getRoomName: RoomName,
     private val i18n: I18n,
-    private val onEnded: () -> Unit,
+    private val onLeave: () -> Unit,
 ) : CallSignalling {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.call.MatrixRtcSignalling")
@@ -98,8 +99,6 @@ internal class MatrixRtcSignalling(
 
     private val userId = matrixClient.userId
     private val maxThumbnailSize = configuration.downloadLimits.thumbnail
-
-    private val slotId: RtcSlotId = CallRtcApplication.SLOT_ID
 
     private sealed interface MembershipState {
         data object Joining : MembershipState
@@ -128,7 +127,7 @@ internal class MatrixRtcSignalling(
             membership.filterNotNull().collectLatest { joined ->
                 joined.state.filterIsInstance<RtcSlotMembership.State.Leave>().first()
                 membershipState.value = MembershipState.Left
-                onEnded()
+                onLeave()
             }
         }
         coroutineScope.launch { matrixClient.user.loadMembers(roomId, wait = false) }

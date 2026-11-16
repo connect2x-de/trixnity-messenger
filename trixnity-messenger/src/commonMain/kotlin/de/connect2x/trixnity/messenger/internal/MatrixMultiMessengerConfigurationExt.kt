@@ -2,10 +2,16 @@ package de.connect2x.trixnity.messenger.internal
 
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
+import de.connect2x.trixnity.messenger.call.CallMediaFactory
+import de.connect2x.trixnity.messenger.call.CallService
+import de.connect2x.trixnity.messenger.call.CallServiceImpl
+import de.connect2x.trixnity.messenger.call.CallSessionFactory
+import de.connect2x.trixnity.messenger.call.CallSessionFactoryImpl
 import de.connect2x.trixnity.messenger.call.CallSignallingFactory
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.internal.adapters.AccountSetupViewModelFactoryAdapter
@@ -111,6 +117,7 @@ import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import kotlinx.coroutines.CoroutineScope
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.onOptions
@@ -142,6 +149,16 @@ private fun nav3ViewModelModuleFactory(): Module {
                 configuration = get<MatrixMessengerConfiguration>(),
                 initials = get<Initials>(),
                 roomName = get<RoomName>(),
+                i18n = get<I18n>(),
+            )
+        }
+        single<CallService> { CallServiceImpl() }.onOptions { bind<AutoCloseable>() }
+        single<CallSessionFactory> {
+            CallSessionFactoryImpl(
+                coroutineScope = get<CoroutineScope>(),
+                matrixClients = get<MatrixClients>(),
+                mediaFactory = get<CallMediaFactory>(),
+                signallingFactory = get<CallSignallingFactory>(),
                 i18n = get<I18n>(),
             )
         }
