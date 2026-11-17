@@ -8,6 +8,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
 import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionCategoryOptionDefaultToSpeaker
 import platform.AVFAudio.AVAudioSessionCategoryPlayAndRecord
 import platform.AVFAudio.setActive
 import platform.Foundation.NSError
@@ -16,7 +17,11 @@ import platform.Foundation.NSError
 internal fun configureSession(): Result<Unit> = memScoped {
     val session = AVAudioSession.sharedInstance()
     val categoryError = alloc<ObjCObjectVar<NSError?>>()
-    session.setCategory(AVAudioSessionCategoryPlayAndRecord, error = categoryError.ptr)
+    session.setCategory(
+        AVAudioSessionCategoryPlayAndRecord,
+        withOptions = AVAudioSessionCategoryOptionDefaultToSpeaker,
+        error = categoryError.ptr,
+    )
     categoryError.value?.let {
         return@memScoped Result.failure(Throwable("AudioRecorder setCategory error: ${it.localizedDescription}"))
     }

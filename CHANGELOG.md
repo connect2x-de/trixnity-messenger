@@ -20,6 +20,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI,WEB: Fix collapsed passphrase field in account verification
 - UI: Correct the room creation label for private, unencrypted groups
 - UI: Fix timestamp positioning in empty message bubbles
+- IOS: Default media playback to the loudspeaker instead of the earpiece
 
 ### Security
 
