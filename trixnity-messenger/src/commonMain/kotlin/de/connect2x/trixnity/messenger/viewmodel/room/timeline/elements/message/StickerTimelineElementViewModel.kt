@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.StickerEventContent
+import de.connect2x.trixnity.messenger.util.ImageMimeTypes
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
@@ -49,12 +50,10 @@ class StickerTimelineElementViewModelImpl(
 }
 
 internal fun stickerFileName(description: String, mimeType: String?): String {
-    val extensions =
-        mimeType
-            ?.let { runCatching { ContentType.parse(it).withoutParameters().fileExtensions() }.getOrNull() }
-            .orEmpty()
+    val contentType = mimeType?.let { runCatching { ContentType.parse(it).withoutParameters() }.getOrNull() }
     val name =
         description.replace(Regex("[\\\\/:*?\"<>|\\x00-\\x1F\\x7F]"), "_").trim().trimEnd('.').ifBlank { "sticker" }
-    if (extensions.any { name.endsWith(".$it", ignoreCase = true) }) return name
-    return "$name.${extensions.firstOrNull() ?: "bin"}"
+    if (contentType?.fileExtensions().orEmpty().any { name.endsWith(".$it", ignoreCase = true) }) return name
+    val extension = contentType?.let(ImageMimeTypes::preferredFileExtension) ?: "bin"
+    return "$name.$extension"
 }
