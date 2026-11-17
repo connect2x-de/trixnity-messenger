@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.files
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.ImageMimeTypes
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import de.connect2x.trixnity.utils.byteArrayFlowFromInputStream
 import de.connect2x.trixnity.utils.nextString
@@ -110,7 +111,7 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
                                 return Result.success(null)
                             }
                     val baseName = Random.nextString(12)
-                    val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
+                    val extStr = ImageMimeTypes.preferredFileExtension(contentType)?.let { ".$it" } ?: ""
 
                     return Result.success(
                         BasicFileDescriptor(
