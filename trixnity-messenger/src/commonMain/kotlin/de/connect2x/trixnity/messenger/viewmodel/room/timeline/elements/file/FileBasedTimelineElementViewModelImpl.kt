@@ -63,7 +63,12 @@ abstract class FileBasedTimelineElementViewModelImpl(
         _loadMediaResultPlatformMedia.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
-        _loadMediaProgress.value = FileTransferProgressElement(0f, formatProgress(FileTransferProgress(0, info?.size)))
+        val size = info?.size
+        _loadMediaProgress.value =
+            FileTransferProgressElement(
+                if (size != null && size > 0) 0f else null,
+                formatProgress(FileTransferProgress(0, size)),
+            )
 
         coroutineScope
             .launch {

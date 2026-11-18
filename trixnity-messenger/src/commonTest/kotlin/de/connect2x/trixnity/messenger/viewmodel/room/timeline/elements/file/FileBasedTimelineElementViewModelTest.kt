@@ -137,6 +137,8 @@ class FileBasedTimelineElementViewModelTest {
         val cut = cut()
 
         cut.loadMedia()
+        cut.loadMediaProgress.value shouldNotBe null
+        cut.loadMediaProgress.value?.percent shouldBe null
         delay(500.milliseconds)
 
         cut.loadMediaResultBytes.value shouldBe file
