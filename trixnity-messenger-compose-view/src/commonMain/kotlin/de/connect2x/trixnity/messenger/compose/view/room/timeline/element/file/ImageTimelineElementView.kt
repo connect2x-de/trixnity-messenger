@@ -43,7 +43,8 @@ internal fun ImageTimelineElementView(
 ) {
     val thumbnail = element.thumbnail.collectAsState().value
     val loading =
-        element.thumbnailLoading.collectAsState().value || element.loadMediaProgress.collectAsState().value != null
+        element.thumbnailLoadingProgress.collectAsState().value != null ||
+            element.loadMediaProgress.collectAsState().value != null
     val bitmap = rememberImageBitmapOrNull(thumbnail, IntSize(800, 800))
     val painter = remember(bitmap) { bitmap?.let(::BitmapPainter) }
     val blurhash = element.blurhash ?: fallbackBlurhash

@@ -304,7 +304,7 @@ class ThumbnailsImpl : Thumbnails {
                             )
                         },
                         onFailure = {
-                            onProgress(null)
+                            onProgress(FileTransferProgress(0, null))
                             if (file != null && sizeInBytes <= maxMediaSizeInMemory) {
                                 matrixClient.media
                                     .getEncryptedMedia(
@@ -329,7 +329,7 @@ class ThumbnailsImpl : Thumbnails {
                                             } else {
                                                 log.error(it) { "Cannot load thumbnail for image '$thumbnailFile'." }
                                             }
-                                            onProgress(null)
+                                            onProgress(FileTransferProgress(0, null))
                                             null
                                         },
                                     )
@@ -359,7 +359,7 @@ class ThumbnailsImpl : Thumbnails {
                                 )
                             },
                             onFailure = { // fallback: real image
-                                onProgress(null)
+                                onProgress(FileTransferProgress(0, null))
                                 if (fileUrl != null && sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
                                         .getMedia(
@@ -384,7 +384,7 @@ class ThumbnailsImpl : Thumbnails {
                                                 } else {
                                                     log.error(it) { "Cannot load thumbnail for image '$thumbnailUrl'." }
                                                 }
-                                                onProgress(null)
+                                                onProgress(FileTransferProgress(0, null))
                                                 null
                                             },
                                         )
@@ -417,7 +417,7 @@ class ThumbnailsImpl : Thumbnails {
                                     } else {
                                         log.error(it) { "Cannot load thumbnail for image '${file.url}'." }
                                     }
-                                    onProgress(null)
+                                    onProgress(FileTransferProgress(0, null))
                                     null
                                 },
                             )
@@ -444,7 +444,7 @@ class ThumbnailsImpl : Thumbnails {
                         .fold(
                             onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
                             onFailure = {
-                                onProgress(null)
+                                onProgress(FileTransferProgress(0, null))
                                 // otherwise, see if the image itself is ok
                                 if (sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
@@ -470,7 +470,7 @@ class ThumbnailsImpl : Thumbnails {
                                                 } else {
                                                     log.error(it) { "Cannot load thumbnail for image '$fileUrl'." }
                                                 }
-                                                onProgress(null)
+                                                onProgress(FileTransferProgress(0, null))
                                                 null
                                             },
                                         )
@@ -490,21 +490,14 @@ class ThumbnailsImpl : Thumbnails {
     override fun mapProgressToProgressElement(
         thumbnailProgressFlow: Flow<FileTransferProgress?>
     ): Flow<FileTransferProgressElement?> {
-        return thumbnailProgressFlow.map {
-            val total = it?.total
-            if (total == null) {
-                null
-            } else {
-                FileTransferProgressElement(
-                    percent =
-                        if (total > 0) {
-                            it.transferred / total.toFloat()
-                        } else {
-                            0f
-                        },
-                    formattedProgress = formatProgress(it),
-                )
-            }
+        return thumbnailProgressFlow.map { progress ->
+            if (progress == null) return@map null
+            val total = progress.total
+            FileTransferProgressElement(
+                percent =
+                    if (total != null && total > 0) (progress.transferred / total.toFloat()).coerceIn(0f, 1f) else null,
+                formattedProgress = formatProgress(progress),
+            )
         }
     }
 }

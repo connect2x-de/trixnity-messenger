@@ -37,7 +37,7 @@ internal fun ImageDownloadPlaceholder(
     val loading =
         element.loadMediaProgress.collectAsState().value != null ||
             element.downloadMediaProgress.collectAsState().value != null ||
-            element.thumbnailLoading.collectAsState().value
+            element.thumbnailLoadingProgress.collectAsState().value != null
     val fallbackBlurhash =
         remember(element.name, element.size, element.width, element.height) {
             imagePlaceholderBlurhash(element.name, element.size, element.width, element.height)

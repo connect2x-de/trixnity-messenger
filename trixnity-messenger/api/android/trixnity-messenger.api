@@ -9820,7 +9820,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getThumbnailAutoDownloadLimit ()J
 	public abstract fun getThumbnailHeight ()Ljava/lang/Integer;
-	public abstract fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailLoadingProgress ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getThumbnailWidth ()Ljava/lang/Integer;
 	public abstract fun getWidth ()Ljava/lang/Integer;
 }
@@ -9887,7 +9887,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getThumbnailHeight ()Ljava/lang/Integer;
-	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailLoadingProgress ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailWidth ()Ljava/lang/Integer;
 	public fun getWidth ()Ljava/lang/Integer;
 }
@@ -10132,7 +10132,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getThumbnailHeight ()Ljava/lang/Integer;
-	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailLoadingProgress ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailWidth ()Ljava/lang/Integer;
 	public fun getWidth ()Ljava/lang/Integer;
 	public fun hideSaveDialog (Z)V
@@ -10399,7 +10399,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getThumbnailHeight ()Ljava/lang/Integer;
-	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailLoadingProgress ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailWidth ()Ljava/lang/Integer;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;

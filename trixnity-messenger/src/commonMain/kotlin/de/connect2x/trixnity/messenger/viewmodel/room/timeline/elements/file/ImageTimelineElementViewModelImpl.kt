@@ -5,12 +5,13 @@ import de.connect2x.trixnity.core.MSC2448
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.ImageInfo
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
@@ -33,9 +34,11 @@ class ImageTimelineElementViewModelImpl(
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val _thumbnailLoading = MutableStateFlow(false)
 
-    override val thumbnailLoading: StateFlow<Boolean> = _thumbnailLoading.asStateFlow()
+    override val thumbnailLoadingProgress: StateFlow<FileTransferProgressElement?> =
+        thumbnails
+            .mapProgressToProgressElement(thumbnailProgressFlow)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     override val thumbnailWidth = info?.thumbnailInfo?.width
     override val thumbnailHeight = info?.thumbnailInfo?.height
@@ -44,7 +47,7 @@ class ImageTimelineElementViewModelImpl(
 
     override val thumbnail: StateFlow<ByteArray?> =
         combine(loadMediaResultBytes, downloadMediaResult) {
-                _thumbnailLoading.value = true
+                thumbnailProgressFlow.value = FileTransferProgress(0, null)
                 try {
                     thumbnails.loadThumbnail(
                         coroutineScope = coroutineScope,
@@ -61,7 +64,7 @@ class ImageTimelineElementViewModelImpl(
                         maxDownloadSize = thumbnailAutoDownloadLimit,
                     )
                 } finally {
-                    _thumbnailLoading.value = false
+                    thumbnailProgressFlow.value = null
                 }
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)

@@ -156,9 +156,15 @@ class ThumbnailsTest {
             mediaServiceMock.getEncryptedMedia(thumbnailFile, any(), any(), onProgress = any(), saveToCache = any())
         } returns Result.failure(RuntimeException("Oh no!"))
         val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
+        var progress: FileTransferProgress? = FileTransferProgress(10, 40)
         everySuspend {
             mediaServiceMock.getEncryptedMedia(originalFile, any(), any(), onProgress = any(), saveToCache = any())
-        } returns Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
+        } calls
+            { args ->
+                progress shouldBe FileTransferProgress(0, null)
+                args.arg<(FileTransferProgress) -> Unit>(3)(FileTransferProgress(25, 100))
+                Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
+            }
 
         val cut = ThumbnailsImpl()
 
@@ -173,12 +179,13 @@ class ThumbnailsTest {
                 fileUrl = null,
                 fileInfo = null,
                 sizeInBytes = 1_000,
-                onProgress = {},
+                onProgress = { progress = it },
                 maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
 
         result shouldBe "encryptedOriginal".encodeToByteArray()
+        progress shouldBe FileTransferProgress(25, 100)
     }
 
     @Test
