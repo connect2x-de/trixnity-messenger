@@ -45,8 +45,8 @@ class ImageTimelineElementViewModelImpl(
     override val thumbnail: StateFlow<ByteArray?> =
         combine(loadMediaResultBytes, downloadMediaResult) {
                 _thumbnailLoading.value = true
-                thumbnails
-                    .loadThumbnail(
+                try {
+                    thumbnails.loadThumbnail(
                         coroutineScope = coroutineScope,
                         matrixClient = matrixClient,
                         thumbnailFile = info?.thumbnailFile,
@@ -60,7 +60,9 @@ class ImageTimelineElementViewModelImpl(
                         maxMediaSizeInMemory = maxMediaSizeInMemory,
                         maxDownloadSize = thumbnailAutoDownloadLimit,
                     )
-                    .also { _thumbnailLoading.value = false }
+                } finally {
+                    _thumbnailLoading.value = false
+                }
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
