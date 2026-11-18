@@ -12,6 +12,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Add dedicated space settings
 - SDK: Exclude current room and space members from the new user search when adding members
 - SDK: Show the no results hint in the new add members search if only room members match
+- UI,SDK: The app can now be used while a call is ongoing
 
 ### Changed
 
