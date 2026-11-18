@@ -1235,17 +1235,25 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun bootstrapRecoveryKeyVaultCreation ()Ljava/lang/String;
 	public fun bootstrapRecoveryKeyWarning ()Ljava/lang/String;
 	public fun bootstrapVault ()Ljava/lang/String;
+	public fun callAlreadyInProgress ()Ljava/lang/String;
+	public fun callBackground ()Ljava/lang/String;
 	public fun callCameraError ()Ljava/lang/String;
+	public fun callCameraOff ()Ljava/lang/String;
+	public fun callCameraOn ()Ljava/lang/String;
 	public fun callCameraPermissionDenied ()Ljava/lang/String;
 	public fun callConnectionError ()Ljava/lang/String;
 	public fun callJoining ()Ljava/lang/String;
+	public fun callLeave ()Ljava/lang/String;
 	public fun callMicrophoneError ()Ljava/lang/String;
 	public fun callMicrophonePermissionDenied ()Ljava/lang/String;
+	public fun callMute ()Ljava/lang/String;
 	public fun callParticipantsUnavailable ()Ljava/lang/String;
 	public fun callReconnecting ()Ljava/lang/String;
+	public fun callRestore ()Ljava/lang/String;
 	public fun callStart ()Ljava/lang/String;
 	public fun callStartWithError (Ljava/lang/String;)Ljava/lang/String;
 	public fun callSymbol ()Ljava/lang/String;
+	public fun callUnmute ()Ljava/lang/String;
 	public fun callYou ()Ljava/lang/String;
 	public fun cameraDialogAlertNoPermission ()Ljava/lang/String;
 	public fun cannotChangePowerLevels ()Ljava/lang/String;
@@ -2290,14 +2298,24 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/RoomViewImp
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/call/CallControlButtonKt {
-	public static final fun CallControlButton (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlViewModel;Landroidx/compose/runtime/Composer;I)V
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/call/CallControlsView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$CallControlButtonKt {
-	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$CallControlButtonKt;
+public final class de/connect2x/trixnity/messenger/compose/view/room/call/CallControlsViewImpl : de/connect2x/trixnity/messenger/compose/view/room/call/CallControlsView {
+	public static final field $stable I
 	public fun <init> ()V
-	public final fun getLambda$-250584730$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/call/CallControlsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$RoomCallButtonKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/call/ComposableSingletons$RoomCallButtonKt;
+	public fun <init> ()V
+	public final fun getLambda$1386521328$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/call/RoomCallButtonKt {
+	public static final fun RoomCallButton (Lde/connect2x/trixnity/messenger/viewmodel/room/call/RoomCallButtonViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ChangePowerLevelKt {
