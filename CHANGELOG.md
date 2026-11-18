@@ -21,6 +21,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Correct the room creation label for private, unencrypted groups
 - UI: Fix timestamp positioning in empty message bubbles
 - IOS: Default media playback to the loudspeaker instead of the earpiece
+- UI: Preserve room list scroll position when navigating back from a room
 
 ### Security
 

@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -41,6 +40,7 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.KeepRoomListAtTop
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AdaptiveDialogFooter
@@ -74,19 +74,13 @@ class ShareDataViewImpl : ShareDataView {
     override fun create(viewModel: ShareDataViewModel) {
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
-        val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
         val allRooms by viewModel.roomList.elements.collectAsState()
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
         val sending by viewModel.sending.collectAsState()
         val enabled = selectedRoomId != null && !sending
         val maxMediaSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-        LaunchedEffect(initialSyncFinished) { state.scrollToItem(0) }
-        LaunchedEffect(allRooms) {
-            if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // this has been the first element before
-                state.animateScrollToItem(0)
-            }
-        }
+        KeepRoomListAtTop(state, allRooms)
 
         ThemedAdaptiveDialog(viewModel::cancel) {
             AdaptiveDialogHeader(onClose = viewModel::cancel) { Text(i18n.shareDataTitle(viewModel.sharedData)) }
