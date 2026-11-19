@@ -56,7 +56,7 @@ class ImageTimelineElementViewModelImpl(
                         fileUrl = url,
                         fileInfo = info,
                         sizeInBytes = info?.size ?: Long.MAX_VALUE,
-                        thumbnailProgressFlow = thumbnailProgressFlow,
+                        onProgress = { thumbnailProgressFlow.value = it },
                         maxMediaSizeInMemory = maxMediaSizeInMemory,
                         maxDownloadSize = thumbnailAutoDownloadLimit,
                     )

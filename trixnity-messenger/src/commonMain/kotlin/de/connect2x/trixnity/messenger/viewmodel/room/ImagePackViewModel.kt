@@ -460,7 +460,7 @@ class ImagePackViewModelImpl(viewModelContext: MatrixClientViewModelContext, ove
                         fileUrl = image.url,
                         fileInfo = info,
                         sizeInBytes = info.size ?: Long.MAX_VALUE,
-                        thumbnailProgressFlow = MutableStateFlow(null),
+                        onProgress = {},
                         maxMediaSizeInMemory = minOf(configuration.maxMediaSizeInMemory, 4L * 1024 * 1024),
                         maxDownloadSize = minOf(configuration.downloadLimits.image, 4L * 1024 * 1024),
                         width = 256L,

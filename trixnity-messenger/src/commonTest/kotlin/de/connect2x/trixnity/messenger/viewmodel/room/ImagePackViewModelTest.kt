@@ -145,7 +145,7 @@ class ImagePackViewModelTest {
                 fileUrl = any(),
                 fileInfo = any(),
                 sizeInBytes = any(),
-                thumbnailProgressFlow = any(),
+                onProgress = any(),
                 maxMediaSizeInMemory = 4L * 1024 * 1024,
                 maxDownloadSize = 4L * 1024 * 1024,
                 width = 256L,

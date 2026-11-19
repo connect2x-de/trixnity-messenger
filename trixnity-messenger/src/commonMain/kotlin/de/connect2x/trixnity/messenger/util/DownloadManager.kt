@@ -20,32 +20,29 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 interface DownloadManager {
     @Deprecated(
         "Use startDownloadAsync with required maxSize instead",
-        ReplaceWith("startDownloadAsync(matrixClient, content, fileName, progress, maxSize)"),
+        ReplaceWith("startDownloadAsync(matrixClient, content, fileName, onProgress, maxSize)"),
     )
     fun startDownloadAsync(
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased,
         fileName: String,
-        progress: MutableStateFlow<FileTransferProgressElement?>,
+        onProgress: (FileTransferProgressElement?) -> Unit,
     ): Deferred<Result<PlatformMedia>> =
-        startDownloadAsync(matrixClient, content.url, content.file, content.info, fileName, progress, null)
+        startDownloadAsync(matrixClient, content.url, content.file, content.info, fileName, onProgress, null)
 
     fun startDownloadAsync(
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased,
         fileName: String,
-        progress: MutableStateFlow<FileTransferProgressElement?>,
+        onProgress: (FileTransferProgressElement?) -> Unit,
         maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>> =
-        startDownloadAsync(matrixClient, content.url, content.file, content.info, fileName, progress, maxDownloadSize)
+        startDownloadAsync(matrixClient, content.url, content.file, content.info, fileName, onProgress, maxDownloadSize)
 
     fun startDownloadAsync(
         matrixClient: MatrixClient,
@@ -53,7 +50,7 @@ interface DownloadManager {
         encryptedFile: EncryptedFile?,
         info: FileBasedInfo?,
         fileName: String,
-        progress: MutableStateFlow<FileTransferProgressElement?>,
+        onProgress: (FileTransferProgressElement?) -> Unit,
         maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>>
 }
@@ -82,30 +79,25 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
         encryptedFile: EncryptedFile?,
         info: FileBasedInfo?,
         fileName: String,
-        progress: MutableStateFlow<FileTransferProgressElement?>,
+        onProgress: (FileTransferProgressElement?) -> Unit,
         maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>> {
         log.debug { "add $fileName to current downloads" }
-        val download = Download(fileName, info?.size, progress)
+        val download = Download(fileName, info?.size, onProgress)
         _downloads.value += download
 
-        val trixnityProgress = MutableStateFlow<FileTransferProgress?>(null)
-
         return scope.async {
-            val progressJob = launch {
-                trixnityProgress.collect { trixnityProgress ->
-                    if (trixnityProgress != null) {
-                        log.trace {
-                            "download progress for $fileName: ${trixnityProgress.transferred} / ${trixnityProgress.total}"
-                        }
-                        val total = trixnityProgress.total ?: info?.size
-                        progress.value =
-                            FileTransferProgressElement(
-                                if (total != null) trixnityProgress.transferred.toFloat() / total.toFloat() else null,
-                                formatProgress(trixnityProgress.copy(total = total)),
-                            )
-                    }
+            val onTransferProgress: (FileTransferProgress) -> Unit = { trixnityProgress ->
+                log.trace {
+                    "download progress for $fileName: ${trixnityProgress.transferred} / ${trixnityProgress.total}"
                 }
+                val total = trixnityProgress.total ?: info?.size
+                onProgress(
+                    FileTransferProgressElement(
+                        if (total != null) trixnityProgress.transferred.toFloat() / total.toFloat() else null,
+                        formatProgress(trixnityProgress.copy(total = total)),
+                    )
+                )
             }
             val fileSize = info?.size
             val result =
@@ -117,14 +109,14 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                                         encryptedFile,
                                         maxDownloadSize,
                                         fileSize,
-                                        onProgress = { trixnityProgress.value = it },
+                                        onProgress = onTransferProgress,
                                     )
                                 url != null ->
                                     matrixClient.media.getMedia(
                                         url,
                                         maxDownloadSize,
                                         fileSize,
-                                        onProgress = { trixnityProgress.value = it },
+                                        onProgress = onTransferProgress,
                                     )
                                 else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
                             }
@@ -133,12 +125,11 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                     }
                 } ?: Result.failure(IllegalArgumentException("there was no url or file in content"))
 
-            progressJob.cancelAndJoin()
             _downloads.value -= download // we remove Download history for now
-            progress.value = null
+            onProgress(null)
             result
         }
     }
 }
 
-data class Download(val fileName: String, val fileSize: Long?, val progress: StateFlow<FileTransferProgressElement?>)
+data class Download(val fileName: String, val fileSize: Long?, val onProgress: (FileTransferProgressElement?) -> Unit)

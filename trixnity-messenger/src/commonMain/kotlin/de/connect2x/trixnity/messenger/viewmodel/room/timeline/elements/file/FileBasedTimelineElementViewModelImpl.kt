@@ -74,7 +74,7 @@ abstract class FileBasedTimelineElementViewModelImpl(
                         encryptedFile = encryptedFile,
                         info = info,
                         fileName = fileName,
-                        progress = _loadMediaProgress,
+                        onProgress = { _loadMediaProgress.value = it },
                         maxDownloadSize = null,
                     )
                 activeLoadMedia.value = resultAsync
@@ -160,7 +160,7 @@ abstract class FileBasedTimelineElementViewModelImpl(
                     encryptedFile = encryptedFile,
                     info = info,
                     fileName = fileName,
-                    progress = _downloadMediaProgress,
+                    onProgress = { _downloadMediaProgress.value = it },
                     maxDownloadSize = null,
                 )
 

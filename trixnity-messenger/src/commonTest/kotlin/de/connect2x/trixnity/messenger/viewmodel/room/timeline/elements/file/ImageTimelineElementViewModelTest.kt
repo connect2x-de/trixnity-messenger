@@ -55,7 +55,7 @@ class ImageTimelineElementViewModelTest {
                 fileUrl = any(),
                 fileInfo = any(),
                 sizeInBytes = any(),
-                thumbnailProgressFlow = any(),
+                onProgress = any(),
                 maxMediaSizeInMemory = any(),
                 maxDownloadSize = any(),
             )
@@ -81,7 +81,7 @@ class ImageTimelineElementViewModelTest {
                 fileUrl = any(),
                 fileInfo = any(),
                 sizeInBytes = any(),
-                thumbnailProgressFlow = any(),
+                onProgress = any(),
                 maxMediaSizeInMemory = any(),
                 maxDownloadSize = any(),
             )
@@ -116,7 +116,7 @@ class ImageTimelineElementViewModelTest {
                 fileUrl = any(),
                 fileInfo = any(),
                 sizeInBytes = any(),
-                thumbnailProgressFlow = any(),
+                onProgress = any(),
                 maxMediaSizeInMemory = any(),
                 maxDownloadSize = any(),
             )

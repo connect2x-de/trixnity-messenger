@@ -12,6 +12,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - INTERNAL: Bump Trixnity to 5.11.1-SNAPSHOT.CI-20261119.172943
+- SDK: (**breaking change**) Use callbacks for thumbnail and download progress
 
 ### Deprecated
 

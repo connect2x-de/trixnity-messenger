@@ -19,7 +19,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -62,7 +61,7 @@ class ThumbnailsTest {
                     fileUrl = if (useThumbnailUrl) null else uri,
                     fileInfo = null,
                     sizeInBytes = 1_000,
-                    thumbnailProgressFlow = MutableStateFlow(null),
+                    onProgress = {},
                     maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                     maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                     width = 800L,
@@ -91,7 +90,7 @@ class ThumbnailsTest {
                     fileUrl = uri,
                     fileInfo = null,
                     sizeInBytes = 1_000,
-                    thumbnailProgressFlow = MutableStateFlow(null),
+                    onProgress = {},
                     maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                     maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 )
@@ -118,7 +117,7 @@ class ThumbnailsTest {
                 fileUrl = null,
                 fileInfo = null,
                 sizeInBytes = 1_000,
-                thumbnailProgressFlow = MutableStateFlow(null),
+                onProgress = {},
                 maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
@@ -150,7 +149,7 @@ class ThumbnailsTest {
                 fileUrl = null,
                 fileInfo = null,
                 sizeInBytes = 1_000,
-                thumbnailProgressFlow = MutableStateFlow(null),
+                onProgress = {},
                 maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
@@ -182,7 +181,7 @@ class ThumbnailsTest {
                 fileUrl = null,
                 fileInfo = null,
                 sizeInBytes = 1_000,
-                thumbnailProgressFlow = MutableStateFlow(null),
+                onProgress = {},
                 maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
@@ -214,7 +213,7 @@ class ThumbnailsTest {
                     fileUrl = null,
                     fileInfo = null,
                     sizeInBytes = MatrixMessengerConfiguration().downloadLimits.thumbnail + 1, // too large!
-                    thumbnailProgressFlow = MutableStateFlow(null),
+                    onProgress = {},
                     MatrixMessengerConfiguration().downloadLimits.thumbnail,
                     maxDownloadSize = MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 )
@@ -246,7 +245,7 @@ class ThumbnailsTest {
                 fileUrl = null,
                 fileInfo = null,
                 sizeInBytes = 1_000,
-                thumbnailProgressFlow = MutableStateFlow(null),
+                onProgress = {},
                 MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
