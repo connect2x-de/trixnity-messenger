@@ -11,6 +11,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- UI, SDK: Made Room settings security section always appear and disabled encryption toggle for public rooms
+- SDK: (**breaking change**) Made `canEnableEncryption` in `RoomSettingsSecurityViewModel` nullable
+
 ### Deprecated
 
 ### Removed

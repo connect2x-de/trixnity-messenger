@@ -50,7 +50,7 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
                 headlineContent = { Text(i18n.roomEndToEndEncryption()) },
                 supportingContent = { Text(i18n.roomEndToEndEncryptionDescription()) },
                 selected = isEncrypting,
-                enabled = canEnableEncryption,
+                enabled = canEnableEncryption == true,
                 onChange = { roomSettingsSecurityViewModel.openEnableEncryptionWarning() },
             )
         }
