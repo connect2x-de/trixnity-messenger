@@ -53,16 +53,9 @@ class CreateNewGroupOptionsViewImpl : CreateNewGroupOptionsView {
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
 
-        val roomOptionsString = buildString {
-            val roomType =
-                when {
-                    isPrivate && isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeEncrypted()}"
-                    !isPrivate && isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeEncrypted()}"
-                    !isPrivate && !isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeUnencrypted()}"
-                    else -> i18n.roomTypeForbidden()
-                }
-            append(roomType)
-        }
+        val visibility = if (isPrivate) i18n.roomTypePrivate() else i18n.roomTypePublic()
+        val encryption = if (isEncrypted) i18n.roomTypeEncrypted() else i18n.roomTypeUnencrypted()
+        val roomOptionsString = "$visibility & $encryption"
 
         val expanded = rememberSaveable("moreOptions") { mutableStateOf(false) }
 
