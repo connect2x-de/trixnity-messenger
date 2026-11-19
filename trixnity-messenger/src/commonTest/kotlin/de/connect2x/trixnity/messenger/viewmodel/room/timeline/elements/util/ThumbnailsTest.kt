@@ -2,7 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.core.model.events.m.room.ImageInfo
+import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.resetMocks
@@ -19,6 +22,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -40,6 +44,26 @@ class ThumbnailsTest {
     @BeforeTest
     fun setup() {
         configureTestLogging()
+    }
+
+    @Test
+    fun `missing thumbnail total uses thumbnail event size`(): TestResult {
+        return checkDownloadProgress(true, null, 40)
+    }
+
+    @Test
+    fun `thumbnail network total takes precedence over event size`(): TestResult {
+        return checkDownloadProgress(true, 80, 80)
+    }
+
+    @Test
+    fun `missing original total after thumbnail failure uses original event size`(): TestResult {
+        return checkDownloadProgress(false, null, 100)
+    }
+
+    @Test
+    fun `original network total takes precedence over event size`(): TestResult {
+        return checkDownloadProgress(false, 80, 80)
     }
 
     @Test
@@ -256,5 +280,50 @@ class ThumbnailsTest {
         result.isActive shouldBe false
         result.isCompleted shouldBe true
         result.await() shouldBe "encryptedThumbnail".encodeToByteArray()
+    }
+
+    private fun checkDownloadProgress(useThumbnail: Boolean, httpTotal: Long?, expectedTotal: Long): TestResult {
+        return runTest {
+            val thumbnailFile = EncryptedFile("mxc://server/thumbnail", jwk, "", mapOf())
+            val originalFile = EncryptedFile("mxc://server/original", jwk, "", mapOf())
+            if (!useThumbnail) {
+                everySuspend {
+                    mediaServiceMock.getEncryptedMedia(
+                        thumbnailFile,
+                        any(),
+                        any(),
+                        onProgress = any(),
+                        saveToCache = any(),
+                    )
+                } returns Result.failure(IllegalStateException("thumbnail unavailable"))
+            }
+            val requestedFile = if (useThumbnail) thumbnailFile else originalFile
+            everySuspend {
+                mediaServiceMock.getEncryptedMedia(requestedFile, any(), any(), onProgress = any(), saveToCache = any())
+            } calls
+                { args ->
+                    args.arg<(FileTransferProgress) -> Unit>(3)(FileTransferProgress(25, httpTotal))
+                    Result.success(InMemoryPlatformMedia("image".encodeToByteArray().toByteArrayFlow()))
+                }
+            var progress: FileTransferProgress? = null
+            val result =
+                ThumbnailsImpl()
+                    .loadThumbnail(
+                        backgroundScope,
+                        matrixClientMock,
+                        thumbnailFile = thumbnailFile,
+                        thumbnailUrl = null,
+                        thumbnailInfo = ThumbnailInfo(size = 40),
+                        file = originalFile,
+                        fileUrl = null,
+                        fileInfo = ImageInfo(size = 100),
+                        sizeInBytes = 100,
+                        onProgress = { progress = it },
+                        maxMediaSizeInMemory = 1_000,
+                        maxDownloadSize = 1_000,
+                    )
+            progress shouldBe FileTransferProgress(25, expectedTotal)
+            result shouldBe "image".encodeToByteArray()
+        }
     }
 }
