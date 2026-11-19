@@ -162,7 +162,7 @@ class RoomMessageTimelineElementViewModelTest {
     fun `load smaller thumbnails for emoticons`() = runTest {
         val bytes = "emoticon".encodeToByteArray()
         everySuspend {
-            mediaServiceMock.getThumbnail(uri, 128L, 128L, maxSize, maxSize, any(), progress = any())
+            mediaServiceMock.getThumbnail(uri, 128L, 128L, maxSize, maxSize, any(), onProgress = any())
         } returns Result.success(InMemoryPlatformMedia(bytes))
 
         val cut = cut()
@@ -173,7 +173,7 @@ class RoomMessageTimelineElementViewModelTest {
     fun `load server thumbnail without downloading original`() = runTest {
         val bytes = "thumbnail".encodeToByteArray()
         everySuspend {
-            mediaServiceMock.getThumbnail(uri, 800L, 800L, maxSize, maxSize, any(), progress = any())
+            mediaServiceMock.getThumbnail(uri, 800L, 800L, maxSize, maxSize, any(), onProgress = any())
         } returns Result.success(InMemoryPlatformMedia(bytes))
 
         val cut = cut()
@@ -184,9 +184,9 @@ class RoomMessageTimelineElementViewModelTest {
     fun `fall back to original with download limit when thumbnail fails`() = runTest {
         val bytes = "original".encodeToByteArray()
         everySuspend {
-            mediaServiceMock.getThumbnail(uri, 800L, 800L, maxSize, maxSize, any(), progress = any())
+            mediaServiceMock.getThumbnail(uri, 800L, 800L, maxSize, maxSize, any(), onProgress = any())
         } returns Result.failure(IllegalStateException("thumbnail unavailable"))
-        everySuspend { mediaServiceMock.getMedia(uri, maxSize, maxSize, any()) } returns
+        everySuspend { mediaServiceMock.getMedia(uri, maxSize, maxSize, onProgress = any()) } returns
             Result.success(InMemoryPlatformMedia(bytes))
 
         val cut = cut()

@@ -303,7 +303,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
@@ -330,7 +330,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
@@ -356,7 +356,7 @@ class AudioRecordingAreaViewModelTest {
         val fileName = "cool_audio.m4a"
         val contentType = ContentType("audio", "mp4")
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.failure(Exception())
 
         val builderWithoutUrlNorFile: (suspend MessageBuilder.() -> Unit) = {
@@ -394,7 +394,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = null
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
@@ -421,7 +421,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {

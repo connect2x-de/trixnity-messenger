@@ -311,7 +311,12 @@ class ThumbnailsImpl : Thumbnails {
         val thumbnail =
             (thumbnailFile?.let { // encrypted thumbnail
                 matrixClient.media
-                    .getEncryptedMedia(thumbnailFile, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                    .getEncryptedMedia(
+                        thumbnailFile,
+                        maxDownloadSize,
+                        sizeInBytes,
+                        onProgress = { thumbnailProgressFlow.value = it },
+                    )
                     .fold(
                         onSuccess = {
                             it.toByteArray(
@@ -324,7 +329,12 @@ class ThumbnailsImpl : Thumbnails {
                             thumbnailProgressFlow.emit(null)
                             if (file != null && sizeInBytes <= maxMediaSizeInMemory) {
                                 matrixClient.media
-                                    .getEncryptedMedia(file, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                                    .getEncryptedMedia(
+                                        file,
+                                        maxDownloadSize,
+                                        sizeInBytes,
+                                        onProgress = { thumbnailProgressFlow.value = it },
+                                    )
                                     .fold(
                                         onSuccess = {
                                             it.toByteArray(
@@ -360,7 +370,7 @@ class ThumbnailsImpl : Thumbnails {
                             maxDownloadSize,
                             sizeInBytes,
                             ThumbnailResizingMethod.SCALE,
-                            progress = thumbnailProgressFlow,
+                            onProgress = { thumbnailProgressFlow.value = it },
                         )
                         .fold(
                             onSuccess = {
@@ -374,7 +384,12 @@ class ThumbnailsImpl : Thumbnails {
                                 thumbnailProgressFlow.emit(null)
                                 if (fileUrl != null && sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
-                                        .getMedia(fileUrl, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                                        .getMedia(
+                                            fileUrl,
+                                            maxDownloadSize,
+                                            sizeInBytes,
+                                            onProgress = { thumbnailProgressFlow.value = it },
+                                        )
                                         .fold(
                                             onSuccess = {
                                                 it.toByteArray(
@@ -404,7 +419,12 @@ class ThumbnailsImpl : Thumbnails {
                 ?: file?.let { // encrypted file
                     if (sizeInBytes <= maxMediaSizeInMemory) {
                         matrixClient.media
-                            .getEncryptedMedia(file, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                            .getEncryptedMedia(
+                                file,
+                                maxDownloadSize,
+                                sizeInBytes,
+                                onProgress = { thumbnailProgressFlow.value = it },
+                            )
                             .fold(
                                 onSuccess = {
                                     it.toByteArray(
@@ -441,7 +461,7 @@ class ThumbnailsImpl : Thumbnails {
                             maxDownloadSize,
                             sizeInBytes,
                             ThumbnailResizingMethod.SCALE,
-                            progress = thumbnailProgressFlow,
+                            onProgress = { thumbnailProgressFlow.value = it },
                         )
                         .fold(
                             onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
@@ -450,7 +470,12 @@ class ThumbnailsImpl : Thumbnails {
                                 // otherwise, see if the image itself is ok
                                 if (sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
-                                        .getMedia(fileUrl, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                                        .getMedia(
+                                            fileUrl,
+                                            maxDownloadSize,
+                                            sizeInBytes,
+                                            onProgress = { thumbnailProgressFlow.value = it },
+                                        )
                                         .fold(
                                             onSuccess = {
                                                 it.toByteArray(

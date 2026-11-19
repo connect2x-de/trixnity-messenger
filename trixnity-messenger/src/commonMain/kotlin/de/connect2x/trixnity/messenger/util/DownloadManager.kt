@@ -117,10 +117,15 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                                         encryptedFile,
                                         maxDownloadSize,
                                         fileSize,
-                                        trixnityProgress,
+                                        onProgress = { trixnityProgress.value = it },
                                     )
                                 url != null ->
-                                    matrixClient.media.getMedia(url, maxDownloadSize, fileSize, trixnityProgress)
+                                    matrixClient.media.getMedia(
+                                        url,
+                                        maxDownloadSize,
+                                        fileSize,
+                                        onProgress = { trixnityProgress.value = it },
+                                    )
                                 else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
                             }
                             .onSuccess { log.debug { "successfully downloaded $fileName" } }

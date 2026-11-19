@@ -60,7 +60,7 @@ class SpaceAvatarCacheTest {
                 any(),
                 any(),
                 any(),
-                any(),
+                onProgress = any(),
                 any(),
             )
         } returns Result.success(thumbnail)

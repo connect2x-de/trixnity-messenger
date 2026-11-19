@@ -85,7 +85,7 @@ class AccountsViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar2".encodeToByteArray().toByteArrayFlow()))
@@ -119,7 +119,7 @@ class AccountsViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
@@ -155,7 +155,7 @@ class AccountsViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
@@ -187,7 +187,7 @@ class AccountsViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
