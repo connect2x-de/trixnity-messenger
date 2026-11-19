@@ -17,6 +17,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- UI,WEB: Fix collapsed passphrase field in account verification
+
 ### Security
 
 ## 4.11.0

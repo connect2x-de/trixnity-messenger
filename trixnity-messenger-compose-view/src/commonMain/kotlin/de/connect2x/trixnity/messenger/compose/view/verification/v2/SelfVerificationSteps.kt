@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.compose.view.verification.v2
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -242,13 +241,7 @@ fun PasswordPhrase(viewModel: SelfVerificationViewModel) {
                 Text(i18n.commonRecoveryPassphrase())
             }
             if (Platform.current.isWeb) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    AutofillButton(onUsernameChange = {}, onPasswordChange = { passphrase.value = TextFieldValue(it) })
-                }
+                AutofillButton(onUsernameChange = {}, onPasswordChange = { passphrase.value = TextFieldValue(it) })
             }
             ThemedLoadingIconButton(
                 onClick = { viewModel.verifyWithPassphrase() },
