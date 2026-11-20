@@ -287,6 +287,7 @@ abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/Ro
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView|null[0]
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomView|null[0]
@@ -303,6 +304,7 @@ abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/Ro
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView|null[0]
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsView|null[0]
@@ -319,6 +321,7 @@ abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/Ro
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView|null[0]
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsView|null[0]
@@ -1653,6 +1656,7 @@ final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSetti
     constructor <init>() // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesViewImpl.<init>|<init>(){}[0]
 
     final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomViewImpl : de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomViewImpl|null[0]
@@ -1677,6 +1681,7 @@ final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSetti
     constructor <init>() // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameViewImpl.<init>|<init>(){}[0]
 
     final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsViewImpl : de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsViewImpl|null[0]
@@ -1707,6 +1712,7 @@ final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSetti
     constructor <init>() // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicViewImpl.<init>|<init>(){}[0]
 
     final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsViewImpl : de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsViewImpl|null[0]

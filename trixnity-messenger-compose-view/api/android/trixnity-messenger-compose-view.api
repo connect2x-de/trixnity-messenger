@@ -2430,12 +2430,18 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ro
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsJoinRulesView {
 	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsViewModel;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsJoinRulesView$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsJoinRulesView;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsViewModel;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsJoinRulesViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsJoinRulesView {
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsViewModel;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsKt {
@@ -2494,12 +2500,18 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ro
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsNameView {
 	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsNameViewModel;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsNameViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsNameView$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsNameView;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsNameViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsNameViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsNameView {
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsNameViewModel;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsNameViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsNotificationsKt {
@@ -2558,12 +2570,18 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ro
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsTopicView {
 	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsTopicViewModel;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsTopicViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsTopicView$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsTopicView;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsTopicViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsTopicViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsTopicView {
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsTopicViewModel;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsTopicViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsView {

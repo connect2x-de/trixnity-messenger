@@ -27,6 +27,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewM
 
 interface RoomSettingsJoinRulesView {
     @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel)
+
+    @Composable
+    fun create(roomSettingsViewModel: RoomSettingsViewModel, label: String, settingsLabel: String) =
+        create(roomSettingsViewModel)
 }
 
 @Composable
@@ -37,17 +41,22 @@ fun RoomSettingsJoinRules(roomSettingsViewModel: RoomSettingsViewModel) {
 class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
     @Composable
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
-        val canChangeJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.canChangeJoinRule.collectAsState()
-        val currentJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
-        val joinRuleIsChanging =
-            roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsState().value
-        val joinRules =
-            roomSettingsViewModel.roomSettingsJoinRulesViewModel.availableRoomJoinStates.collectAsState().value
+        val i18n = DI.get<I18nView>()
+        create(roomSettingsViewModel, i18n.chatJoinRule(), i18n.chatJoinRuleSettings())
+    }
+
+    @Composable
+    override fun create(roomSettingsViewModel: RoomSettingsViewModel, label: String, settingsLabel: String) {
+        val viewModel = roomSettingsViewModel.roomSettingsJoinRulesViewModel
+        val canChangeJoinRule = viewModel.canChangeJoinRule.collectAsState()
+        val currentJoinRule = viewModel.joinRule.collectAsState().value
+        val joinRuleIsChanging = viewModel.isJoinRuleChanging.collectAsState().value
+        val joinRules = viewModel.availableRoomJoinStates.collectAsState().value
         val i18n = DI.get<I18nView>()
 
         Column {
             ThemedListItem(
-                headlineContent = { Text(i18n.chatJoinRule(), style = MaterialTheme.typography.titleMedium) },
+                headlineContent = { Text(label, style = MaterialTheme.typography.titleMedium) },
                 style = MaterialTheme.components.settingsItem,
             )
 
@@ -55,7 +64,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                 Tooltip(
                     tooltip = { Text(currentJoinRule.getExplanation(i18n)) },
                     Modifier.semantics {
-                        text = AnnotatedString(i18n.chatJoinRuleSettings() + ", " + currentJoinRule.getStateName(i18n))
+                        text = AnnotatedString(settingsLabel + ", " + currentJoinRule.getStateName(i18n))
                     },
                 ) {
                     Text(
@@ -72,7 +81,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                     modifier =
                         Modifier.semantics {
                             focused = false
-                            text = AnnotatedString(i18n.chatJoinRuleSettings() + ", " + i18n.loading())
+                            text = AnnotatedString(settingsLabel + ", " + i18n.loading())
                         },
                     style = MaterialTheme.components.extraSmallCircularProgressIndicator,
                 )
@@ -86,11 +95,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                         Modifier.semantics {
                             text =
                                 AnnotatedString(
-                                    i18n.chatJoinRuleSettings() +
-                                        ", " +
-                                        currentJoinRule.getStateName(i18n) +
-                                        " " +
-                                        i18n.selected()
+                                    settingsLabel + ", " + currentJoinRule.getStateName(i18n) + " " + i18n.selected()
                                 )
                         },
                     ) {
@@ -98,16 +103,14 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                     }
                 },
                 options =
-                    joinRules?.associate {
-                        it to
-                            RadioSettingOption(
-                                text = it.getStateName(i18n),
-                                explanation = it.getExplanation(i18n),
-                                enabled = joinRuleIsChanging.not(),
-                            )
-                    } ?: mapOf(),
+                    joinRules
+                        ?.associate {
+                            it to
+                                RadioSettingOption(text = it.getStateName(i18n), explanation = it.getExplanation(i18n))
+                        }
+                        .orEmpty(),
                 value = currentJoinRule,
-                set = { roomSettingsViewModel.roomSettingsJoinRulesViewModel.changeJoinRule(it) },
+                set = viewModel::changeJoinRule,
             )
         }
     }

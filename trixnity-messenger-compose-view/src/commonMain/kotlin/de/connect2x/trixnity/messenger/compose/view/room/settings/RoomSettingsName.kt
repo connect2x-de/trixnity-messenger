@@ -13,8 +13,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +30,14 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameV
 
 interface RoomSettingsNameView {
     @Composable fun create(roomSettingsNameViewModel: RoomSettingsNameViewModel)
+
+    @Composable
+    fun create(
+        roomSettingsNameViewModel: RoomSettingsNameViewModel,
+        label: String,
+        placeholder: String,
+        editLabel: String,
+    ) = create(roomSettingsNameViewModel)
 }
 
 @Composable
@@ -43,26 +49,42 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
     @Composable
     override fun create(roomSettingsNameViewModel: RoomSettingsNameViewModel) {
         val i18n = DI.get<I18nView>()
+        create(
+            roomSettingsNameViewModel,
+            i18n.roomSettingsRoomName(),
+            i18n.roomSettingsRoomNamePlaceholder(),
+            i18n.editRoomName(),
+        )
+    }
+
+    @Composable
+    override fun create(
+        roomSettingsNameViewModel: RoomSettingsNameViewModel,
+        label: String,
+        placeholder: String,
+        editLabel: String,
+    ) {
+        val i18n = DI.get<I18nView>()
         val isEdit = roomSettingsNameViewModel.roomName.isEdit.collectAsState()
         val canChangeRoomName = roomSettingsNameViewModel.canChangeRoomName.collectAsState().value
         val value = roomSettingsNameViewModel.roomName.collectAsTextFieldValueState()
 
-        val oldValue by remember(isEdit.value) { mutableStateOf(value.value.text) }
+        val oldValue = remember(roomSettingsNameViewModel, isEdit.value) { value.value.text }
 
         if (!isEdit.value) {
             Row(verticalAlignment = Alignment.Top) {
                 Text(
-                    value.value.text.ifBlank { i18n.roomSettingsRoomNamePlaceholder() },
+                    value.value.text.ifBlank { placeholder },
                     Modifier.weight(1f),
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 if (canChangeRoomName)
-                    Tooltip(i18n.editRoomName()) {
+                    Tooltip(editLabel) {
                         ThemedIconButton(
                             onClick = { roomSettingsNameViewModel.roomName.startEdit() },
                             Modifier.weight(1f),
                         ) {
-                            Icon(Icons.Filled.Edit, contentDescription = i18n.editRoomName())
+                            Icon(Icons.Filled.Edit, contentDescription = editLabel)
                         }
                     }
             }
@@ -71,7 +93,7 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
                 OutlinedTextField(
                     value = value.value,
                     onValueChange = { value.value = it },
-                    label = { Text(text = i18n.roomSettingsRoomName()) },
+                    label = { Text(text = label) },
                     modifier = Modifier.inputFocusNavigation().fillMaxWidth(),
                 )
                 FlowRow(
