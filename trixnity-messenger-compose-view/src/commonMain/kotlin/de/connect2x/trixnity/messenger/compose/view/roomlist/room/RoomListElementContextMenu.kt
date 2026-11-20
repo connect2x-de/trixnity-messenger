@@ -27,7 +27,15 @@ internal fun RoomListElementViewModel.RoomListElementContextMenuActions(i18n: I1
     var showLeaveWarning by remember(roomId) { mutableStateOf(false) }
     if (showLeaveWarning) {
         RoomLeaveWarning(
-            isDirect = isDirect,
+            title =
+                if (isDirect) roomI18n.settingsRoomLeaveRoomWarningTitleChat()
+                else roomI18n.settingsRoomLeaveRoomWarningTitleGroup(),
+            message =
+                if (isDirect) roomI18n.settingsRoomLeaveRoomWarningMessageChat()
+                else roomI18n.settingsRoomLeaveRoomWarningMessageGroup(),
+            confirm =
+                if (isDirect) roomI18n.settingsRoomLeaveRoomWarningConfirmButtonChat()
+                else roomI18n.settingsRoomLeaveRoomWarningConfirmButtonGroup(),
             onDismiss = { showLeaveWarning = false },
             onConfirm = {
                 leaveRoom()

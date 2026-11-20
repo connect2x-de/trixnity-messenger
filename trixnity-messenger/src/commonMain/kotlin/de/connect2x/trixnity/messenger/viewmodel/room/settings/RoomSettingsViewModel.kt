@@ -2,10 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.type
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.LeaveRoom
@@ -178,12 +180,18 @@ class RoomSettingsViewModelImpl(
     init {
         coroutineScope.launch {
             matrixClient.room.getById(selectedRoomId).collect {
+                val isSpace = it?.type == CreateEventContent.RoomType.Space
                 isDirect.value = it?.isDirect ?: false
                 isEncrypted.value = it?.encrypted ?: false
                 isLeave.value = it?.membership?.let { membership -> membership == Membership.LEAVE } ?: false
 
                 if (isLeave.value) {
-                    if (isDirect.value) {
+                    if (isSpace) {
+                        leaveRoomSettingEntryText.value = i18n.settingsSpaceForgetMessage()
+                        leaveRoomWarningTitle.value = i18n.settingsSpaceForgetTitle()
+                        leaveRoomWarningMessage.value = i18n.settingsSpaceForgetRoomWarningMessage()
+                        leaveRoomWarningConfirmButtonText.value = i18n.settingsSpaceForgetConfirm()
+                    } else if (isDirect.value) {
                         leaveRoomSettingEntryText.value = i18n.settingsRoomForgetRoomMessageChat()
                         leaveRoomWarningTitle.value = i18n.settingsRoomForgetRoomWarningTitleChat()
                         leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageChat()
@@ -195,7 +203,12 @@ class RoomSettingsViewModelImpl(
                         leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomForgetRoomWarningConfirmButtonGroup()
                     }
                 } else {
-                    if (isDirect.value) {
+                    if (isSpace) {
+                        leaveRoomSettingEntryText.value = i18n.settingsSpaceLeaveMessage()
+                        leaveRoomWarningTitle.value = i18n.settingsSpaceLeaveTitle()
+                        leaveRoomWarningMessage.value = i18n.settingsSpaceLeaveRoomWarningMessage()
+                        leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomLeaveRoomWarningConfirmButtonGroup()
+                    } else if (isDirect.value) {
                         leaveRoomSettingEntryText.value = i18n.settingsRoomLeaveRoomMessageChat()
                         leaveRoomWarningTitle.value = i18n.settingsRoomLeaveRoomWarningTitleChat()
                         leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageChat()
