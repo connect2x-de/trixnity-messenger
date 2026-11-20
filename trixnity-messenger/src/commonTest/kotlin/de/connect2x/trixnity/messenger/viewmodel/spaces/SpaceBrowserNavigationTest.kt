@@ -25,6 +25,7 @@ import de.connect2x.trixnity.messenger.internal.routes.roomlist.UserSettingsRout
 import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceBrowserRoute
 import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceExploreRoute
 import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceRoomListRoute
+import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceSettingsRoute
 import de.connect2x.trixnity.messenger.internal.workers.FallbackBackCallbackWorker
 import de.connect2x.trixnity.messenger.testViewModelContext
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -194,9 +195,10 @@ class SpaceBrowserNavigationTest {
     fun `explore view model opens settings for its account and replaces existing extras`() = runTest {
         val explore = SpaceExploreRoute(user, parent.spaceId)
         val (content, navigation) =
-            browser(listOf(RoomListRoute, parent, explore, RoomSettingsRoute(user, child.spaceId)), explore)
+            browser(listOf(RoomListRoute, parent, explore, SpaceSettingsRoute(user, child.spaceId)), explore)
         (content as SpaceExploreViewModel).openSettings()
-        navigation.routes.value shouldBe listOf(RoomListRoute, parent, explore, RoomSettingsRoute(user, parent.spaceId))
+        navigation.routes.value shouldBe
+            listOf(RoomListRoute, parent, explore, SpaceSettingsRoute(user, parent.spaceId))
     }
 
     @Test
@@ -220,7 +222,7 @@ class SpaceBrowserNavigationTest {
     @Test
     fun `a departed space removes its list and explore without cancelling settings`() = runTest {
         val explore = SpaceExploreRoute(user, parent.spaceId)
-        val settings = RoomSettingsRoute(user, parent.spaceId)
+        val settings = SpaceSettingsRoute(user, parent.spaceId)
         val (content, navigation) = browser(listOf(RoomListRoute, list, parent, explore, settings), parent)
         content.back()
         navigation.routes.value shouldBe listOf(RoomListRoute, list, settings)
@@ -231,7 +233,7 @@ class SpaceBrowserNavigationTest {
     @Test
     fun `a departed ancestor does not close the current subspace`() = runTest {
         val explore = SpaceExploreRoute(user, child.spaceId)
-        val settings = RoomSettingsRoute(user, child.spaceId)
+        val settings = SpaceSettingsRoute(user, child.spaceId)
         val (content, navigation) = browser(listOf(RoomListRoute, parent, child, explore, settings), parent)
         content.back()
         navigation.routes.value shouldBe listOf(RoomListRoute, child, explore, settings)
@@ -346,7 +348,7 @@ class SpaceBrowserNavigationTest {
     @Test
     fun `system back pops the active space destination only`() = runTest {
         val explore = SpaceExploreRoute(user, parent.spaceId)
-        val settings = RoomSettingsRoute(user, explore.spaceId)
+        val settings = SpaceSettingsRoute(user, explore.spaceId)
         for (destination in listOf(parent, explore)) {
             val before =
                 when (destination) {
@@ -371,7 +373,7 @@ class SpaceBrowserNavigationTest {
     @Test
     fun `space changes and room navigation clear settings`() = runTest {
         val explore = SpaceExploreRoute(user, parent.spaceId)
-        val settings = RoomSettingsRoute(user, explore.spaceId)
+        val settings = SpaceSettingsRoute(user, explore.spaceId)
         val initial = listOf(RoomListRoute, parent, explore, settings)
         val (_, allRoomsNavigation) = browser(initial, explore)
         allRoomsNavigation.updateNavigation { openHome() }

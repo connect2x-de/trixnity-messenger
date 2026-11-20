@@ -1931,6 +1931,41 @@ open class I18nView(
         DE - "Öffnen"
     }
 
+    open fun spacesName() = translate {
+        EN - "Name"
+        DE - "Name"
+    }
+
+    open fun spacesNamePlaceholder() = translate {
+        EN - "Give this space a name"
+        DE - "Geben Sie diesem Space einen Namen"
+    }
+
+    open fun spacesEditName() = translate {
+        EN - "Edit space name"
+        DE - "Space-Namen bearbeiten"
+    }
+
+    open fun spacesDescription() = translate {
+        EN - "Description"
+        DE - "Beschreibung"
+    }
+
+    open fun spacesDescriptionPlaceholder() = translate {
+        EN - "Give this space a description"
+        DE - "Geben Sie diesem Space eine Beschreibung"
+    }
+
+    open fun spacesEditDescription() = translate {
+        EN - "Edit space description"
+        DE - "Space-Beschreibung bearbeiten"
+    }
+
+    open fun spacesJoinRule() = translate {
+        EN - "Space access"
+        DE - "Space-Zugang"
+    }
+
     open fun spacesSettings() = translate {
         EN - "Space settings"
         DE - "Space-Einstellungen"

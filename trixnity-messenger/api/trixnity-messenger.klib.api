@@ -4485,6 +4485,17 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomLis
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceRoomListViewModelFactory.Companion|null[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel|null[0]
+    abstract val details // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel.details|{}details[0]
+        abstract fun <get-details>(): de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel.details.<get-details>|<get-details>(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/Function1<de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel>): de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.Function1<de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext,de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModelFactory.Companion|null[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUia { // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUia|null[0]
     abstract val onRequestFlow // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUia.onRequestFlow|{}onRequestFlow[0]
         abstract fun <get-onRequestFlow>(): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaParams> // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUia.onRequestFlow.<get-onRequestFlow>|<get-onRequestFlow>(){}[0]

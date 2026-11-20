@@ -48,6 +48,7 @@ import de.connect2x.trixnity.messenger.internal.compose.view.entries.ShareDataEn
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.SpaceBrowserEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.SpaceExploreEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.SpaceRoomListEntry
+import de.connect2x.trixnity.messenger.internal.compose.view.entries.SpaceSettingsEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.SyncEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.TimelineElementDevInfoEntry
 import de.connect2x.trixnity.messenger.internal.compose.view.entries.TimelineElementMetadataEntry
@@ -169,6 +170,7 @@ private fun nav3ViewModuleFactory(): Module {
         navigationOf(::RoomCallEntry)
         navigationOf(::RoomDevInfoEntry)
         navigationOf(::RoomListEntry)
+        navigationOf(::SpaceSettingsEntry)
         navigationOf(::SpaceBrowserEntry)
         navigationOf(::SpaceRoomListEntry)
         navigationOf(::SpaceExploreEntry)

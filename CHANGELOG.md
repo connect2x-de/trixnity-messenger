@@ -9,6 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- UI: Add dedicated space settings
+
 ### Changed
 
 - UI, SDK: Made Room settings security section always appear and disabled encryption toggle for public rooms

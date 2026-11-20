@@ -6,8 +6,8 @@ import de.connect2x.trixnity.messenger.internal.navigation.clear
 import de.connect2x.trixnity.messenger.internal.navigation.navigationCallback
 import de.connect2x.trixnity.messenger.internal.navigation.openSpaceItem
 import de.connect2x.trixnity.messenger.internal.routes.extras.ExtrasRouteMarker
-import de.connect2x.trixnity.messenger.internal.routes.extras.RoomSettingsRoute
 import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceExploreRoute
+import de.connect2x.trixnity.messenger.internal.routes.spaces.SpaceSettingsRoute
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceExploreViewModel
 import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceExploreViewModelFactory
@@ -29,7 +29,7 @@ internal class SpaceExploreViewModelFactoryAdapter(
             onOpenSettings =
                 navigation.navigationCallback {
                     clear<ExtrasRouteMarker>()
-                    push(RoomSettingsRoute(route.userId, route.spaceId))
+                    push(SpaceSettingsRoute(route.userId, route.spaceId))
                 },
         )
     }
