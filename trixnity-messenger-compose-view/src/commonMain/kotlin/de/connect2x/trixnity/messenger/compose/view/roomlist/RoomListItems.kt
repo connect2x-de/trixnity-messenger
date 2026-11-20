@@ -30,6 +30,7 @@ internal fun RoomListItems(
     footer: LazyListScope.() -> Unit = {},
 ) {
     val allRooms = roomListViewModel.elements.collectAsState().value
+    KeepRoomListAtTop(state, allRooms)
     val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
     val roomKeys = remember(allRooms) { allRooms.map { it.roomId.full }.toSet() }
     val ignoredKeys by
