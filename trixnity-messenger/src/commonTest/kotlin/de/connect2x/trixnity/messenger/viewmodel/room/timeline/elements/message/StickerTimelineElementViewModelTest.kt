@@ -114,6 +114,11 @@ class StickerTimelineElementViewModelTest {
     @Test
     fun `sticker downloads use the media extension`() {
         stickerFileName("Party parrot", "image/png") shouldBe "Party parrot.png"
+        stickerFileName("Party", "image/jpeg") shouldBe "Party.jpg"
+        stickerFileName("Party", "image/bmp") shouldBe "Party.bmp"
+        stickerFileName("Party.bm", "image/bmp") shouldBe "Party.bm"
+        stickerFileName("Party.JPEG", "image/jpeg") shouldBe "Party.JPEG"
+        stickerFileName("Party.jfif", "image/jpeg") shouldBe "Party.jfif"
         stickerFileName("Party.parrot", "image/webp") shouldBe "Party.parrot.webp"
         stickerFileName("Party.PNG", "image/png") shouldBe "Party.PNG"
         stickerFileName("Party", "image/gif; charset=binary") shouldBe "Party.gif"
