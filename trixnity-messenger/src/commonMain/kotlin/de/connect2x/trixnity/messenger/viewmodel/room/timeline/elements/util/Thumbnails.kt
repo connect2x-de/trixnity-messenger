@@ -15,37 +15,29 @@ import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
 interface Thumbnails { // TODO this as part of the DI just adds complexity
     @Deprecated(
         "Use loadThumbnail with separate download size limit instead",
         ReplaceWith(
-            "loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory, maxDownloadSize)"
+            "loadThumbnail(coroutineScope, matrixClient, content, onProgress, maxMediaSizeInMemory, maxDownloadSize)"
         ),
     )
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.File,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
     ): ByteArray? =
-        loadThumbnail(
-            coroutineScope,
-            matrixClient,
-            content,
-            thumbnailProgressFlow,
-            maxMediaSizeInMemory,
-            maxMediaSizeInMemory,
-        )
+        loadThumbnail(coroutineScope, matrixClient, content, onProgress, maxMediaSizeInMemory, maxMediaSizeInMemory)
 
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.File,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
     ): ByteArray? =
@@ -59,7 +51,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
             content.url,
             content.info,
             content.info?.size ?: Long.MAX_VALUE,
-            thumbnailProgressFlow,
+            onProgress,
             maxMediaSizeInMemory,
             maxDownloadSize,
         )
@@ -67,30 +59,23 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
     @Deprecated(
         "Use loadThumbnail with separate download size limit instead",
         ReplaceWith(
-            "loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory, maxDownloadSize)"
+            "loadThumbnail(coroutineScope, matrixClient, content, onProgress, maxMediaSizeInMemory, maxDownloadSize)"
         ),
     )
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.Image,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
     ): ByteArray? =
-        loadThumbnail(
-            coroutineScope,
-            matrixClient,
-            content,
-            thumbnailProgressFlow,
-            maxMediaSizeInMemory,
-            maxMediaSizeInMemory,
-        )
+        loadThumbnail(coroutineScope, matrixClient, content, onProgress, maxMediaSizeInMemory, maxMediaSizeInMemory)
 
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.Image,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
     ): ByteArray? =
@@ -104,7 +89,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
             content.url,
             content.info,
             content.info?.size ?: Long.MAX_VALUE,
-            thumbnailProgressFlow,
+            onProgress,
             maxMediaSizeInMemory,
             maxDownloadSize,
         )
@@ -112,30 +97,23 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
     @Deprecated(
         "Use loadThumbnail with separate download size limit instead",
         ReplaceWith(
-            "loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory, maxDownloadSize)"
+            "loadThumbnail(coroutineScope, matrixClient, content, onProgress, maxMediaSizeInMemory, maxDownloadSize)"
         ),
     )
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.Video,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
     ): ByteArray? =
-        loadThumbnail(
-            coroutineScope,
-            matrixClient,
-            content,
-            thumbnailProgressFlow,
-            maxMediaSizeInMemory,
-            maxMediaSizeInMemory,
-        )
+        loadThumbnail(coroutineScope, matrixClient, content, onProgress, maxMediaSizeInMemory, maxMediaSizeInMemory)
 
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.Video,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
     ): ByteArray? =
@@ -149,7 +127,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
             content.url,
             content.info,
             content.info?.size ?: Long.MAX_VALUE,
-            thumbnailProgressFlow,
+            onProgress,
             maxMediaSizeInMemory,
             maxDownloadSize,
         )
@@ -167,7 +145,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
                 "fileUrl, " +
                 "fileInfo, " +
                 "sizeInBytes, " +
-                "thumbnailProgressFlow, " +
+                "onProgress, " +
                 "maxMediaSizeInMemory, " +
                 "maxDownloadSize" +
                 ")"
@@ -183,7 +161,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         fileUrl: String?,
         fileInfo: FileBasedInfo?,
         sizeInBytes: Long,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
     ): ByteArray? =
         loadThumbnail(
@@ -196,7 +174,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
             fileUrl,
             fileInfo,
             sizeInBytes,
-            thumbnailProgressFlow,
+            onProgress,
             maxMediaSizeInMemory,
             maxMediaSizeInMemory,
         )
@@ -211,7 +189,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         fileUrl: String?,
         fileInfo: FileBasedInfo?,
         sizeInBytes: Long,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
     ): ByteArray?
@@ -226,7 +204,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         fileUrl: String?,
         fileInfo: FileBasedInfo?,
         sizeInBytes: Long,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
         width: Long,
@@ -242,13 +220,13 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
             fileUrl,
             fileInfo,
             sizeInBytes,
-            thumbnailProgressFlow,
+            onProgress,
             maxMediaSizeInMemory,
             maxDownloadSize,
         )
 
     fun mapProgressToProgressElement(
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>
+        thumbnailProgressFlow: Flow<FileTransferProgress?>
     ): Flow<FileTransferProgressElement?>
 }
 
@@ -268,7 +246,7 @@ class ThumbnailsImpl : Thumbnails {
         fileUrl: String?,
         fileInfo: FileBasedInfo?,
         sizeInBytes: Long,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
     ): ByteArray? =
@@ -282,7 +260,7 @@ class ThumbnailsImpl : Thumbnails {
             fileUrl,
             fileInfo,
             sizeInBytes,
-            thumbnailProgressFlow,
+            onProgress,
             maxMediaSizeInMemory,
             maxDownloadSize,
             400L,
@@ -299,7 +277,7 @@ class ThumbnailsImpl : Thumbnails {
         fileUrl: String?,
         fileInfo: FileBasedInfo?,
         sizeInBytes: Long,
-        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        onProgress: (FileTransferProgress?) -> Unit,
         maxMediaSizeInMemory: Long,
         maxDownloadSize: Long,
         width: Long,
@@ -311,7 +289,12 @@ class ThumbnailsImpl : Thumbnails {
         val thumbnail =
             (thumbnailFile?.let { // encrypted thumbnail
                 matrixClient.media
-                    .getEncryptedMedia(thumbnailFile, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                    .getEncryptedMedia(
+                        thumbnailFile,
+                        maxDownloadSize,
+                        sizeInBytes,
+                        onProgress = { onProgress(it.withFallbackTotal(thumbnailInfo?.size)) },
+                    )
                     .fold(
                         onSuccess = {
                             it.toByteArray(
@@ -321,10 +304,15 @@ class ThumbnailsImpl : Thumbnails {
                             )
                         },
                         onFailure = {
-                            thumbnailProgressFlow.emit(null)
+                            onProgress(FileTransferProgress(0, null))
                             if (file != null && sizeInBytes <= maxMediaSizeInMemory) {
                                 matrixClient.media
-                                    .getEncryptedMedia(file, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                                    .getEncryptedMedia(
+                                        file,
+                                        maxDownloadSize,
+                                        sizeInBytes,
+                                        onProgress = { onProgress(it.withFallbackTotal(fileInfo?.size)) },
+                                    )
                                     .fold(
                                         onSuccess = {
                                             it.toByteArray(
@@ -341,7 +329,7 @@ class ThumbnailsImpl : Thumbnails {
                                             } else {
                                                 log.error(it) { "Cannot load thumbnail for image '$thumbnailFile'." }
                                             }
-                                            thumbnailProgressFlow.emit(null)
+                                            onProgress(FileTransferProgress(0, null))
                                             null
                                         },
                                     )
@@ -360,7 +348,7 @@ class ThumbnailsImpl : Thumbnails {
                             maxDownloadSize,
                             sizeInBytes,
                             ThumbnailResizingMethod.SCALE,
-                            progress = thumbnailProgressFlow,
+                            onProgress = onProgress,
                         )
                         .fold(
                             onSuccess = {
@@ -371,10 +359,15 @@ class ThumbnailsImpl : Thumbnails {
                                 )
                             },
                             onFailure = { // fallback: real image
-                                thumbnailProgressFlow.emit(null)
+                                onProgress(FileTransferProgress(0, null))
                                 if (fileUrl != null && sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
-                                        .getMedia(fileUrl, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                                        .getMedia(
+                                            fileUrl,
+                                            maxDownloadSize,
+                                            sizeInBytes,
+                                            onProgress = { onProgress(it.withFallbackTotal(fileInfo?.size)) },
+                                        )
                                         .fold(
                                             onSuccess = {
                                                 it.toByteArray(
@@ -391,7 +384,7 @@ class ThumbnailsImpl : Thumbnails {
                                                 } else {
                                                     log.error(it) { "Cannot load thumbnail for image '$thumbnailUrl'." }
                                                 }
-                                                thumbnailProgressFlow.emit(null)
+                                                onProgress(FileTransferProgress(0, null))
                                                 null
                                             },
                                         )
@@ -404,7 +397,12 @@ class ThumbnailsImpl : Thumbnails {
                 ?: file?.let { // encrypted file
                     if (sizeInBytes <= maxMediaSizeInMemory) {
                         matrixClient.media
-                            .getEncryptedMedia(file, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                            .getEncryptedMedia(
+                                file,
+                                maxDownloadSize,
+                                sizeInBytes,
+                                onProgress = { onProgress(it.withFallbackTotal(fileInfo?.size)) },
+                            )
                             .fold(
                                 onSuccess = {
                                     it.toByteArray(
@@ -419,7 +417,7 @@ class ThumbnailsImpl : Thumbnails {
                                     } else {
                                         log.error(it) { "Cannot load thumbnail for image '${file.url}'." }
                                     }
-                                    thumbnailProgressFlow.emit(null)
+                                    onProgress(FileTransferProgress(0, null))
                                     null
                                 },
                             )
@@ -441,16 +439,21 @@ class ThumbnailsImpl : Thumbnails {
                             maxDownloadSize,
                             sizeInBytes,
                             ThumbnailResizingMethod.SCALE,
-                            progress = thumbnailProgressFlow,
+                            onProgress = onProgress,
                         )
                         .fold(
                             onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
                             onFailure = {
-                                thumbnailProgressFlow.emit(null)
+                                onProgress(FileTransferProgress(0, null))
                                 // otherwise, see if the image itself is ok
                                 if (sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
-                                        .getMedia(fileUrl, maxDownloadSize, sizeInBytes, thumbnailProgressFlow)
+                                        .getMedia(
+                                            fileUrl,
+                                            maxDownloadSize,
+                                            sizeInBytes,
+                                            onProgress = { onProgress(it.withFallbackTotal(fileInfo?.size)) },
+                                        )
                                         .fold(
                                             onSuccess = {
                                                 it.toByteArray(
@@ -467,7 +470,7 @@ class ThumbnailsImpl : Thumbnails {
                                                 } else {
                                                     log.error(it) { "Cannot load thumbnail for image '$fileUrl'." }
                                                 }
-                                                thumbnailProgressFlow.emit(null)
+                                                onProgress(FileTransferProgress(0, null))
                                                 null
                                             },
                                         )
@@ -484,21 +487,22 @@ class ThumbnailsImpl : Thumbnails {
         return thumbnail
     }
 
-    override fun mapProgressToProgressElement(thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>) =
-        thumbnailProgressFlow.map {
-            val total = it?.total
-            if (total == null) {
-                null
-            } else {
-                FileTransferProgressElement(
-                    percent =
-                        if (total > 0) {
-                            it.transferred / total.toFloat()
-                        } else {
-                            0f
-                        },
-                    formattedProgress = formatProgress(it),
-                )
-            }
+    override fun mapProgressToProgressElement(
+        thumbnailProgressFlow: Flow<FileTransferProgress?>
+    ): Flow<FileTransferProgressElement?> {
+        return thumbnailProgressFlow.map { progress ->
+            if (progress == null) return@map null
+            val total = progress.total
+            FileTransferProgressElement(
+                percent =
+                    if (total != null && total > 0) (progress.transferred / total.toFloat()).coerceIn(0f, 1f) else null,
+                formattedProgress = formatProgress(progress),
+            )
         }
+    }
+}
+
+private fun FileTransferProgress.withFallbackTotal(expectedSize: Long?): FileTransferProgress {
+    if (total != null || expectedSize == null || expectedSize <= 0) return this
+    return copy(total = expectedSize)
 }

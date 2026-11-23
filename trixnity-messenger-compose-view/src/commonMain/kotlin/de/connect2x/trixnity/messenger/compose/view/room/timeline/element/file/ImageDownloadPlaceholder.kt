@@ -9,7 +9,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -34,16 +33,14 @@ internal fun ImageDownloadPlaceholder(
     download: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val loading =
-        element.loadMediaProgress.collectAsState().value != null ||
-            element.downloadMediaProgress.collectAsState().value != null ||
-            element.thumbnailLoading.collectAsState().value
+    val loadingProgress = imageLoadingProgress(element, includeDownloadProgress = true)
+    val thumbnailLoadedPercent = loadingProgress?.percent
     val fallbackBlurhash =
         remember(element.name, element.size, element.width, element.height) {
             imagePlaceholderBlurhash(element.name, element.size, element.width, element.height)
         }
     val currentDownload by rememberUpdatedState(download)
-    val isLoading by rememberUpdatedState(loading)
+    val isLoading by rememberUpdatedState(loadingProgress != null)
     Box(
         Modifier.padding(3.dp)
             .requiredHeightIn(50.dp, 300.dp)
@@ -72,18 +69,26 @@ internal fun ImageDownloadPlaceholder(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (loading)
-                ThemedProgressIndicator(
-                    Modifier.size(24.dp),
-                    MaterialTheme.components.extraSmallCircularProgressIndicator,
-                )
-            else
-                Icon(
-                    Icons.Default.Download,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.messengerColors.metaDataPreview,
-                )
+            when {
+                isLoading && thumbnailLoadedPercent == null ->
+                    ThemedProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        style = MaterialTheme.components.extraSmallCircularProgressIndicator,
+                    )
+                isLoading && thumbnailLoadedPercent != null ->
+                    ThemedProgressIndicator(
+                        progress = { thumbnailLoadedPercent },
+                        modifier = Modifier.size(24.dp),
+                        style = MaterialTheme.components.extraSmallCircularProgressIndicator,
+                    )
+                else ->
+                    Icon(
+                        imageVector = Icons.Default.Download,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.messengerColors.metaDataPreview,
+                    )
+            }
             Text(
                 element.size?.takeIf { it.isNotBlank() } ?: i18n.downloadMessage(),
                 style = MaterialTheme.typography.bodyMedium,

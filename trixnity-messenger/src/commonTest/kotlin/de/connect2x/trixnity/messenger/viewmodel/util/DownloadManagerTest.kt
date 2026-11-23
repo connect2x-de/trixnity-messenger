@@ -52,7 +52,7 @@ class DownloadManagerTest {
     fun `return 'success' when download is finished successfully`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         everySuspend {
-            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), onProgress = any())
         } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
@@ -61,7 +61,7 @@ class DownloadManagerTest {
                     matrixClientMock,
                     RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                     "file.pdf",
-                    progress,
+                    { progress.value = it },
                     maxMediaSize,
                 )
                 .await()
@@ -81,7 +81,7 @@ class DownloadManagerTest {
                 hashes = mapOf(),
             )
         everySuspend {
-            mediaServiceMock.getEncryptedMedia(encryptedFile, any(), expectedSize = any(), progress = any())
+            mediaServiceMock.getEncryptedMedia(encryptedFile, any(), expectedSize = any(), onProgress = any())
         } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
@@ -90,7 +90,7 @@ class DownloadManagerTest {
                     matrixClientMock,
                     RoomMessageEventContent.FileBased.File("", file = encryptedFile),
                     "file.pdf",
-                    progress,
+                    { progress.value = it },
                     maxMediaSize,
                 )
                 .await()
@@ -102,13 +102,13 @@ class DownloadManagerTest {
     @Test
     fun `track progress of download`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
-        val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
+        val internalProgressState: MutableStateFlow<((FileTransferProgress) -> Unit)?> = MutableStateFlow(null)
         everySuspend {
-            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), onProgress = any())
         } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[3] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[3] as (FileTransferProgress) -> Unit
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
@@ -119,18 +119,18 @@ class DownloadManagerTest {
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
-                progress,
+                { progress.value = it },
                 maxMediaSize,
             )
         val internalProgress = internalProgressState.filterNotNull().first()
 
-        internalProgress.value = FileTransferProgress(300, 1000)
+        internalProgress(FileTransferProgress(300, 1000))
         delay(100)
         progress.value shouldBe FileTransferProgressElement(0.3f, "0,3kB / 1,0kB")
-        internalProgress.value = FileTransferProgress(600, 1000)
+        internalProgress(FileTransferProgress(600, 1000))
         delay(100)
         progress.value shouldBe FileTransferProgressElement(0.6f, "0,6kB / 1,0kB")
-        internalProgress.value = FileTransferProgress(1000, 1000)
+        internalProgress(FileTransferProgress(1000, 1000))
         delay(100)
         progress.value shouldBe FileTransferProgressElement(1.0f, "1,0kB / 1,0kB")
 
@@ -138,17 +138,22 @@ class DownloadManagerTest {
     }
 
     @Test
-    fun `stop tracking progress of download when download is cancelled`() = runTest {
+    fun `cancel media request when download is cancelled`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
-        val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
+        val internalProgressState: MutableStateFlow<((FileTransferProgress) -> Unit)?> = MutableStateFlow(null)
+        var requestFinished = false
         everySuspend {
-            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), onProgress = any())
         } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[3] as MutableStateFlow<FileTransferProgress?>
-                delay(1.minutes)
-                Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
+                internalProgressState.value = it.args[3] as (FileTransferProgress) -> Unit
+                try {
+                    delay(1.minutes)
+                    Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
+                } finally {
+                    requestFinished = true
+                }
             }
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
@@ -157,32 +162,31 @@ class DownloadManagerTest {
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
-                progress,
+                { progress.value = it },
                 maxMediaSize,
             )
         val internalProgress = internalProgressState.filterNotNull().first()
 
-        internalProgress.value = FileTransferProgress(300, 1000)
+        internalProgress(FileTransferProgress(300, 1000))
         delay(100)
         progress.value shouldBe FileTransferProgressElement(0.3f, "0,3kB / 1,0kB")
 
         result.cancelAndJoin()
 
-        internalProgress.value = FileTransferProgress(600, 1000)
-        delay(100)
-        progress.value shouldBe FileTransferProgressElement(0.3f, "0,3kB / 1,0kB")
+        result.isCancelled shouldBe true
+        requestFinished shouldBe true
     }
 
     @Test
     fun `fallback on event size when no total download size is given`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
-        val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
+        val internalProgressState: MutableStateFlow<((FileTransferProgress) -> Unit)?> = MutableStateFlow(null)
         everySuspend {
-            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), progress = any())
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), expectedSize = any(), onProgress = any())
         } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[3] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[3] as (FileTransferProgress) -> Unit
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
@@ -197,18 +201,18 @@ class DownloadManagerTest {
                     info = FileInfo(size = 1000),
                 ),
                 "file.pdf",
-                progress,
+                { progress.value = it },
                 maxMediaSize,
             )
         val internalProgress = internalProgressState.filterNotNull().first()
 
-        internalProgress.value = FileTransferProgress(300, null)
+        internalProgress(FileTransferProgress(300, null))
         delay(100)
         progress.value shouldBe FileTransferProgressElement(0.3f, "0,3kB / 1,0kB")
-        internalProgress.value = FileTransferProgress(600, null)
+        internalProgress(FileTransferProgress(600, null))
         delay(100)
         progress.value shouldBe FileTransferProgressElement(0.6f, "0,6kB / 1,0kB")
-        internalProgress.value = FileTransferProgress(1000, null)
+        internalProgress(FileTransferProgress(1000, null))
         delay(100)
         progress.value shouldBe FileTransferProgressElement(1.0f, "1,0kB / 1,0kB")
 

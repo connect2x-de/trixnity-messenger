@@ -1,13 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file
 
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.VideoInfo
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -32,8 +30,6 @@ class VideoTimelineElementViewModelImpl(
 
     private val thumbnails = get<Thumbnails>()
 
-    private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-
     override val thumbnailAutoDownloadLimit: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
 
     override val thumbnail: StateFlow<ByteArray?> =
@@ -48,7 +44,7 @@ class VideoTimelineElementViewModelImpl(
                     fileUrl = url,
                     fileInfo = info,
                     sizeInBytes = info?.size ?: Long.MAX_VALUE,
-                    thumbnailProgressFlow = thumbnailProgressFlow,
+                    onProgress = {},
                     maxMediaSizeInMemory = maxMediaSizeInMemory,
                     maxDownloadSize = thumbnailAutoDownloadLimit,
                 )

@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
+import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
@@ -20,6 +21,7 @@ import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
@@ -34,6 +36,7 @@ class StickerTimelineElementViewModelTest {
 
     init {
         resetMocks(matrixClient, thumbnails)
+        every { thumbnails.mapProgressToProgressElement(any()) } returns flowOf(null)
     }
 
     @BeforeTest
@@ -55,7 +58,7 @@ class StickerTimelineElementViewModelTest {
                 fileUrl = any(),
                 fileInfo = any(),
                 sizeInBytes = any(),
-                thumbnailProgressFlow = any(),
+                onProgress = any(),
                 maxMediaSizeInMemory = any(),
                 maxDownloadSize = any(),
             )
@@ -67,7 +70,7 @@ class StickerTimelineElementViewModelTest {
         runCurrent()
 
         cut.thumbnail.value shouldBe image
-        cut.thumbnailLoading.value shouldBe false
+        cut.thumbnailLoadingProgress.value shouldBe null
     }
 
     @Test
@@ -84,7 +87,7 @@ class StickerTimelineElementViewModelTest {
                 fileUrl = any(),
                 fileInfo = any(),
                 sizeInBytes = any(),
-                thumbnailProgressFlow = any(),
+                onProgress = any(),
                 maxMediaSizeInMemory = any(),
                 maxDownloadSize = any(),
             )
@@ -101,7 +104,7 @@ class StickerTimelineElementViewModelTest {
 
         thumbnailRequested shouldBe true
         cut.thumbnail.value shouldBe null
-        cut.thumbnailLoading.value shouldBe false
+        cut.thumbnailLoadingProgress.value shouldBe null
         cut.name shouldBe "Party parrot.png"
         cut.mimeType shouldBe "image/png"
         cut.width shouldBe 512

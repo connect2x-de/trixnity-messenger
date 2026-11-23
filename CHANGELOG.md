@@ -11,6 +11,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- INTERNAL: Bump Trixnity to 5.11.1-SNAPSHOT.CI-20261119.172943
+- SDK: (**breaking change**) Use callbacks for thumbnail and download progress
+- SDK, UI: (**breaking change**) Replace thumbnail loading flags with image download progress
+
 ### Deprecated
 
 ### Removed
@@ -24,6 +28,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Preserve room list scroll position when navigating back from a room
 - SDK: Prefer typical file extensions when downloading stickers
 - UI,DESKTOP: Prefer typical file extensions when pasting images from the desktop clipboard
+- SDK: Reset thumbnail loading state after errors or cancellation
 
 ### Security
 
