@@ -290,8 +290,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/DownloadP
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/EmojiKt {
-	public static final fun EmojiButton (Ljava/lang/String;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
-	public static final fun EmojiSelector (Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun EmojiButton (Ljava/lang/String;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun EmojiSelector (Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLandroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/EmojiPopupKt {
@@ -2578,7 +2578,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/In
 	public static final fun MentionSelector (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RoomSelectorRow (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 	public static final fun SendButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun StickerButton (Lde/connect2x/trixnity/messenger/viewmodel/room/ImagePackViewModel;Landroidx/compose/runtime/MutableState;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
 	public static final fun UserSelectorRow (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 }
 
