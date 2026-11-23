@@ -84,7 +84,7 @@ class AudioRecordingAreaViewModelImpl(
         fun create(capture: AudioRecorder.State.Completed): MediaPlayerViewModel? {
             return getOrNull<MediaPlayerViewModelFactory>()
                 ?.create(
-                    id = "AudioRecordingAreaViewModel",
+                    id = capturePlayerId(capture.media),
                     viewModelContext = viewModelContext,
                     mimeType = capture.contentType.toString(),
                     initialDuration = Duration.ZERO,
@@ -125,6 +125,15 @@ class AudioRecordingAreaViewModelImpl(
         } else {
             MutableStateFlow(null)
         }
+    }
+
+    private fun capturePlayerId(media: AudioRecorder.State.Completed.MediaReference): String {
+        val uri =
+            when (media) {
+                is AudioRecorder.State.Completed.MediaReference.Encrypted -> media.uriWithMetadata.url
+                is AudioRecorder.State.Completed.MediaReference.Unencrypted -> media.uri
+            }
+        return "AudioRecordingAreaViewModel-$uri"
     }
 
     init {
