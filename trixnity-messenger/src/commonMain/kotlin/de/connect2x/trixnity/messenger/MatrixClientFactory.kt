@@ -16,15 +16,11 @@ import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.StickerEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder
-import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayIntegrityCheckException
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
 import kotlin.coroutines.CoroutineContext
-import org.koin.dsl.module
 
 private val log = Logger("de.connect2x.trixnity.messenger.MatrixClientFactory")
 
@@ -153,25 +149,6 @@ class MatrixClientFactoryImpl(
         }
 
         lastRelevantEventFilter = { isRelevantRoomListEvent(it.content) }
-        modulesFactories += {
-            module {
-                single<EventContentSerializerMappings> {
-                    val customEventContentSerializerMappings = getAll<CustomEventContentSerializerMappings>()
-                    customEventContentSerializerMappings.fold(EventContentSerializerMappings.default) { a, b -> a + b }
-                }
-            }
-        }
-    }
-}
-
-interface CustomEventContentSerializerMappings : EventContentSerializerMappings {
-    companion object {
-        operator fun invoke(
-            builder: EventContentSerializerMappingsBuilder.() -> Unit
-        ): CustomEventContentSerializerMappings =
-            object :
-                CustomEventContentSerializerMappings,
-                EventContentSerializerMappings by EventContentSerializerMappingsBuilder().apply(builder).build() {}
     }
 }
 

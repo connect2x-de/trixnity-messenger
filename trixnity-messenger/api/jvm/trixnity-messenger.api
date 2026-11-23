@@ -57,19 +57,6 @@ public final class de/connect2x/trixnity/messenger/CreateRepositoriesModule_jvmA
 	public static final fun platformCreateRepositoriesModuleModule ()Lorg/koin/core/module/Module;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/CustomEventContentSerializerMappings : de/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings {
-	public static final field Companion Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings$Companion;
-}
-
-public final class de/connect2x/trixnity/messenger/CustomEventContentSerializerMappings$Companion {
-	public final fun invoke (Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings;
-}
-
-public final class de/connect2x/trixnity/messenger/CustomEventContentSerializerMappings$DefaultImpls {
-	public static fun minus (Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;)Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
-	public static fun plus (Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;)Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
-}
-
 public final class de/connect2x/trixnity/messenger/DIKt {
 	public static final fun createTrixnityMessengerDefaultModuleFactories ()Ljava/util/List;
 }
