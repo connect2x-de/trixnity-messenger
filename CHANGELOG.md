@@ -31,35 +31,27 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- UI: Display custom image reactions with shortcode or reaction key fallback
-- UI: Render inline images and custom emotes in messages and formatted reply previews
-- UI: Open user info in room settings by clicking or tapping a sender's name in the timeline
-- UI: Add a leave room action with confirmation to the room list's more options menu
-- UI: Search room members by display name or Matrix address
-- SDK: Add opt-in support for new accounts on Web via `enableRoom3ForNewAccountsOnWeb`
-- SDK: Share historic keys on invite behind new feature flag enableHistoricRoomKeySharing (enabled by default)
-- UI: Add a room list hint for rooms with running calls
+- SDK,UI: Display custom image reactions with shortcode or reaction key fallback
+- SDK,UI: Render inline images and custom emotes in messages and formatted reply previews
+- SDK,UI: Open user info in room settings by clicking or tapping a sender's name in the timeline
+- SDK,UI: Add a leave room action with confirmation to the room list's more options menu
+- SDK,UI: Search room members by display name or Matrix address
+- SDK: Add opt-in support for new accounts on Web to use Room database; disable by setting
+  `features.enableRoom3ForNewAccountsOnWeb = false`
+- SDK: Share historic keys on invite; disable by setting `features.enableHistoricRoomKeySharing = false`
+- SDK,UI: Add a room list hint for rooms with running calls
 - SDK: Allow for modifying push rules via `AccountNotificationPushRuleModifier`
-- SDK: MatrixRTC support introduced; disable by setting `features.enableVideoCalls = false`
+- SDK,UI: Basic MatrixRTC LiveKit call support introduced; disable by setting `features.enableVideoCalls = false`
 - UI: Allow for extending `TimelineElementMetadata` with more items via DI
-- UI: Add button in room header for joining and leaving matrix rtc calls
 - UI: Downscale images in the timeline
-- UI: Add a menu for enabling experimental messenger settings
-- UI: Add entry to enable experimental MatrixRTC calls on Android and Web
-- SDK,UI: Add experimental support for MatrixRTC Livekit calls
-- UI: Add timeline elements for MatrixRTC membership changes
+- SDK,UI: Add a settings menu for enabling experimental messenger settings
 - SDK,UI: Add I18n functions for providing URL to privacy policy and imprint website
-- SDK: Replace old imprint and privacy policy with newer connect2x website
 - UI,DESKTOP,WEB: Support keyboard navigation for @ mention
 - SDK: Add new VerificationViewModel (`v2.VerificationViewModel`), consolidating the viewModel childStack approach of
   the current VerificationViewModel into a single viewModel
-- UI: Speaking indicator for MatrixRTC calls
 - SDK,UI: Add timeline element for `m.sticker`
-- SDK: Add the `enableSpaces` feature flag (enabled by default)
-- UI: Browse Matrix spaces and subspaces with desktop and mobile navigation, search, account selection,
-  and an Explore space view for discovering rooms and joining eligible rooms or spaces
-- SDK,UI: Add view allowing to add, remove, favorise and view stickers; disable by setting
-  `features.enableStickers = false`
+- SDK: Basic support for Spaces; disable by setting `features.enableSpaces = false`
+- SDK,UI: Allow to add, remove, favorise and view stickers; disable by setting `features.enableStickers = false`
 
 ### Changed
 
@@ -69,10 +61,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Offer both leave and leave-and-forget actions in the room list and room settings confirmation dialog
 - UI: Set audio message content and transfer progress to a fixed width of 300 dp
 - UI: Inform user to check device and browser permissions on error in `WebAudioRecorder`
-- DEPENDENCY: Update c2x-conventions to 20260917.190917
+- DEPENDENCY: Update c2x-conventions to 20261116.171406
 - DEPENDENCY: Update Trixnity to 5.11.0
 - DEPENDENCY: Update SQLitenity to 0.0.8
-- SDK, UI: (**breaking changes**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
+- SDK,UI: (**breaking change**) Add separate states for reaction lifecycle in GetEventReactions and change reaction
   bubble style accordingly
 - SDK: Align redaction behaviour for reactions with messages to allow requesting a redaction for a reaction when offline
   if the homeserver allows it
@@ -83,33 +75,29 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: (**breaking change**) Split up RedactedTimelineElementViewModel into RedactedMessageTimelineElementViewModel and
   RedactedStateTimelineElementViewModel
 - UI: Replace single, view model dependent step ConnectingWizard with UI-only WizardPanel, removing old navigation logic
-- SDK: Added `connect2x GmbH proprietary license` to publishing information in additon to AGPL3
-- SDK,IOS: race condition in NetworkMonitor
+- SDK: Added `connect2x GmbH proprietary license` to publishing information in addition to AGPL3
 - SDK: account setup is skipped after logout and login with the same account
 - SDK: oauth and sso should only be resumed when url changes
 - SDK,UI: (**breaking change**) Introduced intermediate view models for file based timeline elements
 - SDK,UI: Refactoring of the user profile UI into reusable components
-- SDK, UI: Replace DeviceVerificationWizard with UI-only WizardPanels based on v2 of the VerificationViewModel, removing
+- SDK,UI: Replace DeviceVerificationWizard with UI-only WizardPanels based on v2 of the VerificationViewModel, removing
   old navigation logic
 - SDK: (**breaking change**) Use Trixnity MatrixUri and replace messenger Reference.toLink with the SDK version
-- SDK, UI: Replace CrossSigningBootstrapWizard with UI-only WizardPanel, removing old navigation logic
+- SDK,UI: Replace CrossSigningBootstrapWizard with UI-only WizardPanel, removing old navigation logic
 - UI: Replace single, view model dependent step SelfVerificationWizard with UI-only WizardPanel, removing old navigation
   logic
 - UI: Replace single, view model dependent step RedoSelfVerificationWizard with UI-only WizardPanel, removing old
   navigation logic
-- SDK, UI: Replace setup wizard with UI-only WizardPanel and routes, removing old navigation logic and add manual
+- SDK,UI: Replace setup wizard with UI-only WizardPanel and routes, removing old navigation logic and add manual
   starting of setup
   process to AccountSetupViewModel
-- SDK, UI: (**breaking change**) Add spaces support to `MatrixMessengerConfiguration.Features`, `AvatarStyle`,
-  and `RoomListViewModelImpl`
+- SDK,UI: (**breaking change**) Add spaces support to `AvatarStyle` and `RoomListViewModelImpl`
 - UI: Fade out text based reply previews if they would exceed the preview size
-- UI: Adapt MatrixRTC call layouts to participant count and preserve full video frames
-- INTERNAL: bump conventions to 20261116.171406
 
 ### Removed
 
-- SDK: Terser webpack plugin
-- SDK,CI: Remove KMM publish and SKIE
+- SDK,INTERNAL: Terser webpack plugin
+- SDK,CI,INTERNAL: Remove KMM publish and SKIE
 
 ### Fixed
 
@@ -126,18 +114,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: SSO login wizard has shown empty box while SSO login is ongoing
 - SDK: room mention entry visible after click/fully typed out
 - SDK: rare initialization error in timeline viewmodel
-- UI: iOS PdfReader causing App to crash when viewing large PDF files
+- UI,IOS: iOS PdfReader causing App to crash when viewing large PDF files
 - SDK: Fix reactions still being shown after redaction if they are still in the outbox
 - UI: Correctly align reactions to message bubble edge
 - UI: Only display available verification methods in SelfVerificationWizard
 - SDK: When exporting a room then do not throw an exception when the start condition filters out all events
 - SDK,ANDROID: Correctly cancel account adding process via back button
-- CI: Trivy warnings in CI because of vulnerabilities in the local Kotlin tooling
-- SDK, UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
+- SDK,UI: Fix RoomListElementViewModels not updating when selecting different account when both are in the same room
 - UI: Placeholder of the input area with hint is shown when user can't type messages into the room
-- DEPENDENCY: Fix remove foreground service permission
-- DEPENDENCY: FIx publish correct gradle module metadata
-- UI, ANDROID: Correctly require foreground permissions for media playback
 - UI: Fix various issues when adding, removing and interacting with optional room power levels
 - UI: Profile options overlapping user information on small screens
 - UI: Long usernames wrapping with centered alignment in the profile view
@@ -146,18 +130,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI: Wrong padding of the time element in message bubble for incoming messages
 - SDK: Complete mention suggestions for full mxid
 - UI: Debounce mention loading indicator
-- SDK, ANDROID: audio recorder and player are now registered in the DI at messenger level, not multi-messenger level
+- SDK,ANDROID: audio recorder and player are now registered in the DI at messenger level, not multi-messenger level
 - UI: Fix Image preview in timeline fails to load
 - UI: Keep navigation components cached separately by type, including types with the same name on Web
 - UI: Show room list separators only between rooms
 - UI: Improve light mode contrast in secondary containers
 - UI: Warn instead of blocking invitations when homeserver verification fails
-- SDK, UI: properly remove rooms from room list after logout
+- SDK,UI: properly remove rooms from room list after logout
 - UI: Require message content and timestamp in compact message bubbles
 - UI: Fix pixelated avatars in profile and room settings
 - UI: Limit memory use of timeline BlurHash previews
 - UI: Show blurred download placeholders for missing timeline images
 - UI: Don't show image upload process while loading placeholders
+- SDK,IOS: race condition in NetworkMonitor
 
 ## 4.10.3
 
