@@ -62,6 +62,7 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
                 },
                 selected = isEncrypting,
                 enabled = canEnableEncryption == true,
+                isSelectable = true,
                 onChange = { roomSettingsSecurityViewModel.openEnableEncryptionWarning() },
             )
         }

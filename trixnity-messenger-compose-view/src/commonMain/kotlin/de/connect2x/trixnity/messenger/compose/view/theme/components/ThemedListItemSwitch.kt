@@ -32,6 +32,37 @@ fun ThemedListItemSwitch(
     controlStyle: SwitchStyle = MaterialTheme.components.switch,
     thumbContent: (@Composable () -> Unit)? = null,
 ) {
+    ThemedListItemSwitch(
+        headlineContent = headlineContent,
+        selected = selected,
+        onChange = onChange,
+        modifier = modifier,
+        enabled = enabled,
+        isSelectable = enabled,
+        overlineContent = overlineContent,
+        supportingContent = supportingContent,
+        leadingContent = leadingContent,
+        style = style,
+        controlStyle = controlStyle,
+        thumbContent = thumbContent,
+    )
+}
+
+@Composable
+fun ThemedListItemSwitch(
+    headlineContent: @Composable () -> Unit,
+    selected: Boolean,
+    onChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isSelectable: Boolean,
+    overlineContent: @Composable (() -> Unit)? = null,
+    supportingContent: @Composable (() -> Unit)? = null,
+    leadingContent: @Composable (() -> Unit)? = null,
+    style: ListItemStyle = MaterialTheme.components.listItem,
+    controlStyle: SwitchStyle = MaterialTheme.components.switch,
+    thumbContent: (@Composable () -> Unit)? = null,
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused = interactionSource.collectIsFocusedAsState()
     val focusedBorder =
@@ -64,8 +95,8 @@ fun ThemedListItemSwitch(
                 .then(focusedBorder)
                 .selectable(
                     selected = selected,
-                    onClick = { onChange(!selected) },
-                    enabled = enabled,
+                    onClick = { if (enabled) onChange(!selected) },
+                    enabled = isSelectable,
                     role = Role.Switch,
                     interactionSource = interactionSource,
                     indication = LocalIndication.current,
