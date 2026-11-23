@@ -1663,6 +1663,9 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun roomEncryptionExplanation ()Ljava/lang/String;
 	public fun roomEndToEndEncryption ()Ljava/lang/String;
 	public fun roomEndToEndEncryptionDescription ()Ljava/lang/String;
+	public fun roomEndToEndEncryptionForbiddenAlreadyEnabled ()Ljava/lang/String;
+	public fun roomEndToEndEncryptionForbiddenJoinRulePublic ()Ljava/lang/String;
+	public fun roomEndToEndEncryptionForbiddenOtherwise ()Ljava/lang/String;
 	public fun roomHeaderBlockUser ()Ljava/lang/String;
 	public fun roomHeaderClose ()Ljava/lang/String;
 	public fun roomHeaderKnockingUsersCount (I)Ljava/lang/String;
@@ -2341,6 +2344,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Ro
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsSecurityKt {
 	public static final fun RoomSettingsEnableEncryptionWarning (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsSecurityViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun RoomSettingsSecurity (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/RoomSettingsSecurityViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun cantToggleReason (ZLandroidx/compose/runtime/State;Ljava/lang/Boolean;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/RoomSettingsSecurityView {
@@ -6699,6 +6703,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedListItemSwitchKt {
 	public static final fun ThemedListItemSwitch (Lkotlin/jvm/functions/Function2;ZLkotlin/jvm/functions/Function1;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;III)V
+	public static final fun ThemedListItemSwitch (Lkotlin/jvm/functions/Function2;ZLkotlin/jvm/functions/Function1;Landroidx/compose/ui/Modifier;ZZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lde/connect2x/trixnity/messenger/compose/view/theme/components/ListItemStyle;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SwitchStyle;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;III)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedPopupKt {
