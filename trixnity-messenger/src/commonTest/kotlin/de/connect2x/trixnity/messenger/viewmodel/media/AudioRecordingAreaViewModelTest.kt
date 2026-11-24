@@ -13,6 +13,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.Mentions
 import de.connect2x.trixnity.core.model.events.m.room.AudioInfo
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.core.module.Module
@@ -303,7 +305,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
@@ -330,7 +332,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
@@ -356,7 +358,7 @@ class AudioRecordingAreaViewModelTest {
         val fileName = "cool_audio.m4a"
         val contentType = ContentType("audio", "mp4")
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.failure(Exception())
 
         val builderWithoutUrlNorFile: (suspend MessageBuilder.() -> Unit) = {
@@ -394,7 +396,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = null
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
@@ -421,7 +423,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), onProgress = any(), any()) } returns
             Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
@@ -460,6 +462,81 @@ class AudioRecordingAreaViewModelTest {
             draftMessage.value shouldBe null
             wasClosed shouldBe true
         }
+    }
+
+    @Test
+    fun `completed - unencrypted then unencrypted recording get players with unique ids`() =
+        runPlayersWithUniqueIdsTest(
+            first = unencryptedReference("mxc://localhost/first"),
+            second = unencryptedReference("mxc://localhost/second"),
+        )
+
+    @Test
+    fun `completed - encrypted then encrypted recording get players with unique ids`() =
+        runPlayersWithUniqueIdsTest(
+            first = encryptedReference("mxc://localhost/first"),
+            second = encryptedReference("mxc://localhost/second"),
+        )
+
+    @Test
+    fun `completed - unencrypted then encrypted recording get players with unique ids`() =
+        runPlayersWithUniqueIdsTest(
+            first = unencryptedReference("mxc://localhost/first"),
+            second = encryptedReference("mxc://localhost/second"),
+        )
+
+    @Test
+    fun `completed - encrypted then unencrypted recording get players with unique ids`() =
+        runPlayersWithUniqueIdsTest(
+            first = encryptedReference("mxc://localhost/first"),
+            second = unencryptedReference("mxc://localhost/second"),
+        )
+
+    private fun runPlayersWithUniqueIdsTest(
+        first: AudioRecorder.State.Completed.MediaReference,
+        second: AudioRecorder.State.Completed.MediaReference,
+    ): TestResult {
+        return runTest {
+            val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Ready)
+            every { recorder.state } returns recorderState
+            val ids = mutableListOf<String>()
+            every { mediaPlayerFactory.create(any(), any(), any(), any(), any()) } calls
+                {
+                    ids += it.arg<String>(0)
+                    player
+                }
+
+            audioRecordingAreaViewModel(backgroundScope.coroutineContext)
+
+            recorderState.value = completedRecording(first)
+            delay(1.seconds)
+            recorderState.value = AudioRecorder.State.Ready
+            delay(1.seconds)
+            recorderState.value = completedRecording(second)
+            delay(1.seconds)
+
+            ids.size shouldBe 2
+            ids.distinct().size shouldBe 2
+        }
+    }
+
+    private fun unencryptedReference(uri: String): AudioRecorder.State.Completed.MediaReference {
+        return AudioRecorder.State.Completed.MediaReference.Unencrypted(uri)
+    }
+
+    private fun encryptedReference(uri: String): AudioRecorder.State.Completed.MediaReference {
+        val file = EncryptedFile(url = uri, key = EncryptedFile.JWK(""), initialisationVector = "", hashes = mapOf())
+        return AudioRecorder.State.Completed.MediaReference.Encrypted(file)
+    }
+
+    private fun completedRecording(media: AudioRecorder.State.Completed.MediaReference): AudioRecorder.State.Completed {
+        return AudioRecorder.State.Completed(
+            media = media,
+            duration = 5.seconds,
+            sizeBytes = 1000L,
+            contentType = ContentType("audio", "mp4"),
+            fileExtension = "m4a",
+        )
     }
 
     private fun TestScope.audioRecordingAreaViewModel(

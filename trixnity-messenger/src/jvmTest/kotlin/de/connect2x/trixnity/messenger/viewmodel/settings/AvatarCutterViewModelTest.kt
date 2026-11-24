@@ -60,7 +60,7 @@ class AvatarCutterViewModelTest {
         val thumbnailCapture = Capture.slot<ByteArrayFlow>()
         everySuspend { mediaServiceMock.prepareUploadMedia(capture(thumbnailCapture), any()) } returns
             "cache://localhost/123456"
-        everySuspend { mediaServiceMock.uploadMedia("cache://localhost/123456", any(), any()) } returns
+        everySuspend { mediaServiceMock.uploadMedia("cache://localhost/123456", onProgress = any(), any()) } returns
             Result.success("mxc://localhost/123456")
         everySuspend { matrixClientMock.setProfileField(ProfileField.AvatarUrl("mxc://localhost/123456")) } returns
             Result.success(Unit)
@@ -82,7 +82,7 @@ class AvatarCutterViewModelTest {
         val thumbnailCapture = mutableListOf<ByteArrayFlow>()
         everySuspend { mediaServiceMock.prepareUploadMedia(capture(thumbnailCapture), any()) } returns
             "cache://localhost/123456"
-        everySuspend { mediaServiceMock.uploadMedia("cache://localhost/123456", any(), any()) } returns
+        everySuspend { mediaServiceMock.uploadMedia("cache://localhost/123456", onProgress = any(), any()) } returns
             Result.failure(RuntimeException("Oh no!"))
         every { onCloseMock.invoke() } calls { onCloseWasCalled = true }
 

@@ -20,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -62,11 +61,8 @@ internal fun SpaceRoomListView(
     val state by viewModel.state.collectAsState()
     val content = (state as? SpaceContentState.Ready)?.content
     val listState = rememberLazyListState()
-    val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
-    LaunchedEffect(initialSyncFinished) { listState.scrollToItem(0) }
     val rooms by roomListViewModel.elements.collectAsState()
     val searchTerm by roomListViewModel.searchTerm.collectAsState()
-    LaunchedEffect(rooms) { if (!listState.canScrollBackward) listState.requestScrollToItem(0) }
     val spacing = MaterialTheme.messengerDpConstants
     val subspaces = content?.items.orEmpty().filter { it.joined && it.isSpace }
     ThemedSurface(style = MaterialTheme.components.sidebar) {

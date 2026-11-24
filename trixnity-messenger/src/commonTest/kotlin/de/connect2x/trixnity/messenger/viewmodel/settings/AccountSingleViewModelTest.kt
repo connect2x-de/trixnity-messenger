@@ -104,7 +104,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
@@ -138,7 +138,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
@@ -172,7 +172,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
@@ -210,7 +210,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
@@ -247,7 +247,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
@@ -286,7 +286,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
@@ -344,7 +344,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(initialAvatar)
@@ -396,7 +396,7 @@ class AccountSingleViewModelTest {
                     any(),
                     method = ThumbnailResizingMethod.SCALE,
                     animated = any(),
-                    progress = any(),
+                    onProgress = any(),
                     saveToCache = any(),
                 )
             } returns Result.success(initialAvatar)
@@ -444,7 +444,7 @@ class AccountSingleViewModelTest {
                 any(),
                 method = ThumbnailResizingMethod.SCALE,
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(initialAvatar)

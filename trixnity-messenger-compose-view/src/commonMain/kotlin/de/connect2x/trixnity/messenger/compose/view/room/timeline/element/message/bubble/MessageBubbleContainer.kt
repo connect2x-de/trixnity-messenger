@@ -14,6 +14,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -173,13 +174,15 @@ internal fun StyledMessageBubbleContainer(
                 )
             }
 
-            MessageBubbleContent(
-                holder,
-                needsMaxWidth,
-                isMentioned,
-                { showActionMenu.value = ThemedActionMenuState.Anchored },
-                content,
-            )
+            Box(Modifier.align(Alignment.BottomStart)) {
+                MessageBubbleContent(
+                    holder,
+                    needsMaxWidth,
+                    isMentioned,
+                    { showActionMenu.value = ThemedActionMenuState.Anchored },
+                    content,
+                )
+            }
         }
     }
 }

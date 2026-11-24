@@ -60,7 +60,9 @@ internal object MessageBubbleMeasurePolicy : MeasurePolicy {
             if (dateFitsInLine) {
                 constraints.constrainWidth(maxOf(sender?.width ?: 0, message.width + spacing + date.width))
             } else constraints.maxWidth
-        val height = senderHeight + message.height + if (dateFitsInLine) spacing else date.height
+        val height =
+            senderHeight +
+                if (dateFitsInLine) maxOf(message.height + spacing, date.height) else message.height + date.height
         return layout(width = width, height = height) {
             sender?.place(0, 0)
             message.place(0, senderHeight)

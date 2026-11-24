@@ -181,7 +181,7 @@ class RoomHeaderViewModelTest {
                 any(),
                 method = any(),
                 animated = any(),
-                progress = any(),
+                onProgress = any(),
                 saveToCache = any(),
             )
         } returns Result.success(InMemoryPlatformMedia("image".encodeToByteArray().toByteArrayFlow()))

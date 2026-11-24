@@ -25,8 +25,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.MSC2448
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.files.rememberImageBitmapOrNull
+import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.trixnity.messenger.compose.view.util.animateImage
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.file.FileBasedTimelineElementViewModel
 import kotlin.math.roundToInt
 
@@ -42,8 +45,7 @@ internal fun ImageTimelineElementView(
     fallbackBlurhash: String? = null,
 ) {
     val thumbnail = element.thumbnail.collectAsState().value
-    val loading =
-        element.thumbnailLoading.collectAsState().value || element.loadMediaProgress.collectAsState().value != null
+    val loadingProgress = imageLoadingProgress(element)
     val bitmap = rememberImageBitmapOrNull(thumbnail, IntSize(800, 800))
     val painter = remember(bitmap) { bitmap?.let(::BitmapPainter) }
     val blurhash = element.blurhash ?: fallbackBlurhash
@@ -68,7 +70,15 @@ internal fun ImageTimelineElementView(
                 Text(element.name, style = MaterialTheme.typography.bodySmall)
             }
         }
-        if (loading && showLoading) LoadingSpinner()
+        if (loadingProgress != null && showLoading) {
+            val percent = loadingProgress.percent
+            if (percent == null) LoadingSpinner()
+            else
+                ThemedProgressIndicator(
+                    progress = { percent },
+                    style = MaterialTheme.components.circularProgressIndicator,
+                )
+        }
     }
 }
 
@@ -100,4 +110,15 @@ internal fun decodeTimelineBlurhash(blurhash: String, size: IntSize): ImageBitma
     val decodeSize =
         IntSize((size.width * scale).roundToInt().coerceAtLeast(1), (size.height * scale).roundToInt().coerceAtLeast(1))
     return BlurHashDecoder.decode(blurhash, intrinsicSize = decodeSize, decodeSize = decodeSize)
+}
+
+@Composable
+internal fun imageLoadingProgress(
+    element: FileBasedTimelineElementViewModel.Image,
+    includeDownloadProgress: Boolean = false,
+): FileTransferProgressElement? {
+    val loadProgress = element.loadMediaProgress.collectAsState().value
+    val downloadProgress = if (includeDownloadProgress) element.downloadMediaProgress.collectAsState().value else null
+    val thumbnailProgress = element.thumbnailLoadingProgress.collectAsState().value
+    return loadProgress ?: downloadProgress ?: thumbnailProgress
 }

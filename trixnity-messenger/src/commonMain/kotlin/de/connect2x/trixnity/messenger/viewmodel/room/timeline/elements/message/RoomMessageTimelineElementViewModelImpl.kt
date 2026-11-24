@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -71,7 +70,7 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
                 fileUrl = uri,
                 fileInfo = null,
                 sizeInBytes = maxSize,
-                thumbnailProgressFlow = MutableStateFlow(null),
+                onProgress = {},
                 maxMediaSizeInMemory = maxSize,
                 maxDownloadSize = maxSize,
                 width = width.toLong(),

@@ -38,7 +38,9 @@ class SpaceAvatarTest {
         fixtures.forEach { (userId, fixture) ->
             fixture.space.value = fixture.space.value!!.copy(avatarUrl = url)
             val media = mock<MediaService>()
-            everySuspend { media.getThumbnail(any(), any(), any(), any(), any(), any(), any(), any(), any()) } calls
+            everySuspend {
+                media.getThumbnail(any(), any(), any(), any(), any(), any(), any(), onProgress = any(), any())
+            } calls
                 { args ->
                     calls += userId to args.arg<String>(0)
                     if (fail) Result.failure(IllegalStateException("thumbnail unavailable"))

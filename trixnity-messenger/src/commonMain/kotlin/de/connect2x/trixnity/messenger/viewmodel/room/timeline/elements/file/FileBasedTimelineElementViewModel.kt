@@ -39,7 +39,7 @@ interface FileBasedTimelineElementViewModel {
 
     interface Image : FileBasedTimelineElementViewModel {
         val thumbnail: StateFlow<ByteArray?>
-        val thumbnailLoading: StateFlow<Boolean>
+        val thumbnailLoadingProgress: StateFlow<FileTransferProgressElement?>
         val width: Int?
         val height: Int?
         val thumbnailWidth: Int?

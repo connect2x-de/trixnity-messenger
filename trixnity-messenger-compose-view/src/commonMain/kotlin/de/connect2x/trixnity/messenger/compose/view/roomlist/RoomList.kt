@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +51,6 @@ class RoomListViewImpl : RoomListView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel) {
         val state = rememberLazyListState()
-        val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
         val allRoomState = roomListViewModel.elements.collectAsState()
         val allRooms = allRoomState.value
         val canCreateNewRoomWithAccount = roomListViewModel.canCreateNewRoomWithAccount.collectAsState().value
@@ -100,16 +98,6 @@ class RoomListViewImpl : RoomListView {
             }
             VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), state, false)
             CreateRoomFloatingButton(roomListViewModel)
-        }
-
-        LaunchedEffect(initialSyncFinished) {
-            log.debug { "initialSyncFinished -> scroll room list to top" }
-            state.scrollToItem(0)
-        }
-        LaunchedEffect(allRooms) {
-            if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // this has been the first element before
-                state.animateScrollToItem(0)
-            }
         }
     }
 }
