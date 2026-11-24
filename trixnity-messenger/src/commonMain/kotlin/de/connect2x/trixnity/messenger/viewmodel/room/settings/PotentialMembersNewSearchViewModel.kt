@@ -58,8 +58,29 @@ private class ExcludeUsersSearchViewModel(
                 SharingStarted.WhileSubscribed(),
                 excludeUsers(delegate.searchResultList.value, emptySet()),
             )
+
+    override val noResultsFound: StateFlow<Boolean?> =
+        combine(delegate.noResultsFound, delegate.searchResultList, searchResultList, ::noResultsFoundAfterExclusion)
+            .stateIn(
+                coroutineScope,
+                SharingStarted.WhileSubscribed(),
+                noResultsFoundAfterExclusion(
+                    delegate.noResultsFound.value,
+                    delegate.searchResultList.value,
+                    searchResultList.value,
+                ),
+            )
 }
 
 private fun excludeUsers(searchResults: List<UserSearchResult>, excludedUserIds: Set<UserId>): List<UserSearchResult> {
     return searchResults.filterNot { it.userId in excludedUserIds }
+}
+
+private fun noResultsFoundAfterExclusion(
+    noResultsFound: Boolean?,
+    unfilteredResults: List<UserSearchResult>,
+    filteredResults: List<UserSearchResult>,
+): Boolean? {
+    if (noResultsFound != false) return noResultsFound
+    return unfilteredResults.isNotEmpty() && filteredResults.isEmpty()
 }

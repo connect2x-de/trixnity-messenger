@@ -23,13 +23,16 @@ import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
+import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.core.qualifier.named
@@ -81,6 +84,32 @@ class PotentialMembersNewSearchViewModelTest {
         members.value = roomUsers(Membership.LEAVE to joinedUser)
 
         cut.userSearchViewModel.searchResultList.first { it == listOf(joinedUser, otherUser) }
+    }
+
+    @Test
+    fun `should report no results when all found users are already in the room`() = runTest {
+        every { userServiceMock.getAll(roomId) } returns MutableStateFlow(roomUsers(Membership.JOIN to joinedUser))
+        val cut = createPotentialMembersNewSearchViewModel(listOf(joinedUser))
+        backgroundScope.launch { cut.userSearchViewModel.searchResultList.collect() }
+
+        cut.userSearchViewModel.searchTerm.update("u")
+
+        cut.userSearchViewModel.noResultsFound.first { it == true }
+    }
+
+    @Test
+    fun `should not report no results when the only found user was selected`() = runTest {
+        every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
+        val cut = createPotentialMembersNewSearchViewModel(listOf(otherUser))
+        backgroundScope.launch { cut.userSearchViewModel.searchResultList.collect() }
+
+        cut.userSearchViewModel.searchTerm.update("u")
+        cut.userSearchViewModel.noResultsFound.first { it == false }
+
+        cut.userSearchViewModel.filterNotSearchResult(otherUser)
+        cut.userSearchViewModel.searchResultList.first { it.isEmpty() }
+
+        cut.userSearchViewModel.noResultsFound.value shouldBe false
     }
 
     private fun roomUsers(vararg users: Pair<Membership, HomeserverUserSearchResult>): Map<UserId, Flow<RoomUser?>> {
