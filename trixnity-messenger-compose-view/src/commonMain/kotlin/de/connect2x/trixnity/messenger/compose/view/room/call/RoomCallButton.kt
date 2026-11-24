@@ -17,25 +17,25 @@ import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallButtonViewModel
 
 @Composable
 @TrixnityMessengerCallApi
-fun CallControlButton(viewModel: CallControlViewModel) {
+fun RoomCallButton(viewModel: RoomCallButtonViewModel) {
     val state = viewModel.state.collectAsState().value
-    val errorMessage = (state as? CallControlViewModel.State.Error)?.message
+    val errorMessage = (state as? RoomCallButtonViewModel.State.Error)?.message
 
     val colorAndIcon =
         when (state) {
-            is CallControlViewModel.State.CallAvailable if state.hasParticipants ->
+            is RoomCallButtonViewModel.State.CallAvailable if state.hasParticipants ->
                 MaterialTheme.messengerColors.success to Icons.Default.Call
-            is CallControlViewModel.State.CallAvailable ->
+            is RoomCallButtonViewModel.State.CallAvailable ->
                 MaterialTheme.colorScheme.onSurfaceVariant to Icons.Default.Call
-            is CallControlViewModel.State.Joining -> MaterialTheme.colorScheme.error to Icons.Default.Call
-            is CallControlViewModel.State.Join -> MaterialTheme.colorScheme.error to Icons.Default.CallEnd
-            CallControlViewModel.State.Leaving -> MaterialTheme.colorScheme.onSurfaceVariant to Icons.Default.CallEnd
-            is CallControlViewModel.State.Error -> MaterialTheme.colorScheme.error to Icons.Default.Call
-            CallControlViewModel.State.NoCall -> null
+            is RoomCallButtonViewModel.State.Joining -> MaterialTheme.colorScheme.error to Icons.Default.Call
+            is RoomCallButtonViewModel.State.Join -> MaterialTheme.colorScheme.error to Icons.Default.CallEnd
+            RoomCallButtonViewModel.State.Leaving -> MaterialTheme.colorScheme.onSurfaceVariant to Icons.Default.CallEnd
+            is RoomCallButtonViewModel.State.Error -> MaterialTheme.colorScheme.error to Icons.Default.Call
+            RoomCallButtonViewModel.State.NoCall -> null
             null -> null
         }
 
@@ -43,11 +43,12 @@ fun CallControlButton(viewModel: CallControlViewModel) {
         val (color, icon) = colorAndIcon
         ThemedIconButton(
             style = MaterialTheme.components.commonIconButton,
-            enabled = state is CallControlViewModel.State.CallAvailable || state is CallControlViewModel.State.Join,
+            enabled =
+                state is RoomCallButtonViewModel.State.CallAvailable || state is RoomCallButtonViewModel.State.Join,
             onClick = {
                 when (state) {
-                    is CallControlViewModel.State.CallAvailable -> viewModel.join()
-                    CallControlViewModel.State.Join -> viewModel.leave()
+                    is RoomCallButtonViewModel.State.CallAvailable -> viewModel.join()
+                    RoomCallButtonViewModel.State.Join -> viewModel.leave()
                     else -> {}
                 }
             },

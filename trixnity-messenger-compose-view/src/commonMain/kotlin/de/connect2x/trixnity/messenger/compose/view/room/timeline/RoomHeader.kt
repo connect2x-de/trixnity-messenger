@@ -46,7 +46,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.minHeaderHeight
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.room.call.CallControlButton
+import de.connect2x.trixnity.messenger.compose.view.room.call.RoomCallButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
@@ -232,7 +232,7 @@ fun RoomExtras(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boo
 
     @OptIn(TrixnityMessengerCallApi::class)
     if (messengerConfiguration.features.enableVideoCalls && roomHeaderViewModel.call != null) {
-        CallControlButton(requireNotNull(roomHeaderViewModel.call))
+        RoomCallButton(requireNotNull(roomHeaderViewModel.call))
     }
 
     if (showSettingsButton) {

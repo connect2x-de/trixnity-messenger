@@ -37,24 +37,24 @@ import org.koin.core.component.get
 import org.koin.core.component.inject
 
 @TrixnityMessengerCallApi
-interface CallControlViewModelFactory {
-    fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallControlViewModel?
+interface RoomCallButtonViewModelFactory {
+    fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): RoomCallButtonViewModel?
 }
 
 @TrixnityMessengerCallApi
-class CallControlViewModelFactoryImpl(private val messengerConfiguration: MatrixMessengerConfiguration) :
-    CallControlViewModelFactory {
-    override fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallControlViewModel? {
+class RoomCallButtonViewModelFactoryImpl(private val messengerConfiguration: MatrixMessengerConfiguration) :
+    RoomCallButtonViewModelFactory {
+    override fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): RoomCallButtonViewModel? {
         if (!messengerConfiguration.features.enableVideoCalls) {
             return null
         }
 
-        return CallControlViewModelImpl(viewModelContext, roomId)
+        return RoomCallButtonViewModelImpl(viewModelContext, roomId)
     }
 }
 
 @TrixnityMessengerCallApi
-interface CallControlViewModel {
+interface RoomCallButtonViewModel {
     val state: StateFlow<State?>
 
     fun join()
@@ -78,12 +78,12 @@ interface CallControlViewModel {
 
 @OptIn(MSC4143::class, MSC4193::class, MSC4195::class)
 @TrixnityMessengerCallApi
-class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, private val roomId: RoomId) :
-    CallControlViewModel, MatrixClientViewModelContext by viewModelContext {
+class RoomCallButtonViewModelImpl(viewModelContext: MatrixClientViewModelContext, private val roomId: RoomId) :
+    RoomCallButtonViewModel, MatrixClientViewModelContext by viewModelContext {
 
     init {
         check(get<MatrixMessengerConfiguration>().features.enableVideoCalls) {
-            "CallControlViewModel must not be used without video calls enabled"
+            "RoomCallButtonViewModel must not be used without video calls enabled"
         }
     }
 
@@ -114,33 +114,33 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     private val configuration: MatrixMessengerConfiguration by inject()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val state: StateFlow<CallControlViewModel.State?> = let {
-        if (!configuration.features.enableVideoCalls) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
+    override val state: StateFlow<RoomCallButtonViewModel.State?> = let {
+        if (!configuration.features.enableVideoCalls) return@let MutableStateFlow(RoomCallButtonViewModel.State.NoCall)
         // TODO(fhilgers): can we check that features are only enabled when nav3 is enabled?
-        if (routeNavigation == null) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
+        if (routeNavigation == null) return@let MutableStateFlow(RoomCallButtonViewModel.State.NoCall)
 
         messengerSettings
             .map { it.experimental.enableVideoCalls }
             .distinctUntilChanged()
             .flatMapLatest { enabled ->
-                if (!enabled) return@flatMapLatest flowOf(CallControlViewModel.State.NoCall)
+                if (!enabled) return@flatMapLatest flowOf(RoomCallButtonViewModel.State.NoCall)
 
                 combine(membership.flatMapLatest { it?.state ?: flowOf(null) }, canCreateOrJoin, hasParticipants) {
                     existingMembershipState,
                     canCreateOrJoin,
                     hasParticipants ->
                     when (existingMembershipState) {
-                        is RtcSlotMembership.State.Join -> CallControlViewModel.State.Join
-                        is RtcSlotMembership.State.Joining -> CallControlViewModel.State.Joining
-                        is RtcSlotMembership.State.Leaving -> CallControlViewModel.State.Leaving
+                        is RtcSlotMembership.State.Join -> RoomCallButtonViewModel.State.Join
+                        is RtcSlotMembership.State.Joining -> RoomCallButtonViewModel.State.Joining
+                        is RtcSlotMembership.State.Leaving -> RoomCallButtonViewModel.State.Leaving
                         is RtcSlotMembership.State.JoiningError,
                         is RtcSlotMembership.State.LeavingError ->
-                            CallControlViewModel.State.Error(i18n.callJoinError())
+                            RoomCallButtonViewModel.State.Error(i18n.callJoinError())
 
                         is RtcSlotMembership.State.Leave,
                         null ->
-                            if (canCreateOrJoin) CallControlViewModel.State.CallAvailable(hasParticipants)
-                            else CallControlViewModel.State.NoCall
+                            if (canCreateOrJoin) RoomCallButtonViewModel.State.CallAvailable(hasParticipants)
+                            else RoomCallButtonViewModel.State.NoCall
                     }
                 }
             }
@@ -148,7 +148,7 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     }
 
     override fun join() {
-        if (state.value !is CallControlViewModel.State.CallAvailable) return
+        if (state.value !is RoomCallButtonViewModel.State.CallAvailable) return
         routeNavigation?.updateNavigation {
             val route = RoomCallRoute(userId, roomId)
             if (route !in items) push(route)
@@ -166,8 +166,9 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
 }
 
 @TrixnityMessengerCallApi
-class PreviewCallControlViewModel : CallControlViewModel {
-    override val state: StateFlow<CallControlViewModel.State> = MutableStateFlow(CallControlViewModel.State.NoCall)
+class PreviewRoomCallButtonViewModel : RoomCallButtonViewModel {
+    override val state: StateFlow<RoomCallButtonViewModel.State> =
+        MutableStateFlow(RoomCallButtonViewModel.State.NoCall)
 
     override fun join() = Unit
 
