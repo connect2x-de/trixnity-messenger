@@ -17,7 +17,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
@@ -49,7 +48,6 @@ class RoomSettingsViewImpl : RoomSettingsView {
         val i18n = DI.get<I18nView>()
         val error = roomSettingsViewModel.error.collectAsState().value
         val leaveRoomWarningOpen = roomSettingsViewModel.leaveRoomWarningOpen.collectAsState().value
-        val joinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
         val scroll = rememberScrollState()
 
         ExtrasPaneHeader(
@@ -77,10 +75,8 @@ class RoomSettingsViewImpl : RoomSettingsView {
                     val showRoomAliasSettings = roomAliasViewModel.showRoomAliasSettings.collectAsState().value
                     if (showRoomAliasSettings) RoomSettingsAlias(roomAliasViewModel)
 
-                    if (joinRule == JoinRulesEventContent.JoinRule.Public) {
-                        HorizontalDivider()
-                        RoomSettingsSecurity(roomSettingsViewModel.roomSettingsSecurityViewModel)
-                    }
+                    HorizontalDivider()
+                    RoomSettingsSecurity(roomSettingsViewModel.roomSettingsSecurityViewModel)
 
                     HorizontalDivider()
                     RoomSettingsNotifications(roomSettingsViewModel.roomSettingsNotificationsViewModel)

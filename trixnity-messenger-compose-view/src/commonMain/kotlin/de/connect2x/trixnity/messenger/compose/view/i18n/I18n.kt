@@ -3431,6 +3431,21 @@ open class I18nView(
         DE - "Ende-zu-Ende Verschlüsselung für diesen Raum aktivieren"
     }
 
+    open fun roomEndToEndEncryptionForbiddenAlreadyEnabled() = translate {
+        EN - "End-to-end encryption is already enabled for this room"
+        DE - "Ende-zu-Ende Verschlüsselung ist in diesem Raum schon aktiviert"
+    }
+
+    open fun roomEndToEndEncryptionForbiddenJoinRulePublic() = translate {
+        EN - "End-to-end encryption can't be enabled for public rooms"
+        DE - "Ende-zu-Ende Verschlüsselung kann für Öffentliche Räume nicht aktiviert werden"
+    }
+
+    open fun roomEndToEndEncryptionForbiddenOtherwise() = translate {
+        EN - "End-to-end encryption can't be enabled for this rooms"
+        DE - "Ende-zu-Ende Verschlüsselung kann für diesen Raum nicht aktiviert werden"
+    }
+
     open fun roomEnableEncryptionWarningConfirmation() = translate {
         EN - "Yes, continue"
         DE - "Ja, fortfahren"

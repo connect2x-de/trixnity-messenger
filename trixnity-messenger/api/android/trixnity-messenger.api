@@ -7495,6 +7495,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/Previ
 	public fun closeEnableEncryptionWarning ()V
 	public fun enableEncryption ()V
 	public fun getCanEnableEncryption ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getJoinRule ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isChat ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isEncrypted ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isEncryptionWarningOpen ()Lkotlinx/coroutines/flow/StateFlow;
@@ -7893,6 +7894,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/s
 	public abstract fun closeEnableEncryptionWarning ()V
 	public abstract fun enableEncryption ()V
 	public abstract fun getCanEnableEncryption ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getJoinRule ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isChat ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isEncrypted ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isEncryptionWarningOpen ()Lkotlinx/coroutines/flow/StateFlow;
@@ -7929,6 +7931,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/RoomS
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getJoinRule ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;

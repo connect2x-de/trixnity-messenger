@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -35,8 +38,11 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
         val i18n = DI.get<I18nView>()
         val isEncrypting = roomSettingsSecurityViewModel.isEncrypted.collectAsState().value
         val canEnableEncryption = roomSettingsSecurityViewModel.canEnableEncryption.collectAsState().value
+        val joinRule = roomSettingsSecurityViewModel.joinRule.collectAsState()
         val leaveEnableEncryptionWarningOpen =
             roomSettingsSecurityViewModel.isEncryptionWarningOpen.collectAsState().value
+
+        val cantToggleReason: String? = cantToggleReason(isEncrypting, joinRule, canEnableEncryption, i18n)
 
         Column {
             ThemedListItem(
@@ -49,8 +55,14 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
                 style = MaterialTheme.components.settingsItem,
                 headlineContent = { Text(i18n.roomEndToEndEncryption()) },
                 supportingContent = { Text(i18n.roomEndToEndEncryptionDescription()) },
+                leadingContent = {
+                    if (cantToggleReason != null) {
+                        HelpIcon(cantToggleReason)
+                    }
+                },
                 selected = isEncrypting,
-                enabled = canEnableEncryption,
+                enabled = canEnableEncryption == true,
+                isSelectable = true,
                 onChange = { roomSettingsSecurityViewModel.openEnableEncryptionWarning() },
             )
         }
@@ -58,6 +70,27 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
             RoomSettingsEnableEncryptionWarning(roomSettingsSecurityViewModel)
         }
     }
+}
+
+fun cantToggleReason(
+    isEncrypting: Boolean,
+    joinRule: State<JoinRule?>,
+    canEnableEncryption: Boolean?,
+    i18n: I18nView,
+): String? {
+    if (isEncrypting) {
+        return i18n.roomEndToEndEncryptionForbiddenAlreadyEnabled()
+    }
+
+    if (joinRule.value is JoinRule.Public) {
+        return i18n.roomEndToEndEncryptionForbiddenJoinRulePublic()
+    }
+
+    if (canEnableEncryption == false) {
+        return i18n.roomEndToEndEncryptionForbiddenOtherwise()
+    }
+
+    return null
 }
 
 @Composable

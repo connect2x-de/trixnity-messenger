@@ -2,10 +2,13 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.client.user.canSendEvent
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,7 +34,8 @@ interface RoomSettingsSecurityViewModelFactory {
 interface RoomSettingsSecurityViewModel {
     val isChat: StateFlow<Boolean>
     val isEncrypted: StateFlow<Boolean>
-    val canEnableEncryption: StateFlow<Boolean>
+    val joinRule: StateFlow<JoinRule?>
+    val canEnableEncryption: StateFlow<Boolean?>
     val isEncryptionWarningOpen: StateFlow<Boolean>
 
     fun openEnableEncryptionWarning()
@@ -56,13 +61,20 @@ class RoomSettingsSecurityViewModelImpl(
             .getById(selectedRoomId)
             .mapLatest { room -> room?.encrypted == true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    override val canEnableEncryption: StateFlow<Boolean> =
-        combine(matrixClient.user.canSendEvent<EncryptionEventContent>(selectedRoomId), isEncrypted) {
+
+    override val joinRule: StateFlow<JoinRule?> =
+        matrixClient.room
+            .getState<JoinRulesEventContent>(selectedRoomId)
+            .map { it?.content?.joinRule ?: JoinRule.Invite }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val canEnableEncryption: StateFlow<Boolean?> =
+        combine(matrixClient.user.canSendEvent<EncryptionEventContent>(selectedRoomId), isEncrypted, joinRule) {
                 canEncrypt,
-                isEncrypted ->
-                return@combine canEncrypt && !isEncrypted
+                isEncrypted,
+                joinRule ->
+                return@combine canEncrypt && !isEncrypted && joinRule != null && joinRule != JoinRule.Public
             }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val isEncryptionWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override fun openEnableEncryptionWarning() {
@@ -75,7 +87,7 @@ class RoomSettingsSecurityViewModelImpl(
 
     override fun enableEncryption() {
         log.debug { "enableRoomEncryption for $selectedRoomId" }
-        if (canEnableEncryption.value) {
+        if (canEnableEncryption.value == true) {
             coroutineScope.launch {
                 val roomApiClient = matrixClient.api.room
                 roomApiClient
@@ -96,6 +108,7 @@ class RoomSettingsSecurityViewModelImpl(
 class PreviewRoomSettingsSecurityViewModel : RoomSettingsSecurityViewModel {
     override val isChat: StateFlow<Boolean> = MutableStateFlow(false)
     override val isEncrypted: StateFlow<Boolean> = MutableStateFlow(false)
+    override val joinRule: StateFlow<JoinRule?> = MutableStateFlow(null)
     override val canEnableEncryption: StateFlow<Boolean> = MutableStateFlow(false)
     override val isEncryptionWarningOpen: StateFlow<Boolean> = MutableStateFlow(false)
 

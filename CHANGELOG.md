@@ -11,6 +11,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- UI, SDK: Made Room settings security section always appear and disabled encryption toggle for public rooms
+- SDK: (**breaking change**) Made `canEnableEncryption` in `RoomSettingsSecurityViewModel` nullable
 - INTERNAL: Bump Trixnity to 5.11.1-SNAPSHOT.CI-20261119.172943
 - SDK: (**breaking change**) Use callbacks for thumbnail and download progress
 - SDK, UI: (**breaking change**) Replace thumbnail loading flags with image download progress
