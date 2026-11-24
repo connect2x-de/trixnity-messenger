@@ -6,6 +6,7 @@ import org.koin.dsl.module
 import web.audio.AudioContext
 
 actual fun platformMediaModule(): Module = module {
+    single<ScreenWakeLock> { ScreenWakeLock() }
     single<AudioContext> { AudioContext() }
     single<MediaPlayer> { WebMediaPlayer(get(), get()) }.apply { bind<AutoCloseable>() }
     single<PlatformAudioRecorder> { WebAudioRecorder(get(), get(), get(), get()) }.apply { bind<AutoCloseable>() }

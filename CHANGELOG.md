@@ -34,6 +34,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - UI,DESKTOP: Prefer typical file extensions when pasting images from the desktop clipboard
 - SDK: Reset thumbnail loading state after errors or cancellation
 - SDK: Fix voice message preview playing a previous recording
+- ANDROID,IOS,WEB: Keep the screen awake while recording a voice message
 
 ### Security
 

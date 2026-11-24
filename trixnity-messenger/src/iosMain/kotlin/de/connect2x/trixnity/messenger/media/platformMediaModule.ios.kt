@@ -5,6 +5,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 actual fun platformMediaModule(): Module = module {
+    single<ScreenWakeLock> { ScreenWakeLock() }
     single<MediaPlayer> { AppleMediaPlayer(get()) }.apply { bind<AutoCloseable>() }
     single<PlatformAudioRecorder> { AppleAudioRecorder(get(), get(), get()) }.apply { bind<AutoCloseable>() }
 }
