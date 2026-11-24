@@ -46,6 +46,8 @@ class PotentialMembersNewSearchViewModelTest {
     private val joinedUser = searchResult(UserId("joined", "server"))
     private val invitedUser = searchResult(UserId("invited", "server"))
     private val leftUser = searchResult(UserId("left", "server"))
+    private val bannedUser = searchResult(UserId("banned", "server"))
+    private val knockingUser = searchResult(UserId("knocking", "server"))
     private val otherUser = searchResult(UserId("other", "server"))
 
     private val userServiceMock = mock<UserService>()
@@ -70,6 +72,17 @@ class PotentialMembersNewSearchViewModelTest {
         cut.userSearchViewModel.searchTerm.update("u")
 
         cut.userSearchViewModel.searchResultList.first { it == listOf(leftUser, otherUser) }
+    }
+
+    @Test
+    fun `should hide banned users and show knocking users`() = runTest {
+        val members = MutableStateFlow(roomUsers(Membership.BAN to bannedUser, Membership.KNOCK to knockingUser))
+        every { userServiceMock.getAll(roomId) } returns members
+        val cut = createPotentialMembersNewSearchViewModel(listOf(bannedUser, knockingUser))
+
+        cut.userSearchViewModel.searchTerm.update("u")
+
+        cut.userSearchViewModel.searchResultList.first { it == listOf(knockingUser) }
     }
 
     @Test

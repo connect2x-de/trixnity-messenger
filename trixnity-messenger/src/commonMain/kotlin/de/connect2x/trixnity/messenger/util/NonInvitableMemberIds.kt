@@ -10,8 +10,10 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 
+private val nonInvitableMemberships = setOf(Membership.JOIN, Membership.INVITE, Membership.BAN)
+
 internal fun nonInvitableMemberIds(matrixClient: MatrixClient, roomId: RoomId): Flow<Set<UserId>> {
     return matrixClient.user.getAll(roomId).flatten().mapNotNull { users ->
-        users.values.filterNotNull().filterNot { it.membership == Membership.LEAVE }.map { it.userId }.toSet()
+        users.values.filterNotNull().filter { it.membership in nonInvitableMemberships }.map { it.userId }.toSet()
     }
 }

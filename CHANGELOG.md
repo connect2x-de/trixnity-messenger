@@ -40,6 +40,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Reset thumbnail loading state after errors or cancellation
 - SDK: Fix voice message preview playing a previous recording
 - ANDROID,IOS,WEB: Keep the screen awake while recording a voice message
+- SDK: Offer users who knocked on a room for invitation and hide banned users when adding members
 
 ### Security
 
