@@ -19,6 +19,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Removed
 
+- `CustomEventContentSerializerMappings` is now part of Trixnity and has been removed from `MatrixClientFactory`
+
 ### Fixed
 
 - UI,WEB: Fix collapsed passphrase field in account verification

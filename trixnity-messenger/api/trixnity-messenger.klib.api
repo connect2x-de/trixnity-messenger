@@ -5374,12 +5374,6 @@ abstract interface de.connect2x.trixnity.messenger/CreateRepositoriesModule { //
     abstract suspend fun load(de.connect2x.trixnity.core.model/UserId, kotlin/ByteArray?): de.connect2x.trixnity.client/RepositoriesModule // de.connect2x.trixnity.messenger/CreateRepositoriesModule.load|load(de.connect2x.trixnity.core.model.UserId;kotlin.ByteArray?){}[0]
 }
 
-abstract interface de.connect2x.trixnity.messenger/CustomEventContentSerializerMappings : de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings { // de.connect2x.trixnity.messenger/CustomEventContentSerializerMappings|null[0]
-    final object Companion { // de.connect2x.trixnity.messenger/CustomEventContentSerializerMappings.Companion|null[0]
-        final fun invoke(kotlin/Function1<de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappingsBuilder, kotlin/Unit>): de.connect2x.trixnity.messenger/CustomEventContentSerializerMappings // de.connect2x.trixnity.messenger/CustomEventContentSerializerMappings.Companion.invoke|invoke(kotlin.Function1<de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder,kotlin.Unit>){}[0]
-    }
-}
-
 abstract interface de.connect2x.trixnity.messenger/MatrixClientFactory { // de.connect2x.trixnity.messenger/MatrixClientFactory|null[0]
     abstract suspend fun create(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.clientserverapi.client/MatrixClientAuthProviderData, kotlin/Function1<de.connect2x.trixnity.client/MatrixClientConfiguration, kotlin/Unit> = ...): kotlin/Result<de.connect2x.trixnity.client/MatrixClient> // de.connect2x.trixnity.messenger/MatrixClientFactory.create|create(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData;kotlin.Function1<de.connect2x.trixnity.client.MatrixClientConfiguration,kotlin.Unit>){}[0]
     abstract suspend fun load(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.clientserverapi.client/MatrixClientAuthProviderData? = ..., kotlin/Function1<de.connect2x.trixnity.client/MatrixClientConfiguration, kotlin/Unit> = ...): kotlin/Result<de.connect2x.trixnity.client/MatrixClient> // de.connect2x.trixnity.messenger/MatrixClientFactory.load|load(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData?;kotlin.Function1<de.connect2x.trixnity.client.MatrixClientConfiguration,kotlin.Unit>){}[0]
