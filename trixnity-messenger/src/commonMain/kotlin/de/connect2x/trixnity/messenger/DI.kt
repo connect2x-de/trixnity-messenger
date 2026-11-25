@@ -499,6 +499,7 @@ private fun newSearchViewModels() = module {
                             potentialMembersNewSearchViewModel =
                                 PotentialMembersNewSearchViewModelImpl(
                                     viewModelContext = viewModelContext,
+                                    roomId = roomId,
                                     potentialMembersViewModel = potentialMembersViewModel,
                                 ),
                         )
@@ -525,6 +526,7 @@ private fun newSearchViewModels() = module {
                 return if (config.features.enableNewSearch) {
                     PotentialMembersNewSearchViewModelImpl(
                             viewModelContext = viewModelContext,
+                            roomId = roomId,
                             potentialMembersViewModel =
                                 PotentialMembersViewModelImpl(viewModelContext = viewModelContext, roomId = roomId),
                         )

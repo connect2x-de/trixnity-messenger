@@ -10,6 +10,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 
 - UI: Add dedicated space settings
+- SDK: Exclude current room and space members from the new user search when adding members
+- SDK: Show the no results hint in the new add members search if only room members match
 
 ### Changed
 
@@ -18,6 +20,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - INTERNAL: Bump Trixnity to 5.11.1-SNAPSHOT.CI-20261119.172943
 - SDK: (**breaking change**) Use callbacks for thumbnail and download progress
 - SDK, UI: (**breaking change**) Replace thumbnail loading flags with image download progress
+- SDK: (**breaking change**) Added `roomId` parameter to `PotentialMembersNewSearchViewModelImpl`
 
 ### Deprecated
 
@@ -37,6 +40,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: Reset thumbnail loading state after errors or cancellation
 - SDK: Fix voice message preview playing a previous recording
 - ANDROID,IOS,WEB: Keep the screen awake while recording a voice message
+- SDK: Offer users who knocked on a room for invitation and hide banned users when adding members
 
 ### Security
 

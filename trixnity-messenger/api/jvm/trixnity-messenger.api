@@ -7126,7 +7126,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/s
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersViewModel {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersViewModel;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersViewModel;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
