@@ -287,6 +287,7 @@ abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/Ro
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView|null[0]
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomView|null[0]
@@ -303,6 +304,7 @@ abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/Ro
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView|null[0]
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsView|null[0]
@@ -319,6 +321,7 @@ abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/Ro
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView|null[0]
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicView.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsView|null[0]
@@ -796,6 +799,10 @@ abstract interface de.connect2x.trixnity.messenger.compose.view.settings/UserSet
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.sharing/ShareDataView { // de.connect2x.trixnity.messenger.compose.view.sharing/ShareDataView|null[0]
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.sharing/ShareDataView.create|create(de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsView { // de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsView|null[0]
+    abstract fun create(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel, kotlin/Boolean, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsView.create|create(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceSettingsViewModel;kotlin.Boolean;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuState { // de.connect2x.trixnity.messenger.compose.view.theme.components/ThemedActionMenuState|null[0]
@@ -1653,6 +1660,7 @@ final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSetti
     constructor <init>() // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesViewImpl.<init>|<init>(){}[0]
 
     final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsViewModel, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsJoinRulesViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomViewImpl : de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsLeaveRoomViewImpl|null[0]
@@ -1677,6 +1685,7 @@ final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSetti
     constructor <init>() // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameViewImpl.<init>|<init>(){}[0]
 
     final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsNameViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNameViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsViewImpl : de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsNotificationsViewImpl|null[0]
@@ -1707,6 +1716,7 @@ final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSetti
     constructor <init>() // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicViewImpl.<init>|<init>(){}[0]
 
     final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    final fun create(de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsTopicViewModel, kotlin/String, kotlin/String, kotlin/String, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsTopicViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel;kotlin.String;kotlin.String;kotlin.String;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsViewImpl : de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsView { // de.connect2x.trixnity.messenger.compose.view.room.settings/RoomSettingsViewImpl|null[0]
@@ -2826,6 +2836,12 @@ final class de.connect2x.trixnity.messenger.compose.view.sharing/ShareDataViewIm
     constructor <init>() // de.connect2x.trixnity.messenger.compose.view.sharing/ShareDataViewImpl.<init>|<init>(){}[0]
 
     final fun create(de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.sharing/ShareDataViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsViewImpl : de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsView { // de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsViewImpl|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsViewImpl.<init>|<init>(){}[0]
+
+    final fun create(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel, kotlin/Boolean, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.space/SpaceSettingsViewImpl.create|create(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceSettingsViewModel;kotlin.Boolean;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.compose.view.theme.components/AvatarStyle { // de.connect2x.trixnity.messenger.compose.view.theme.components/AvatarStyle|null[0]
@@ -4673,15 +4689,22 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun spacesAllRooms(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesAllRooms|spacesAllRooms(){}[0]
     open fun spacesChildCounts(kotlin/Int, kotlin/Int, kotlin/Int = ...): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesChildCounts|spacesChildCounts(kotlin.Int;kotlin.Int;kotlin.Int){}[0]
     open fun spacesDecline(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesDecline|spacesDecline(){}[0]
+    open fun spacesDescription(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesDescription|spacesDescription(){}[0]
+    open fun spacesDescriptionPlaceholder(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesDescriptionPlaceholder|spacesDescriptionPlaceholder(){}[0]
+    open fun spacesEditDescription(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesEditDescription|spacesEditDescription(){}[0]
+    open fun spacesEditName(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesEditName|spacesEditName(){}[0]
     open fun spacesEmptyList(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesEmptyList|spacesEmptyList(){}[0]
     open fun spacesEmptySpace(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesEmptySpace|spacesEmptySpace(){}[0]
     open fun spacesExplore(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesExplore|spacesExplore(){}[0]
     open fun spacesInvitations(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesInvitations|spacesInvitations(){}[0]
+    open fun spacesJoinRule(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesJoinRule|spacesJoinRule(){}[0]
     open fun spacesJoining(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesJoining|spacesJoining(){}[0]
     open fun spacesLoadError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesLoadError|spacesLoadError(){}[0]
     open fun spacesLoopWarning(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesLoopWarning|spacesLoopWarning(){}[0]
     open fun spacesMemberCount(kotlin/Long): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesMemberCount|spacesMemberCount(kotlin.Long){}[0]
     open fun spacesMembershipError(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesMembershipError|spacesMembershipError(){}[0]
+    open fun spacesName(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesName|spacesName(){}[0]
+    open fun spacesNamePlaceholder(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesNamePlaceholder|spacesNamePlaceholder(){}[0]
     open fun spacesNavigationHome(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesNavigationHome|spacesNavigationHome(){}[0]
     open fun spacesNoJoinedRooms(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesNoJoinedRooms|spacesNoJoinedRooms(){}[0]
     open fun spacesNoSearchResults(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.spacesNoSearchResults|spacesNoSearchResults(){}[0]
@@ -5366,6 +5389,7 @@ final val de.connect2x.trixnity.messenger.compose.view.settings/de_connect2x_tri
 final val de.connect2x.trixnity.messenger.compose.view.settings/de_connect2x_trixnity_messenger_compose_view_settings_SettingsAccountCardImpl$stableprop // de.connect2x.trixnity.messenger.compose.view.settings/de_connect2x_trixnity_messenger_compose_view_settings_SettingsAccountCardImpl$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_settings_SettingsAccountCardImpl$stableprop[0]
 final val de.connect2x.trixnity.messenger.compose.view.settings/de_connect2x_trixnity_messenger_compose_view_settings_UserSettingsViewImpl$stableprop // de.connect2x.trixnity.messenger.compose.view.settings/de_connect2x_trixnity_messenger_compose_view_settings_UserSettingsViewImpl$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_settings_UserSettingsViewImpl$stableprop[0]
 final val de.connect2x.trixnity.messenger.compose.view.sharing/de_connect2x_trixnity_messenger_compose_view_sharing_ShareDataViewImpl$stableprop // de.connect2x.trixnity.messenger.compose.view.sharing/de_connect2x_trixnity_messenger_compose_view_sharing_ShareDataViewImpl$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_sharing_ShareDataViewImpl$stableprop[0]
+final val de.connect2x.trixnity.messenger.compose.view.space/de_connect2x_trixnity_messenger_compose_view_space_SpaceSettingsViewImpl$stableprop // de.connect2x.trixnity.messenger.compose.view.space/de_connect2x_trixnity_messenger_compose_view_space_SpaceSettingsViewImpl$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_space_SpaceSettingsViewImpl$stableprop[0]
 final val de.connect2x.trixnity.messenger.compose.view.theme.components/LocalContent // de.connect2x.trixnity.messenger.compose.view.theme.components/LocalContent|@androidx.compose.ui.graphics.Color.Companion{}LocalContent[0]
     final fun (androidx.compose.ui.graphics/Color.Companion).<get-LocalContent>(): androidx.compose.ui.graphics/Color // de.connect2x.trixnity.messenger.compose.view.theme.components/LocalContent.<get-LocalContent>|<get-LocalContent>@androidx.compose.ui.graphics.Color.Companion(){}[0]
 final val de.connect2x.trixnity.messenger.compose.view.theme.components/LocalSurfaceStyle // de.connect2x.trixnity.messenger.compose.view.theme.components/LocalSurfaceStyle|{}LocalSurfaceStyle[0]
@@ -6192,6 +6216,8 @@ final fun de.connect2x.trixnity.messenger.compose.view.settings/de_connect2x_tri
 final fun de.connect2x.trixnity.messenger.compose.view.sharing/ShareData(de.connect2x.trixnity.messenger.viewmodel.sharing/ShareDataViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.sharing/ShareData|ShareData(de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
 final fun de.connect2x.trixnity.messenger.compose.view.sharing/de_connect2x_trixnity_messenger_compose_view_sharing_ShareDataViewImpl$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.sharing/de_connect2x_trixnity_messenger_compose_view_sharing_ShareDataViewImpl$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_sharing_ShareDataViewImpl$stableprop_getter(){}[0]
 final fun de.connect2x.trixnity.messenger.compose.view.space/SpaceBrowserView(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceContentViewModel, de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.space/SpaceBrowserView|SpaceBrowserView(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceContentViewModel;de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+final fun de.connect2x.trixnity.messenger.compose.view.space/SpaceSettings(de.connect2x.trixnity.messenger.viewmodel.spaces/SpaceSettingsViewModel, kotlin/Boolean, androidx.compose.runtime/Composer?, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.space/SpaceSettings|SpaceSettings(de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceSettingsViewModel;kotlin.Boolean;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+final fun de.connect2x.trixnity.messenger.compose.view.space/de_connect2x_trixnity_messenger_compose_view_space_SpaceSettingsViewImpl$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.space/de_connect2x_trixnity_messenger_compose_view_space_SpaceSettingsViewImpl$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_space_SpaceSettingsViewImpl$stableprop_getter(){}[0]
 final fun de.connect2x.trixnity.messenger.compose.view.theme.components/AdaptiveDialogHeader(kotlin/Function0<kotlin/Unit>?, kotlin/Function0<kotlin/Unit>?, de.connect2x.trixnity.messenger.compose.view.theme.components/DialogStyle?, kotlin/Function3<androidx.compose.foundation.layout/ColumnScope, androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.theme.components/AdaptiveDialogHeader|AdaptiveDialogHeader(kotlin.Function0<kotlin.Unit>?;kotlin.Function0<kotlin.Unit>?;de.connect2x.trixnity.messenger.compose.view.theme.components.DialogStyle?;kotlin.Function3<androidx.compose.foundation.layout.ColumnScope,androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
 final fun de.connect2x.trixnity.messenger.compose.view.theme.components/AdaptiveDialogWrapper(androidx.compose.ui/Modifier?, de.connect2x.trixnity.messenger.compose.view.theme.components/DialogStyle?, kotlin/Function3<androidx.compose.foundation.layout/ColumnScope, androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.theme.components/AdaptiveDialogWrapper|AdaptiveDialogWrapper(androidx.compose.ui.Modifier?;de.connect2x.trixnity.messenger.compose.view.theme.components.DialogStyle?;kotlin.Function3<androidx.compose.foundation.layout.ColumnScope,androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
 final fun de.connect2x.trixnity.messenger.compose.view.theme.components/ApplySystemUiTheme(de.connect2x.trixnity.messenger.compose.view.theme.components/SystemUiStyle?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // de.connect2x.trixnity.messenger.compose.view.theme.components/ApplySystemUiTheme|ApplySystemUiTheme(de.connect2x.trixnity.messenger.compose.view.theme.components.SystemUiStyle?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]

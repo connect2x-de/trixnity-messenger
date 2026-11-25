@@ -23,6 +23,7 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.i18n
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -185,6 +186,38 @@ class RoomSettingsViewModelTest {
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(true)
         val cut = roomSettingsViewModel()
         cut.hasPowerToInvite.first { it } shouldBe true
+    }
+
+    @Test
+    fun `leaving a space warns that its rooms and subspaces remain`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns
+            flowOf(Room(roomId, createEventContent = CreateEventContent(type = CreateEventContent.RoomType.Space)))
+        val cut = roomSettingsViewModel()
+        yield()
+        cut.openLeaveRoomWarningDialog()
+        cut.leaveRoomWarningOpen.value shouldBe true
+        cut.leaveRoomWarningMessage.value shouldBe cut.i18n.settingsSpaceLeaveRoomWarningMessage()
+        cut.leaveRoomSettingEntryText.value shouldBe cut.i18n.settingsSpaceLeaveMessage()
+        cut.leaveRoomWarningTitle.value shouldBe cut.i18n.settingsSpaceLeaveTitle()
+    }
+
+    @Test
+    fun `forgetting a left space warns that its children remain available`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns
+            flowOf(
+                Room(
+                    roomId,
+                    membership = Membership.LEAVE,
+                    createEventContent = CreateEventContent(type = CreateEventContent.RoomType.Space),
+                )
+            )
+        val cut = roomSettingsViewModel()
+        yield()
+        cut.openLeaveRoomWarningDialog()
+        cut.leaveRoomWarningMessage.value shouldBe cut.i18n.settingsSpaceForgetRoomWarningMessage()
+        cut.leaveRoomSettingEntryText.value shouldBe cut.i18n.settingsSpaceForgetMessage()
+        cut.leaveRoomWarningTitle.value shouldBe cut.i18n.settingsSpaceForgetTitle()
+        cut.leaveRoomWarningConfirmButtonText.value shouldBe cut.i18n.settingsSpaceForgetConfirm()
     }
 
     private fun TestScope.roomSettingsViewModel(

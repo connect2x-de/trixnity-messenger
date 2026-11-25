@@ -337,6 +337,8 @@ import de.connect2x.trixnity.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.sharing.ShareDataView
 import de.connect2x.trixnity.messenger.compose.view.sharing.ShareDataViewImpl
+import de.connect2x.trixnity.messenger.compose.view.space.SpaceSettingsView
+import de.connect2x.trixnity.messenger.compose.view.space.SpaceSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.trixnity.messenger.compose.view.theme.DefaultAccentColorImpl
 import de.connect2x.trixnity.messenger.compose.view.theme.DefaultSizes
@@ -570,6 +572,7 @@ inline fun <reified F : TimelineElementMetadataListItemView> Module.timelineElem
 
 fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = null) = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
+    single<SpaceSettingsView> { SpaceSettingsViewImpl() }
     single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
     single<RoomSettingsNameView> { RoomSettingsNameViewImpl() }

@@ -847,6 +847,43 @@ open class I18n(
         DE - "Sie können danach nicht mehr auf die Inhalte des Chats zugreifen."
     }
 
+    open fun settingsSpaceLeaveMessage() = translate {
+        EN - "Leave space"
+        DE - "Space verlassen"
+    }
+
+    open fun settingsSpaceForgetMessage() = translate {
+        EN - "Forget space"
+        DE - "Space vergessen"
+    }
+
+    open fun settingsSpaceLeaveTitle() = translate {
+        EN - "Leave space?"
+        DE - "Space verlassen?"
+    }
+
+    open fun settingsSpaceForgetTitle() = translate {
+        EN - "Forget space?"
+        DE - "Space vergessen?"
+    }
+
+    open fun settingsSpaceForgetConfirm() = translate {
+        EN - "Yes, forget space"
+        DE - "Ja, Space vergessen"
+    }
+
+    open fun settingsSpaceForgetRoomWarningMessage() = translate {
+        EN - "Forgetting this space won't remove you from rooms or subspaces you've joined."
+        DE -
+            "Wenn Sie diesen Space vergessen, bleiben Sie Mitglied der Räume und untergeordneten Spaces, denen Sie beigetreten sind."
+    }
+
+    open fun settingsSpaceLeaveRoomWarningMessage() = translate {
+        EN - "Leaving this space won't remove you from rooms or subspaces you've joined."
+        DE -
+            "Wenn Sie diesen Space verlassen, bleiben Sie Mitglied der Räume und untergeordneten Spaces, denen Sie beigetreten sind."
+    }
+
     open fun settingsRoomLeaveRoomWarningMessageGroup() = translate {
         EN - "You will not be able to access the contents of the group afterwards."
         DE - "Sie können danach nicht mehr auf die Inhalte der Gruppe zugreifen."

@@ -21,7 +21,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsLeaveRoomView {
@@ -58,8 +57,10 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
 fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
     val isLeave = roomSettingsViewModel.isLeave.collectAsState().value
     RoomLeaveWarning(
-        isDirect = roomSettingsViewModel.isDirect.collectAsState().value,
         isLeave = isLeave,
+        message = roomSettingsViewModel.leaveRoomWarningMessage.collectAsState().value,
+        title = roomSettingsViewModel.leaveRoomWarningTitle.collectAsState().value,
+        confirm = roomSettingsViewModel.leaveRoomWarningConfirmButtonText.collectAsState().value,
         onDismiss = roomSettingsViewModel::closeLeaveRoomWarningDialog,
         onConfirm = {
             roomSettingsViewModel.leaveRoom()
@@ -74,31 +75,15 @@ fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
 
 @Composable
 internal fun RoomLeaveWarning(
-    isDirect: Boolean,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     onForget: () -> Unit,
     isLeave: Boolean = false,
+    message: String,
+    title: String,
+    confirm: String,
 ) {
     val i18n = DI.get<I18nView>()
-    val roomI18n = DI.get<I18n>()
-    val title =
-        when {
-            isLeave && isDirect -> roomI18n.settingsRoomForgetRoomWarningTitleChat()
-            isLeave -> roomI18n.settingsRoomForgetRoomWarningTitleGroup()
-            isDirect -> roomI18n.settingsRoomLeaveRoomWarningTitleChat()
-            else -> roomI18n.settingsRoomLeaveRoomWarningTitleGroup()
-        }
-    val message =
-        if (isDirect) roomI18n.settingsRoomLeaveRoomWarningMessageChat()
-        else roomI18n.settingsRoomLeaveRoomWarningMessageGroup()
-    val confirm =
-        when {
-            isLeave && isDirect -> roomI18n.settingsRoomForgetRoomWarningConfirmButtonChat()
-            isLeave -> roomI18n.settingsRoomForgetRoomWarningConfirmButtonGroup()
-            isDirect -> roomI18n.settingsRoomLeaveRoomWarningConfirmButtonChat()
-            else -> roomI18n.settingsRoomLeaveRoomWarningConfirmButtonGroup()
-        }
     ThemedModalDialog(onDismiss) {
         ModalDialogHeader { Text(title) }
         ModalDialogContent { Text(message) }

@@ -15,8 +15,6 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +38,14 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopic
 
 interface RoomSettingsTopicView {
     @Composable fun create(roomSettingsTopicViewModel: RoomSettingsTopicViewModel)
+
+    @Composable
+    fun create(
+        roomSettingsTopicViewModel: RoomSettingsTopicViewModel,
+        label: String,
+        placeholder: String,
+        editLabel: String,
+    ) = create(roomSettingsTopicViewModel)
 }
 
 @Composable
@@ -51,20 +57,36 @@ class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
     @Composable
     override fun create(roomSettingsTopicViewModel: RoomSettingsTopicViewModel) {
         val i18n = DI.get<I18nView>()
+        create(
+            roomSettingsTopicViewModel,
+            i18n.roomSettingsRoomTopic(),
+            i18n.roomSettingsRoomTopicPlaceholder(),
+            i18n.editRoomTopic(),
+        )
+    }
+
+    @Composable
+    override fun create(
+        roomSettingsTopicViewModel: RoomSettingsTopicViewModel,
+        label: String,
+        placeholder: String,
+        editLabel: String,
+    ) {
+        val i18n = DI.get<I18nView>()
         val isEdit = roomSettingsTopicViewModel.roomTopic.isEdit.collectAsState()
         val canChangeRoomTopic = roomSettingsTopicViewModel.canChangeRoomTopic.collectAsState()
         val value = roomSettingsTopicViewModel.roomTopic.collectAsTextFieldValueState()
         val content = roomSettingsTopicViewModel.formattedRoomTopic.collectAsState()
         val uriCaller = DI.get<UriCaller>()
 
-        val oldValue by remember(isEdit.value) { mutableStateOf(value.value.text) }
+        val oldValue = remember(roomSettingsTopicViewModel, isEdit.value) { value.value.text }
 
         if (!isEdit.value) {
             Row(verticalAlignment = Alignment.Top) {
                 Box(Modifier.align(Alignment.CenterVertically).weight(1f, fill = true)) {
                     if (value.value.text.isBlank() && canChangeRoomTopic.value) {
                         Text(
-                            i18n.roomSettingsRoomTopicPlaceholder(),
+                            placeholder,
                             style = MaterialTheme.typography.bodyLarge,
                             fontStyle = FontStyle.Italic,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -86,12 +108,12 @@ class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
                     }
                 }
                 if (canChangeRoomTopic.value) {
-                    Tooltip(i18n.editRoomTopic()) {
+                    Tooltip(editLabel) {
                         ThemedIconButton(
                             onClick = { roomSettingsTopicViewModel.roomTopic.startEdit() },
                             enabled = canChangeRoomTopic.value,
                         ) {
-                            Icon(Icons.Filled.Edit, contentDescription = i18n.editRoomTopic())
+                            Icon(Icons.Filled.Edit, contentDescription = editLabel)
                         }
                     }
                 }
@@ -101,7 +123,7 @@ class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
                 OutlinedTextField(
                     value = value.value,
                     onValueChange = { value.value = it },
-                    label = { Text(text = i18n.roomSettingsRoomTopic()) },
+                    label = { Text(text = label) },
                     modifier = Modifier.inputFocusNavigation().fillMaxWidth(),
                 )
                 FlowRow(

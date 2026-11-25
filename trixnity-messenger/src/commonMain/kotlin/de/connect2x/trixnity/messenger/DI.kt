@@ -186,6 +186,7 @@ import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceContentViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceExploreViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceNavigationRailViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceRoomListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.spaces.SpaceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModelFactory
@@ -391,6 +392,7 @@ private fun roomListViewModels() = module {
 }
 
 private fun spaceViewModels() = module {
+    single<SpaceSettingsViewModelFactory> { SpaceSettingsViewModelFactory }
     single<SpaceRoomListViewModelFactory> { SpaceRoomListViewModelFactory }
     single<SpaceContentViewModelFactory> { SpaceContentViewModelFactory }
     single<SpaceBrowserViewModelFactory> { SpaceBrowserViewModelFactory }
