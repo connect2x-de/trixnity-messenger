@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
 import de.connect2x.trixnity.messenger.media.PlatformMediaMock
+import de.connect2x.trixnity.messenger.media.ScreenWakeLock
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModel
@@ -60,6 +61,7 @@ class AudioRecordingAreaViewModelTest {
 
     val mediaServiceMock = mock<MediaService>()
     val recorder = mock<AudioRecorder>()
+    private val screenWakeLock = mock<ScreenWakeLock>()
     val mediaPlayerFactory = mock<MediaPlayerViewModelFactory>()
     val audioRecorderHolder = AudioRecorderHolder(recorder)
     val player = mock<MediaPlayerViewModel>()
@@ -91,6 +93,7 @@ class AudioRecordingAreaViewModelTest {
 
         every { recorder.close() } returns Unit
         everySuspend { recorder.closeSuspending() } returns Unit
+        everySuspend { screenWakeLock.hold() } returns Unit
 
         everySuspend { mediaServiceMock.prepareUploadMedia(any(), any()) } returns "testUrl"
 
@@ -544,6 +547,7 @@ class AudioRecordingAreaViewModelTest {
         additionalModule: Module = module {
             single<MediaPlayerViewModelFactory> { mediaPlayerFactory }
             single<AudioRecorderHolder> { audioRecorderHolder }
+            single<ScreenWakeLock> { screenWakeLock }
         },
     ): AudioRecordingAreaViewModel {
         val di =

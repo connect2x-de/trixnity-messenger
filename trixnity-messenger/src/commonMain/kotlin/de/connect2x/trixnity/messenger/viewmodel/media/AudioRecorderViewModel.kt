@@ -9,10 +9,15 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorder.State
+import de.connect2x.trixnity.messenger.media.ScreenWakeLock
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.koin.core.component.get
 
 @TrixnityMessengerPrivateApi
 interface AudioRecorderViewModel {
@@ -33,11 +38,18 @@ class AudioRecorderViewModelImpl(
     private val roomId: RoomId,
 ) : MatrixClientViewModelContext by viewModelContext, AudioRecorderViewModel {
     override val state: StateFlow<State> = recorder.state
+    private val screenWakeLock = get<ScreenWakeLock>()
 
     init {
         doOnDestroy { coroutineScope.launch { close() } }
         doOnStop { coroutineScope.launch { complete() } }
         doOnPause { coroutineScope.launch { complete() } }
+        coroutineScope.launch {
+            state
+                .map { it is State.Recording }
+                .distinctUntilChanged()
+                .collectLatest { recording -> if (recording) screenWakeLock.hold() }
+        }
     }
 
     override fun start() {
