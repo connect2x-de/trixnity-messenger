@@ -27,6 +27,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -40,7 +42,12 @@ import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusI
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerFocusIndicator
 
 @Composable
-fun EmojiSelector(modifier: Modifier = Modifier, onTextAdded: (String) -> Unit, onDismiss: () -> Unit) {
+fun EmojiSelector(
+    modifier: Modifier = Modifier,
+    onTextAdded: (String) -> Unit,
+    onDismiss: () -> Unit,
+    enabled: Boolean = true,
+) {
     val scrollState = rememberScrollState()
     var focusedItem by remember { mutableStateOf(emojis.firstOrNull()) }
 
@@ -65,6 +72,7 @@ fun EmojiSelector(modifier: Modifier = Modifier, onTextAdded: (String) -> Unit, 
                     for (emoji in emojis) {
                         EmojiButton(
                             label = emoji,
+                            enabled = enabled,
                             modifier =
                                 Modifier.rovingFocusItem(
                                     isFocused = focusedItem == emoji,
@@ -82,25 +90,25 @@ fun EmojiSelector(modifier: Modifier = Modifier, onTextAdded: (String) -> Unit, 
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun EmojiButton(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Box(
-        modifier =
-            modifier
-                .customClickable(
-                    indication = ripple(bounded = false, radius = 24.dp),
-                    onClick = onClick,
-                    onFocus =
-                        Modifier.border(
-                            BorderStroke(
-                                width = MaterialTheme.messengerFocusIndicator.borderWidth,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            ),
-                            shape = CircleShape,
+fun EmojiButton(label: String, modifier: Modifier = Modifier, enabled: Boolean = true, onClick: () -> Unit) {
+    val clickModifier =
+        if (enabled) {
+            Modifier.customClickable(
+                indication = ripple(bounded = false, radius = 24.dp),
+                onClick = onClick,
+                onFocus =
+                    Modifier.border(
+                        BorderStroke(
+                            width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                            color = MaterialTheme.colorScheme.onSurface,
                         ),
-                )
-                .padding(8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
+                        shape = CircleShape,
+                    ),
+            )
+        } else {
+            Modifier.semantics { disabled() }
+        }
+    Box(modifier = modifier.then(clickModifier).padding(8.dp), contentAlignment = Alignment.Center) {
         Text(text = label, style = LocalTextStyle.current.copy(fontSize = 18.sp, textAlign = TextAlign.Center))
     }
 }

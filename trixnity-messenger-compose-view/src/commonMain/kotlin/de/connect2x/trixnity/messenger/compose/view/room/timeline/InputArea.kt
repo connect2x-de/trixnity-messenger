@@ -112,14 +112,10 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.collectAsStateDebounced
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
-import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.Res
-import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.sticker
-import de.connect2x.trixnity.messenger.viewmodel.room.ImagePackViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import okio.FileSystem
-import org.jetbrains.compose.resources.painterResource
 
 private fun TextFieldState.insert(insertion: String) {
     edit {
@@ -261,7 +257,7 @@ class InputAreaViewImpl : InputAreaView {
                 }
                 if (emojisOpen.value) {
                     Column(Modifier.fillMaxWidth()) {
-                        val showStickers = stickersSelected.value && canSendStickers
+                        val showStickers = stickersSelected.value
                         if (stickerPacks != null) {
                             PrimaryTabRow(selectedTabIndex = if (showStickers) 1 else 0) {
                                 Tab(
@@ -271,7 +267,6 @@ class InputAreaViewImpl : InputAreaView {
                                 )
                                 Tab(
                                     selected = showStickers,
-                                    enabled = canSendStickers,
                                     onClick = {
                                         focusManager.clearFocus(force = true)
                                         stickersSelected.value = true
@@ -283,7 +278,9 @@ class InputAreaViewImpl : InputAreaView {
                         Box(Modifier.fillMaxWidth().height(220.dp)) {
                             val onDismiss = {
                                 emojisOpen.value = false
-                                focusRequester.requestFocus()
+                                if (canSendMessages) {
+                                    focusRequester.requestFocus()
+                                }
                             }
                             if (showStickers && stickerPacks != null) {
                                 StickerPackPicker(model = stickerPacks, onDismiss = { onDismiss() })
@@ -295,6 +292,7 @@ class InputAreaViewImpl : InputAreaView {
                                         focusRequester.requestFocus()
                                     },
                                     onDismiss = { onDismiss() },
+                                    enabled = canSendMessages,
                                 )
                             }
                         }
@@ -332,7 +330,8 @@ class InputAreaViewImpl : InputAreaView {
                                 }
                         }
                     } else {
-                        Box(Modifier.fillMaxWidth()) {
+                        EmojiButton(emojisOpen) { focusManager.clearFocus(force = true) }
+                        Box(Modifier.weight(1f)) {
                             Text(
                                 i18n.inputAreaCannotSendMessages(),
                                 modifier = Modifier.padding(10.dp).align(Alignment.Center),
@@ -625,28 +624,6 @@ fun EmojiButton(emojisOpen: MutableState<Boolean>, onOpen: () -> Unit = {}) {
             modifier = Modifier.expandable(emojisOpen),
         ) {
             Icon(Icons.Default.Mood, i18n.inputAreaEmojis())
-        }
-    }
-}
-
-@Composable
-fun StickerButton(model: ImagePackViewModel, stickersOpen: MutableState<Boolean>, onOpen: () -> Unit = {}) {
-    val i18n = DI.get<I18nView>()
-    val enabled = model.canSendStickers.collectAsState().value
-
-    Tooltip({ Text(i18n.imagePacks()) }) {
-        ThemedIconButton(
-            style = MaterialTheme.components.commonIconButton,
-            enabled = enabled,
-            onClick = {
-                stickersOpen.value = stickersOpen.value.not()
-                if (stickersOpen.value) {
-                    onOpen()
-                }
-            },
-            modifier = Modifier.expandable(stickersOpen),
-        ) {
-            Icon(painterResource(Res.drawable.sticker), i18n.imagePacks())
         }
     }
 }

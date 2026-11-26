@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -96,6 +97,7 @@ private data class StickerRemoval(
 fun StickerPackPicker(model: ImagePackViewModel, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val i18n = DI.get<I18nView>()
     val packs = model.packs.collectAsState().value
+    val canSelectSticker = model.canSendStickers.collectAsState().value
     val canManage = model.canManageRoomPacks.collectAsState().value
     val isSaving = model.isSaving.collectAsState().value
     var showFilePicker by remember { mutableStateOf(false) }
@@ -155,13 +157,15 @@ fun StickerPackPicker(model: ImagePackViewModel, onDismiss: () -> Unit, modifier
                     modifier = Modifier.fillMaxSize().padding(end = 16.dp),
                     state = listState,
                     contentPadding = PaddingValues(vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.Top,
                 ) {
                     val (globalPacks, roomPacks) = packs.partition { it.isGloballyEnabled }
                     listOf("global" to globalPacks, "room" to roomPacks).forEach { (section, sectionPacks) ->
                         if (sectionPacks.isNotEmpty()) {
                             item(key = "$section-header") {
-                                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
+                                ) {
                                     if (section == "room" && globalPacks.isNotEmpty()) {
                                         HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
                                     }
@@ -178,24 +182,33 @@ fun StickerPackPicker(model: ImagePackViewModel, onDismiss: () -> Unit, modifier
                                 val packKey = "${pack.roomId.full}:${pack.stateKey}"
                                 val canManagePack = canManage && pack.belongsToCurrentRoom
                                 val isEditing = canManagePack && editingPacks[packKey] == true
-                                item(key = "$packKey-header", contentType = "pack-header") {
-                                    StickerPackHeader(
-                                        pack = pack,
-                                        model = model,
-                                        canManagePack = canManagePack,
-                                        isEditing = isEditing,
-                                        onToggleEditing = { editingPacks[packKey] = !isEditing },
-                                        onRemovePack = { packToRemove = pack },
-                                        onDismiss = onDismiss,
-                                    )
+                                val cellCount =
+                                    pack.stickers.size +
+                                        if (canManagePack) {
+                                            1
+                                        } else {
+                                            0
+                                        }
+                                val rowCount = (cellCount + columns - 1) / columns
+                                item(key = packKey, contentType = "sticker-pack-header") {
+                                    StickerPackSegment(isFirst = true, isLast = rowCount == 0) {
+                                        StickerPackHeader(
+                                            pack = pack,
+                                            model = model,
+                                            canManagePack = canManagePack,
+                                            isEditing = isEditing,
+                                            onToggleEditing = { editingPacks[packKey] = !isEditing },
+                                            onRemovePack = { packToRemove = pack },
+                                            onDismiss = onDismiss,
+                                        )
+                                    }
                                 }
-                                val cellCount = pack.stickers.size + if (canManagePack) 1 else 0
                                 items(
-                                    count = (cellCount + columns - 1) / columns,
-                                    key = { row -> "$packKey-row-$row" },
-                                    contentType = { "sticker-row" },
+                                    count = rowCount,
+                                    key = { row -> "$packKey:row:$row" },
+                                    contentType = { "sticker-pack-row" },
                                 ) { row ->
-                                    StickerPackCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+                                    StickerPackSegment(isFirst = false, isLast = row == rowCount - 1) {
                                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                             for (index in row * columns until minOf((row + 1) * columns, cellCount)) {
                                                 val sticker = pack.stickers.getOrNull(index)
@@ -203,18 +216,25 @@ fun StickerPackPicker(model: ImagePackViewModel, onDismiss: () -> Unit, modifier
                                                     key(sticker.shortcode) {
                                                         StickerPackItem(
                                                             sticker = sticker,
-                                                            onClick = {
-                                                                model.send(
-                                                                    pack.roomId,
-                                                                    pack.stateKey,
-                                                                    sticker.shortcode,
-                                                                )
-                                                                onDismiss()
-                                                            },
+                                                            onClick =
+                                                                if (canSelectSticker) {
+                                                                    {
+                                                                        model.send(
+                                                                            pack.roomId,
+                                                                            pack.stateKey,
+                                                                            sticker.shortcode,
+                                                                        )
+                                                                        onDismiss()
+                                                                    }
+                                                                } else {
+                                                                    null
+                                                                },
                                                             onRemove =
                                                                 if (isEditing) {
                                                                     { stickerToRemove = StickerRemoval(pack, sticker) }
-                                                                } else null,
+                                                                } else {
+                                                                    null
+                                                                },
                                                         )
                                                     }
                                                 } else {
@@ -387,31 +407,99 @@ private fun StickerPackHeader(
     onDismiss: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    StickerPackCard(modifier = Modifier.padding(horizontal = 8.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            StickerPackInfo(
-                pack = pack,
-                showRoom = pack.isGloballyEnabled && !pack.belongsToCurrentRoom,
-                modifier = Modifier.weight(1f),
-                onOpenRoom = {
-                    onDismiss()
-                    model.openRoom(pack.roomId)
-                },
-            )
-            StickerPackFavouriteButton(pack, model)
-            if (canManagePack) {
-                Tooltip({ Text(if (isEditing) i18n.commonDone() else i18n.commonEdit()) }) {
-                    ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = onToggleEditing) {
-                        Icon(
-                            if (isEditing) Icons.Default.Check else Icons.Default.Edit,
-                            contentDescription = if (isEditing) i18n.commonDone() else i18n.commonEdit(),
-                        )
-                    }
-                }
-                if (isEditing) {
-                    StickerRemovalMenu(label = i18n.imagePackRemoveFromRoom(), onRemove = onRemovePack)
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        StickerPackInfo(
+            pack = pack,
+            showRoom = pack.isGloballyEnabled && !pack.belongsToCurrentRoom,
+            modifier = Modifier.weight(1f),
+            onOpenRoom = {
+                onDismiss()
+                model.openRoom(pack.roomId)
+            },
+        )
+        StickerPackFavouriteButton(pack, model)
+        if (canManagePack) {
+            Tooltip({ Text(if (isEditing) i18n.commonDone() else i18n.commonEdit()) }) {
+                ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = onToggleEditing) {
+                    Icon(
+                        if (isEditing) Icons.Default.Check else Icons.Default.Edit,
+                        contentDescription = if (isEditing) i18n.commonDone() else i18n.commonEdit(),
+                    )
                 }
             }
+            if (isEditing) {
+                StickerRemovalMenu(label = i18n.imagePackRemoveFromRoom(), onRemove = onRemovePack)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StickerPackSegment(isFirst: Boolean, isLast: Boolean, content: @Composable () -> Unit) {
+    val cardShape = MaterialTheme.shapes.large
+    val squareCorner = CornerSize(0.dp)
+    val shape =
+        cardShape.copy(
+            topStart =
+                if (isFirst) {
+                    cardShape.topStart
+                } else {
+                    squareCorner
+                },
+            topEnd =
+                if (isFirst) {
+                    cardShape.topEnd
+                } else {
+                    squareCorner
+                },
+            bottomStart =
+                if (isLast) {
+                    cardShape.bottomStart
+                } else {
+                    squareCorner
+                },
+            bottomEnd =
+                if (isLast) {
+                    cardShape.bottomEnd
+                } else {
+                    squareCorner
+                },
+        )
+    Surface(
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(horizontal = 8.dp)
+                .padding(
+                    bottom =
+                        if (isLast) {
+                            4.dp
+                        } else {
+                            0.dp
+                        }
+                ),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Box(
+            modifier =
+                Modifier.padding(
+                    start = 8.dp,
+                    end = 8.dp,
+                    top =
+                        if (isFirst) {
+                            8.dp
+                        } else {
+                            4.dp
+                        },
+                    bottom =
+                        if (isLast) {
+                            8.dp
+                        } else {
+                            0.dp
+                        },
+                )
+        ) {
+            content()
         }
     }
 }
