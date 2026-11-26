@@ -2050,7 +2050,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomS
     abstract val isJoinRuleChanging // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModel.isJoinRuleChanging|{}isJoinRuleChanging[0]
         abstract fun <get-isJoinRuleChanging>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModel.isJoinRuleChanging.<get-isJoinRuleChanging>|<get-isJoinRuleChanging>(){}[0]
     abstract val joinRule // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModel.joinRule|{}joinRule[0]
-        abstract fun <get-joinRule>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModel.joinRule.<get-joinRule>|<get-joinRule>(){}[0]
+        abstract fun <get-joinRule>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule?> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModel.joinRule.<get-joinRule>|<get-joinRule>(){}[0]
 
     abstract fun changeJoinRule(de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule) // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModel.changeJoinRule|changeJoinRule(de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule){}[0]
 }
@@ -8776,7 +8776,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewRoomS
     final val isJoinRuleChanging // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewRoomSettingsJoinRulesViewModel.isJoinRuleChanging|{}isJoinRuleChanging[0]
         final fun <get-isJoinRuleChanging>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewRoomSettingsJoinRulesViewModel.isJoinRuleChanging.<get-isJoinRuleChanging>|<get-isJoinRuleChanging>(){}[0]
     final val joinRule // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewRoomSettingsJoinRulesViewModel.joinRule|{}joinRule[0]
-        final fun <get-joinRule>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewRoomSettingsJoinRulesViewModel.joinRule.<get-joinRule>|<get-joinRule>(){}[0]
+        final fun <get-joinRule>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule?> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewRoomSettingsJoinRulesViewModel.joinRule.<get-joinRule>|<get-joinRule>(){}[0]
 
     final fun changeJoinRule(de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule) // de.connect2x.trixnity.messenger.viewmodel.room.settings/PreviewRoomSettingsJoinRulesViewModel.changeJoinRule|changeJoinRule(de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule){}[0]
 }
@@ -9099,7 +9099,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettings
     final val isJoinRuleChanging // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.isJoinRuleChanging|{}isJoinRuleChanging[0]
         final fun <get-isJoinRuleChanging>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.isJoinRuleChanging.<get-isJoinRuleChanging>|<get-isJoinRuleChanging>(){}[0]
     final val joinRule // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.joinRule|{}joinRule[0]
-        final fun <get-joinRule>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.joinRule.<get-joinRule>|<get-joinRule>(){}[0]
+        final fun <get-joinRule>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule?> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.joinRule.<get-joinRule>|<get-joinRule>(){}[0]
     final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.lifecycle|{}lifecycle[0]
         final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
     final val log // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsJoinRulesViewModelImpl.log|{}log[0]

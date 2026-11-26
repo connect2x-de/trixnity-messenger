@@ -61,7 +61,7 @@ fun <T : Any> ColumnScope.RadioSetting(
 fun <T : Any> ColumnScope.RadioSetting(
     title: @Composable () -> Unit,
     options: Map<T, RadioSettingOption>,
-    value: T,
+    value: T?,
     set: (T) -> Unit,
     additionalContent: (@Composable ColumnScope.() -> Unit)? = null,
     enabled: Boolean = true,

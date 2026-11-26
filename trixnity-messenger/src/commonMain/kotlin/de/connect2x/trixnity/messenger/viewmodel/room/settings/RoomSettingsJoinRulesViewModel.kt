@@ -34,7 +34,7 @@ interface RoomSettingsJoinRulesViewModelFactory {
 
 interface RoomSettingsJoinRulesViewModel {
     val availableRoomJoinStates: StateFlow<List<JoinRulesEventContent.JoinRule>?>
-    val joinRule: StateFlow<JoinRulesEventContent.JoinRule>
+    val joinRule: StateFlow<JoinRulesEventContent.JoinRule?>
     val canChangeJoinRule: StateFlow<Boolean>
     val isJoinRuleChanging: StateFlow<Boolean>
 
@@ -59,11 +59,11 @@ class RoomSettingsJoinRulesViewModelImpl(
             )
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val joinRule: StateFlow<JoinRulesEventContent.JoinRule> =
+    override val joinRule: StateFlow<JoinRulesEventContent.JoinRule?> =
         matrixClient.room
             .getState<JoinRulesEventContent>(selectedRoom)
-            .map { it?.content?.joinRule ?: JoinRulesEventContent.JoinRule.Public }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), JoinRulesEventContent.JoinRule.Public)
+            .map { it?.content?.joinRule }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val canChangeJoinRule: StateFlow<Boolean> =
         matrixClient.user
@@ -117,8 +117,7 @@ class PreviewRoomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel {
         )
     override val canChangeJoinRule: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isJoinRuleChanging: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val joinRule: MutableStateFlow<JoinRulesEventContent.JoinRule> =
-        MutableStateFlow(JoinRulesEventContent.JoinRule.Public)
+    override val joinRule: MutableStateFlow<JoinRulesEventContent.JoinRule?> = MutableStateFlow(null)
 
     override fun changeJoinRule(newJoinRule: JoinRulesEventContent.JoinRule) {
         joinRule.value = newJoinRule

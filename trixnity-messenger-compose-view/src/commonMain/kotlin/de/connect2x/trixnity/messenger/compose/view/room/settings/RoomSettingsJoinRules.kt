@@ -62,13 +62,16 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
 
             if (!canChangeJoinRule.value) {
                 Tooltip(
-                    tooltip = { Text(currentJoinRule.getExplanation(i18n)) },
+                    tooltip = { Text(currentJoinRule?.getExplanation(i18n) ?: i18n.loading()) },
                     Modifier.semantics {
-                        text = AnnotatedString(settingsLabel + ", " + currentJoinRule.getStateName(i18n))
+                        text =
+                            AnnotatedString(
+                                settingsLabel + ", " + (currentJoinRule?.getStateName(i18n) ?: i18n.loading())
+                            )
                     },
                 ) {
                     Text(
-                        text = currentJoinRule.getStateName(i18n),
+                        text = currentJoinRule?.getStateName(i18n) ?: i18n.loading(),
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(10.dp),
                     )
@@ -88,6 +91,32 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                 return
             }
 
+            val radioOptions =
+                joinRules
+                    ?.associate {
+                        it to RadioSettingOption(text = it.getStateName(i18n), explanation = it.getExplanation(i18n))
+                    }
+                    .orEmpty()
+
+            if (currentJoinRule == null) {
+                RadioSetting(
+                    title = {
+                        Tooltip(
+                            tooltip = { Text(i18n.loading()) },
+                            Modifier.semantics { text = AnnotatedString(settingsLabel + ", " + i18n.loading()) },
+                        ) {
+                            Text(i18n.loading(), style = MaterialTheme.typography.titleSmall)
+                        }
+                    },
+                    options = radioOptions,
+                    enabled = false,
+                    value = null,
+                    set = {},
+                )
+
+                return
+            }
+
             RadioSetting(
                 title = {
                     Tooltip(
@@ -102,13 +131,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                         Text(currentJoinRule.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
                     }
                 },
-                options =
-                    joinRules
-                        ?.associate {
-                            it to
-                                RadioSettingOption(text = it.getStateName(i18n), explanation = it.getExplanation(i18n))
-                        }
-                        .orEmpty(),
+                options = radioOptions,
                 value = currentJoinRule,
                 set = viewModel::changeJoinRule,
             )

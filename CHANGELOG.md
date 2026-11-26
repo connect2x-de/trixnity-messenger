@@ -21,6 +21,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: (**breaking change**) Use callbacks for thumbnail and download progress
 - SDK, UI: (**breaking change**) Replace thumbnail loading flags with image download progress
 - SDK: (**breaking change**) Added `roomId` parameter to `PotentialMembersNewSearchViewModelImpl`
+- SDK: (**breaking change**) Made `RoomSettingsJoinRulesViewModel.joinRule` nullable and changed default and missing joinRule state event value to null
+- UI: Added loading state to room settings join rule tab
 
 ### Deprecated
 
