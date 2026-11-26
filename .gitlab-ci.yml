@@ -282,6 +282,7 @@ staging:android:
   script:
     - ./gradlew
       :trixnity-messenger-compose-app:assembleRelease
+      -Ptm_use_nav3=true
       --stacktrace
   artifacts:
     paths:

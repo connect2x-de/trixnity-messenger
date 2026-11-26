@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - SDK: (**breaking change**) Added `roomId` parameter to `PotentialMembersNewSearchViewModelImpl`
 - SDK: (**breaking change**) Made `RoomSettingsJoinRulesViewModel.joinRule` nullable and changed default and missing joinRule state event value to null
 - UI: Added loading state to room settings join rule tab
+- INTERNAL: Enable Nav3 in Android staging builds
 
 ### Deprecated
 
