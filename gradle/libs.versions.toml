@@ -10,7 +10,7 @@ trixnity = "5.11.1-SNAPSHOT.CI-20261119.172943" # https://gitlab.com/trixnity/tr
 sysnotify = "2.7.1" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.8" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
-unifiedPush = "3.3.3" # https://codeberg.org/UnifiedPush/android-connector/releases
+unifiedPush = "3.3.6" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.17.0" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.72" # https://www.npmjs.com/package/@zip.js/zip.js

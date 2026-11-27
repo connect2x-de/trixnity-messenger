@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.unifiedpush.android.connector.FailedReason
 import org.unifiedpush.android.connector.PushService
-import org.unifiedpush.android.connector.UnifiedPush
 import org.unifiedpush.android.connector.data.PushEndpoint
 import org.unifiedpush.android.connector.data.PushMessage
 
@@ -77,13 +76,6 @@ class TrixnityMessengerUnifiedPushService : PushService() {
 
     override fun onRegistrationFailed(reason: FailedReason, instance: String) {
         log.warn { "onRegistrationFailed: $reason" }
-        UnifiedPush.tryUseCurrentOrDefaultDistributor(context = applicationContext) { success ->
-            if (!success) {
-                log.error { "Could not retry initialize UnifiedPush" }
-            } else {
-                UnifiedPush.register(context = applicationContext)
-            }
-        }
     }
 
     override fun onUnregistered(instance: String) {

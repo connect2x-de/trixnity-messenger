@@ -119,6 +119,11 @@ class FcmPushNotificationProvider(
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
             PackageManager.DONT_KILL_APP,
         )
+        context.packageManager.setComponentEnabledSetting(
+            ComponentName(context, SyncAndProcessPendingWorkerBroadcastReceiver::class.java),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP,
+        )
         SyncAndProcessPendingWorker.enqueueUniquePeriodicWork(context = context, interval = config.periodicSyncInterval)
         FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
             OnNewTokenWorker.enqueueUniqueWork(context = context, pushKey = token)
@@ -129,6 +134,11 @@ class FcmPushNotificationProvider(
         val context = contextGetter()
         context.packageManager.setComponentEnabledSetting(
             ComponentName(context, TrixnityMessengerFirebaseMessagingService::class.java),
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP,
+        )
+        context.packageManager.setComponentEnabledSetting(
+            ComponentName(context, SyncAndProcessPendingWorkerBroadcastReceiver::class.java),
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP,
         )
