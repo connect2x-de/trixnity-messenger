@@ -16,8 +16,12 @@ import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.call.CallMediaFactory
+import de.connect2x.trixnity.messenger.call.CallService
+import de.connect2x.trixnity.messenger.call.CallSessionFactory
+import de.connect2x.trixnity.messenger.call.CallTarget
 import de.connect2x.trixnity.messenger.internal.navigation.RouteNavigation
-import de.connect2x.trixnity.messenger.internal.routes.RoomCallRoute
+import de.connect2x.trixnity.messenger.internal.navigation.restoreCall
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -37,26 +41,35 @@ import org.koin.core.component.get
 import org.koin.core.component.inject
 
 @TrixnityMessengerCallApi
-interface CallControlViewModelFactory {
-    fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallControlViewModel?
+interface RoomCallButtonViewModelFactory {
+    fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): RoomCallButtonViewModel?
 }
 
 @TrixnityMessengerCallApi
-class CallControlViewModelFactoryImpl(private val messengerConfiguration: MatrixMessengerConfiguration) :
-    CallControlViewModelFactory {
-    override fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): CallControlViewModel? {
+class RoomCallButtonViewModelFactoryImpl(private val messengerConfiguration: MatrixMessengerConfiguration) :
+    RoomCallButtonViewModelFactory {
+    override fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId): RoomCallButtonViewModel? {
         if (!messengerConfiguration.features.enableVideoCalls) {
             return null
         }
 
-        return CallControlViewModelImpl(viewModelContext, roomId)
+        return RoomCallButtonViewModelImpl(
+            viewModelContext = viewModelContext,
+            roomId = roomId,
+            calls = viewModelContext.getOrNull<CallService>(),
+            sessionFactory =
+                if (viewModelContext.getOrNull<CallMediaFactory>() != null)
+                    viewModelContext.getOrNull<CallSessionFactory>()
+                else null,
+        )
     }
 }
 
 @TrixnityMessengerCallApi
-interface CallControlViewModel {
+interface RoomCallButtonViewModel {
     val state: StateFlow<State?>
 
+    /** Start or join this room's call, or reopen its active session. */
     fun join()
 
     fun leave()
@@ -65,6 +78,10 @@ interface CallControlViewModel {
         data object NoCall : State
 
         data class CallAvailable(val hasParticipants: Boolean) : State
+
+        data object ActiveCall : State
+
+        data object CallInAnotherRoom : State
 
         data object Joining : State
 
@@ -78,16 +95,21 @@ interface CallControlViewModel {
 
 @OptIn(MSC4143::class, MSC4193::class, MSC4195::class)
 @TrixnityMessengerCallApi
-class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, private val roomId: RoomId) :
-    CallControlViewModel, MatrixClientViewModelContext by viewModelContext {
+class RoomCallButtonViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    private val roomId: RoomId,
+    private val calls: CallService?,
+    private val sessionFactory: CallSessionFactory?,
+) : RoomCallButtonViewModel, MatrixClientViewModelContext by viewModelContext {
 
     init {
         check(get<MatrixMessengerConfiguration>().features.enableVideoCalls) {
-            "CallControlViewModel must not be used without video calls enabled"
+            "RoomCallButtonViewModel must not be used without video calls enabled"
         }
     }
 
     private val slotId = CallRtcApplication.SLOT_ID
+    private val target = CallTarget(userId, roomId, slotId)
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val routeNavigation = getOrNull<RouteNavigation>()
     private val membership =
@@ -114,33 +136,44 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     private val configuration: MatrixMessengerConfiguration by inject()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val state: StateFlow<CallControlViewModel.State?> = let {
-        if (!configuration.features.enableVideoCalls) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
+    override val state: StateFlow<RoomCallButtonViewModel.State?> = let {
+        if (!configuration.features.enableVideoCalls) return@let MutableStateFlow(RoomCallButtonViewModel.State.NoCall)
         // TODO(fhilgers): can we check that features are only enabled when nav3 is enabled?
-        if (routeNavigation == null) return@let MutableStateFlow(CallControlViewModel.State.NoCall)
+        if (routeNavigation == null) return@let MutableStateFlow(RoomCallButtonViewModel.State.NoCall)
 
         messengerSettings
             .map { it.experimental.enableVideoCalls }
             .distinctUntilChanged()
             .flatMapLatest { enabled ->
-                if (!enabled) return@flatMapLatest flowOf(CallControlViewModel.State.NoCall)
+                if (!enabled || calls == null || sessionFactory == null)
+                    return@flatMapLatest flowOf(RoomCallButtonViewModel.State.NoCall)
 
-                combine(membership.flatMapLatest { it?.state ?: flowOf(null) }, canCreateOrJoin, hasParticipants) {
-                    existingMembershipState,
+                combine(
+                    membership.flatMapLatest { it?.state ?: flowOf(null) },
                     canCreateOrJoin,
-                    hasParticipants ->
+                    hasParticipants,
+                    calls.session,
+                ) { existingMembershipState, canCreateOrJoin, hasParticipants, activeSession ->
+                    if (activeSession != null) {
+                        return@combine when {
+                            activeSession.target == target -> RoomCallButtonViewModel.State.ActiveCall
+                            canCreateOrJoin -> RoomCallButtonViewModel.State.CallInAnotherRoom
+                            else -> RoomCallButtonViewModel.State.NoCall
+                        }
+                    }
+
                     when (existingMembershipState) {
-                        is RtcSlotMembership.State.Join -> CallControlViewModel.State.Join
-                        is RtcSlotMembership.State.Joining -> CallControlViewModel.State.Joining
-                        is RtcSlotMembership.State.Leaving -> CallControlViewModel.State.Leaving
+                        is RtcSlotMembership.State.Join -> RoomCallButtonViewModel.State.Join
+                        is RtcSlotMembership.State.Joining -> RoomCallButtonViewModel.State.Joining
+                        is RtcSlotMembership.State.Leaving -> RoomCallButtonViewModel.State.Leaving
                         is RtcSlotMembership.State.JoiningError,
                         is RtcSlotMembership.State.LeavingError ->
-                            CallControlViewModel.State.Error(i18n.callJoinError())
+                            RoomCallButtonViewModel.State.Error(i18n.callJoinError())
 
                         is RtcSlotMembership.State.Leave,
                         null ->
-                            if (canCreateOrJoin) CallControlViewModel.State.CallAvailable(hasParticipants)
-                            else CallControlViewModel.State.NoCall
+                            if (canCreateOrJoin) RoomCallButtonViewModel.State.CallAvailable(hasParticipants)
+                            else RoomCallButtonViewModel.State.NoCall
                     }
                 }
             }
@@ -148,26 +181,41 @@ class CallControlViewModelImpl(viewModelContext: MatrixClientViewModelContext, p
     }
 
     override fun join() {
-        if (state.value !is CallControlViewModel.State.CallAvailable) return
-        routeNavigation?.updateNavigation {
-            val route = RoomCallRoute(userId, roomId)
-            if (route !in items) push(route)
-        }
+        val service = calls ?: return
+        val navigation = routeNavigation ?: return
+        val session =
+            service.session.value
+                ?: run {
+                    if (state.value !is RoomCallButtonViewModel.State.CallAvailable) return
+                    val newSession = sessionFactory?.create(target) ?: return
+                    if (!service.register(newSession)) {
+                        newSession.close()
+                        return
+                    }
+                    newSession
+                }
+        if (session.target != target) return
+        navigation.updateNavigation { if (service.session.value === session) restoreCall(target) }
     }
 
     override fun leave() {
-        coroutineScope.launch {
-            membership
-                .first()
-                ?.takeIf { it.state.first().content is RtcMemberEventContent.Join }
-                ?.leave(RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.LEAVE.value))
-        }
+        val current = calls?.session?.value
+        if (current != null && current.target == target) {
+            calls.unregister(current)
+        } else
+            coroutineScope.launch {
+                membership
+                    .first()
+                    ?.takeIf { it.state.first().content is RtcMemberEventContent.Join }
+                    ?.leave(RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.LEAVE.value))
+            }
     }
 }
 
 @TrixnityMessengerCallApi
-class PreviewCallControlViewModel : CallControlViewModel {
-    override val state: StateFlow<CallControlViewModel.State> = MutableStateFlow(CallControlViewModel.State.NoCall)
+class PreviewRoomCallButtonViewModel : RoomCallButtonViewModel {
+    override val state: StateFlow<RoomCallButtonViewModel.State> =
+        MutableStateFlow(RoomCallButtonViewModel.State.NoCall)
 
     override fun join() = Unit
 

@@ -33,6 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
+import de.connect2x.trixnity.messenger.call.CallParticipant
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -40,6 +42,7 @@ import de.connect2x.trixnity.messenger.compose.view.room.call.livekit.CallVideoV
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
+@TrixnityMessengerCallApi
 @Composable
 internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant, elevation: Dp = 0.dp) {
     val i18n = DI.get<I18nView>()
@@ -58,8 +61,9 @@ internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant, elev
         border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = speakingAlpha)),
     ) {
         BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            if (item.video != null) {
-                CallVideoView(item.video, Modifier.fillMaxSize(), backgroundColor = containerColor)
+            val video = item.video
+            if (video != null) {
+                CallVideoView(video, Modifier.fillMaxSize(), backgroundColor = containerColor)
             } else {
                 val avatarSize = (minOf(maxWidth, maxHeight) * 0.45f).coerceAtMost(120.dp)
                 CallAvatar(item.user, avatarSize)
@@ -71,11 +75,11 @@ internal fun CallParticipantTile(modifier: Modifier, item: CallParticipant, elev
             ) {
                 Box(Modifier.weight(1f)) {
                     CallBubble {
-                        if (item.video != null) {
+                        if (video != null) {
                             CallAvatar(item.user, InputChipDefaults.AvatarSize)
                         }
                         Text(
-                            text = if (item.isLocal) i18n.callYou() else item.user.name,
+                            text = if (item.isByMe) i18n.callYou() else item.user.name,
                             modifier = Modifier.weight(1f, fill = false),
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = 1,

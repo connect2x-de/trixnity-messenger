@@ -2,7 +2,9 @@
 
 package de.connect2x.trixnity.messenger.compose.view.room.call.livekit
 
+import de.connect2x.livekitnity.api.e2ee.KeyDerivationAlgorithm
 import de.connect2x.livekitnity.api.e2ee.KeyProvider
+import de.connect2x.livekitnity.api.e2ee.KeyProviderOptions
 import de.connect2x.trixnity.client.rtc.PerMemberRtcSlotMembershipEncryptionInfo
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.model.UserId
@@ -16,6 +18,21 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 
 internal class MatrixRtcKeyProvider(private val keyProvider: KeyProvider) {
+    companion object {
+        /**
+         * MSC4195: per-member HKDF keys, with indices spanning [0, 255].
+         *
+         * https://github.com/matrix-org/matrix-spec-proposals/blob/main/proposals/4195-matrixrtc-livekit.md#end-to-end-encryption
+         */
+        val options =
+            KeyProviderOptions(
+                ratchetWindowSize = 0, // disabled
+                enableSharedKey = false,
+                keyRingSize = 256,
+                keyDerivationAlgorithm = KeyDerivationAlgorithm.HKDF,
+            )
+    }
+
     /** Matrix keys are Base64-encoded binary, unlike BaseKeyProvider's UTF-8 strings. */
     suspend fun setKey(key: String, participantId: String?, keyIndex: Int?) {
         val identity = requireNotNull(participantId) { "Missing MatrixRTC participant identity" }

@@ -1,5 +1,3 @@
-@file:OptIn(TrixnityMessengerCallApi::class)
-
 package de.connect2x.trixnity.messenger.compose.view.room.call
 
 import androidx.compose.foundation.layout.Arrangement
@@ -23,50 +21,64 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import de.connect2x.livekitnity.api.LiveKit
-import de.connect2x.livekitnity.compose.local.LiveKitLocal
 import de.connect2x.livekitnity.compose.local.VideoTrackRendererLocal
 import de.connect2x.livekitnity.compose.types.VideoTrackRenderer
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
-import de.connect2x.trixnity.messenger.compose.view.room.call.livekit.rememberCallState
-import de.connect2x.trixnity.messenger.viewmodel.room.call.RoomCallViewModel
-
-@Composable internal expect fun rememberLiveKit(): LiveKit
+import de.connect2x.trixnity.messenger.call.CallParticipant
+import de.connect2x.trixnity.messenger.call.CallSessionState
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 
 @Composable internal expect fun rememberVideoTrackRenderer(): VideoTrackRenderer
 
+@OptIn(TrixnityMessengerCallApi::class)
 @Composable
-internal actual fun LiveKitCall(viewModel: RoomCallViewModel) {
-    CompositionLocalProvider(
-        LiveKitLocal provides rememberLiveKit(),
-        VideoTrackRendererLocal provides rememberVideoTrackRenderer(),
-    ) {
-        LiveKitCallImpl(viewModel)
+internal actual fun LiveKitCall(
+    state: CallSessionState,
+    onLeave: () -> Unit,
+    onMicrophone: () -> Unit,
+    onCamera: () -> Unit,
+    onBackground: () -> Unit,
+) {
+    CompositionLocalProvider(VideoTrackRendererLocal provides rememberVideoTrackRenderer()) {
+        LiveKitCallImpl(state, onLeave, onMicrophone, onCamera, onBackground)
     }
 }
 
+@TrixnityMessengerCallApi
 @Composable
-private fun LiveKitCallImpl(viewModel: RoomCallViewModel) {
-    when (val state = rememberCallState(viewModel)) {
-        is CallState.Message -> CallMessage(Modifier.padding(CallSpacing * 2), state)
-        is CallState.Active -> {
-            Column(
-                Modifier.fillMaxSize().padding(CallSpacing),
-                verticalArrangement = Arrangement.spacedBy(CallSpacing),
-            ) {
-                state.messages.forEach { CallMessage(message = it) }
-                CallParticipants(state, Modifier.weight(1f))
-                CallControls(state.microphone, state.camera)
-            }
+private fun LiveKitCallImpl(
+    state: CallSessionState,
+    onLeave: () -> Unit,
+    onMicrophone: () -> Unit,
+    onCamera: () -> Unit,
+    onBackground: () -> Unit,
+) {
+    val presentation = state.toCallState(DI.get<I18nView>())
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(CallSpacing)) {
+        Column(Modifier.weight(1f).padding(CallSpacing), verticalArrangement = Arrangement.spacedBy(CallSpacing)) {
+            presentation.messages.forEach { CallMessage(message = it) }
+            CallParticipants(presentation, Modifier.weight(1f))
         }
+        CallControls(
+            microphoneEnabled = presentation.microphoneEnabled,
+            cameraEnabled = presentation.cameraEnabled,
+            onLeave = onLeave,
+            onMicrophone = onMicrophone,
+            onCamera = onCamera,
+            onBackground = onBackground,
+        )
     }
 }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun CallMessage(modifier: Modifier = Modifier, message: CallState.Message) {
     Text(message.text, modifier, color = if (message.isError) MaterialTheme.colorScheme.error else Color.Unspecified)
 }
 
+@TrixnityMessengerCallApi
 @Composable
 private fun CallParticipants(state: CallState.Active, modifier: Modifier) {
     val participants = rememberOrderedParticipants(state)
@@ -79,14 +91,16 @@ private fun CallParticipants(state: CallState.Active, modifier: Modifier) {
 }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun rememberOrderedParticipants(state: CallState.Active): List<CallParticipant> =
     remember(state.featured, state.thumbnails) {
         (listOfNotNull(state.featured) + state.thumbnails).sortedWith(
-            compareBy<CallParticipant> { it.isLocal }.thenBy { it.id }
+            compareBy<CallParticipant> { it.isByMe }.thenBy { it.id }
         )
     }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun CallParticipantsOverlay(primary: CallParticipant, secondary: CallParticipant?, modifier: Modifier) {
     BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         key(primary.id) { CallParticipantTile(Modifier.fillMaxSize(), primary) }
@@ -106,6 +120,7 @@ private fun CallParticipantsOverlay(primary: CallParticipant, secondary: CallPar
 }
 
 @Composable
+@TrixnityMessengerCallApi
 private fun CallParticipantsGrid(participants: List<CallParticipant>, modifier: Modifier) {
     BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val grid = calculateParticipantGrid(participants.size, maxWidth, maxHeight)

@@ -1,6 +1,11 @@
 package de.connect2x.trixnity.messenger.internal.compose.view
 
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerCallApi
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
+import de.connect2x.trixnity.messenger.call.CallService
+import de.connect2x.trixnity.messenger.compose.view.room.call.CallControlsView
+import de.connect2x.trixnity.messenger.compose.view.room.call.CallControlsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.call.callMediaModule
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.EntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.component.ComponentStoreNavEntryDecoratorFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.decorator.entryDecoratorOf
@@ -77,13 +82,16 @@ import de.connect2x.trixnity.messenger.internal.compose.view.navigation.EntryPro
 import de.connect2x.trixnity.messenger.internal.compose.view.navigation.navigationOf
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.SceneDecoratorStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.SceneStrategyFactory
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.call.CallControlsSceneDecoratorStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.navigationbar.NavigationBarSceneDecoratorStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.navigationrail.NavigationRailSceneDecoratorStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.overlay.OverlaySceneStrategyFactory
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.sceneDecoratorStrategy
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.sceneDecoratorStrategyOf
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.sceneStrategyOf
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.singlepane.SinglePaneSceneStrategyFactory
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.threepane.ThreePaneSceneStrategyFactory
+import de.connect2x.trixnity.messenger.internal.compose.view.scenes.twopane.TwoPaneScenePlaceholder
 import de.connect2x.trixnity.messenger.internal.compose.view.scenes.twopane.TwoPaneSceneStrategyFactory
 import de.connect2x.trixnity.messenger.internal.nav3ViewModelOptIn
 import de.connect2x.trixnity.messenger.internal.navigation.GetRouteNavigation
@@ -92,6 +100,7 @@ import de.connect2x.trixnity.messenger.internal.sort.before
 import de.connect2x.trixnity.messenger.internal.sort.getSorted
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.viewmodel.room.call.CallControlsViewModelFactory
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -105,8 +114,10 @@ fun MatrixMultiMessengerConfiguration.nav3ViewOptIn() {
     messengerConfiguration { modulesFactories += ::nav3ViewModuleFactory }
 }
 
+@OptIn(TrixnityMessengerCallApi::class)
 private fun nav3ViewModuleFactory(): Module {
     return module {
+        includes(callMediaModule())
         singleOf(::ClientView)
         single { EntryProvider(entries = getAll<AnyNavigationEntry<*>>()) }
         single<NavigationView> {
@@ -120,6 +131,22 @@ private fun nav3ViewModuleFactory(): Module {
             )
         }
 
+        single<CallControlsView> { CallControlsViewImpl() }
+
+        sceneDecoratorStrategy(
+            definition = {
+                CallControlsSceneDecoratorStrategyFactory(
+                    service = get<CallService>(),
+                    navigation = get<GetRouteNavigation>(),
+                    view = get<CallControlsView>(),
+                    viewModelFactory = get<CallControlsViewModelFactory>(),
+                    placeholder = getOrNull<TwoPaneScenePlaceholder>(),
+                )
+            }
+        ) {
+            before<NavigationRailSceneDecoratorStrategyFactory>()
+            before<NavigationBarSceneDecoratorStrategyFactory>()
+        }
         sceneDecoratorStrategyOf(::NavigationRailSceneDecoratorStrategyFactory)
         sceneDecoratorStrategyOf(::NavigationBarSceneDecoratorStrategyFactory)
         sceneStrategyOf(::OverlaySceneStrategyFactory) { before<ThreePaneSceneStrategyFactory>() }
