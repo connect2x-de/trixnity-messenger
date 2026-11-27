@@ -130,11 +130,16 @@ class UnifiedPushNotificationProvider(
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
             PackageManager.DONT_KILL_APP,
         )
+        activity.packageManager.setComponentEnabledSetting(
+            ComponentName(activity, SyncAndProcessPendingWorkerBroadcastReceiver::class.java),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP,
+        )
         SyncAndProcessPendingWorker.enqueueUniquePeriodicWork(
             context = activity,
             interval = config.periodicSyncInterval,
         )
-        UnifiedPush.tryUseCurrentOrDefaultDistributor(context = activity) { success ->
+        UnifiedPush.tryUseCurrentOrDefaultDistributor(activity) { success ->
             if (!success) {
                 log.error { "Could not initialize UnifiedPush (distributors=${UnifiedPush.getDistributors(activity)})" }
             } else {
@@ -147,6 +152,11 @@ class UnifiedPushNotificationProvider(
         val activity = activityGetter()
         activity.packageManager.setComponentEnabledSetting(
             ComponentName(activity, TrixnityMessengerUnifiedPushService::class.java),
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP,
+        )
+        activity.packageManager.setComponentEnabledSetting(
+            ComponentName(activity, SyncAndProcessPendingWorkerBroadcastReceiver::class.java),
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP,
         )

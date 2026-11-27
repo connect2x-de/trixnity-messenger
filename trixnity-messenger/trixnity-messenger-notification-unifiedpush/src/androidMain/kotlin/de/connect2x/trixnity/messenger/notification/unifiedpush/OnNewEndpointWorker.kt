@@ -22,6 +22,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -77,6 +78,8 @@ class OnNewEndpointWorker(private val context: Context, params: WorkerParameters
                         .bodyAsText()
                         .let { json.decodeFromString<PushEndpointMatrixGatewayDiscovery>(it) }
                     pushKeyAsUrl.toString()
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     log.warn(e) {
                         "Failed to fetch push endpoint discovery for $pushKey, using fallback url from config instead"
